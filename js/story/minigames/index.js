@@ -10,3 +10,5 @@ export function startMinigame(robot, ui) {
   if (!tpl) { console.warn('Unknown mini-game type', robot.minigame); return null; }
   return tpl.start(robot, ui);
 }
+
+export const hasMinigame = robot => Boolean(TEMPLATES[robot?.minigame?.type]);

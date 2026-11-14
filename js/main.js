@@ -3,9 +3,14 @@
 import { startRadio, setSignal, muteRadio } from './story/radio.js';
 import { showStory, stopStory, skipTyping } from './story/story.js';
 import { playTransition } from './story/transition.js';
-import { startMinigame } from './story/minigames/index.js';
+import { startMinigame, hasMinigame } from './story/minigames/index.js';
 import { openFinale } from './story/finale.js';
 import { renderFriends, countFriends } from './story/friends.js';
+// Story mode (Dev B): mode choice, prologue, cinematic stories, "Why it matters"
+import { isStory, setMode, onModeChange } from './story/mode.js';
+import { playPrologue } from './story/prologue.js';
+import { showCinema, stopCinema, resumeCinema } from './story/cinema.js';
+import { showWhy } from './story/why.js';
 
 import {
   compassPoint,
@@ -73,6 +78,7 @@ function show(id) {
     screen.hidden = screen.id !== id;
   }
   state.screen = id.replace('screen-', '');
+  document.body.dataset.screen = state.screen;
   window.scrollTo(0, 0);
 }
 
@@ -356,6 +362,27 @@ function openStory(robot) {
   state.found.add(robot.id);
   muteRadio();
 
+  // Story mode: the same robot, told as animated cards
+  if (isStory()) {
+    stopStory();
+    let light = '';
+    try { light = formatLightTime(getLightTime(robot.sky_target)); } catch { light = ''; }
+    renderCounter();
+    renderRobotList();
+    map?.refresh();
+    show('screen-cinema');
+    updateFinaleButton();
+    showCinema(robot, {
+      light,
+      onMinigame: openMinigame,
+      onFriend: updateFriendsButton,
+      onExit: backToRadio,
+      canPlay: hasMinigame,
+    });
+    return;
+  }
+  stopCinema();
+
   const target = targetFor(robot.sky_target);
   const light = $('story-light');
   if (light) {
@@ -378,6 +405,7 @@ function openStory(robot) {
 
 function backToRadio() {
   stopStory();
+  stopCinema();
   setSignal(0);
   state.suppressUntil = performance.now() + 1200;
   state.lockStart = null;
@@ -404,6 +432,7 @@ function updateFriendsButton() {
 
 function openFriends() {
   stopStory();
+  stopCinema();
   muteRadio();
   const n = countFriends(state.robots);
   $('friends-count').textContent = `${n} of ${state.robots.length} friends found`;
@@ -417,6 +446,7 @@ function openFriends() {
 
 function openMinigame(robot) {
   stopStory();
+  stopCinema();
   show('screen-minigame');
   $('mg-title').textContent = `Help ${robot.name}`;
   $('mg-intro').textContent = robot.minigame?.intro || '';
@@ -432,7 +462,12 @@ function openMinigame(robot) {
 function closeMinigame() {
   if (state.game) state.game.stop();
   state.game = null;
-  show('screen-story');
+  if (isStory()) {
+    show('screen-cinema');
+    resumeCinema();
+  } else {
+    show('screen-story');
+  }
 }
 
 /* ------------------------------------------------------------------ */
@@ -446,7 +481,26 @@ function updateFinaleButton() {
 function goFinale() {
   muteRadio();
   show('screen-finale');
-  openFinale({ onExit: () => { setSignal(0); show('screen-radio'); } });
+  $('btn-finale-back').textContent = isStory() ? 'Why it matters ▸' : 'Back to Belu';
+  openFinale({ onExit: () => (isStory() ? goWhy() : returnToSky()) });
+}
+
+function returnToSky() {
+  setSignal(0);
+  refreshSky();
+  show('screen-radio');
+  map?.start();
+}
+
+// Story mode ending: zoom out over the Solar System, then back to the sky
+function goWhy() {
+  show('screen-why');
+  showWhy({
+    robots: state.robots,
+    isFound: (robot) => state.found.has(robot.id),
+    onExplore: returnToSky,
+    onScience: () => { setMode('science'); returnToSky(); },
+  });
 }
 
 /* ------------------------------------------------------------------ */
@@ -568,7 +622,7 @@ function locateUser() {
 /* Boot                                                                */
 /* ------------------------------------------------------------------ */
 
-$('btn-start').addEventListener('click', () => {
+function startListening() {
   startRadio();
   setSignal(0);
   locateUser();
@@ -576,6 +630,26 @@ $('btn-start').addEventListener('click', () => {
   refreshSky();
   map?.start();
   if (params.has('finale')) goFinale();   // shortcut for filming the video
+}
+
+// Scientist mode: straight to the sky
+$('btn-start').addEventListener('click', () => {
+  setMode('science');
+  startListening();
+});
+
+// Story with Belu: the prologue first (the tap also unlocks the sound on iPhone)
+$('btn-story')?.addEventListener('click', () => {
+  setMode('story');
+  startRadio();
+  muteRadio();
+  if (params.has('finale') || params.has('noprologue')) { startListening(); return; }
+  playPrologue({ robots: state.robots, onDone: startListening });
+});
+
+// Switching mode in the middle of a story re-opens it in the other style
+onModeChange(() => {
+  if ((state.screen === 'story' || state.screen === 'cinema') && state.lastRobot) openStory(state.lastRobot);
 });
 
 $('btn-antenna')?.addEventListener('click', startAntenna);
