@@ -11,6 +11,20 @@ let clicksOn = false;
 let nextClick = 0;
 let clickBuffer = null;
 
+// Sound settings (set by sound.js): muted = everything off; staticOn = the radio crackle
+let muted = false;
+let staticOn = true;
+export const isMuted = () => muted;
+export function setMuted(value) {
+  muted = Boolean(value);
+  if (!ctx) return;
+  if (muted) ctx.suspend(); else ctx.resume();
+}
+export function setStaticEnabled(value) {
+  staticOn = Boolean(value);
+  if (noiseGain && ctx) noiseGain.gain.setTargetAtTime(staticOn && clicksOn ? 0.18 * (1 - strengthNow) + 0.02 : 0, ctx.currentTime, 0.1);
+}
+
 export function startRadio() {
   if (ctx) return;
   ctx = new (window.AudioContext || window.webkitAudioContext)();
@@ -30,7 +44,7 @@ export function startRadio() {
   filter.Q.value = 0.6;
 
   noiseGain = ctx.createGain();
-  noiseGain.gain.value = 0.18;
+  noiseGain.gain.value = staticOn ? 0.18 : 0;
   noise.connect(filter).connect(noiseGain).connect(ctx.destination);
   noise.start();
 
@@ -48,6 +62,7 @@ export function startRadio() {
   const c = clickBuffer.getChannelData(0);
   for (let i = 0; i < c.length; i++) c[i] = (Math.random() * 2 - 1) * Math.exp(-i / (c.length / 6));
   setInterval(scheduleClicks, 50);
+  if (muted) ctx.suspend();
 }
 
 function scheduleClicks() {
@@ -76,7 +91,7 @@ export function setSignal(strength) {
   strengthNow = s;
   clicksOn = true;
   const t = ctx.currentTime;
-  noiseGain.gain.setTargetAtTime(0.18 * (1 - s) + 0.02, t, 0.1);
+  noiseGain.gain.setTargetAtTime(staticOn ? 0.18 * (1 - s) + 0.02 : 0, t, 0.1);
   toneGain.gain.setTargetAtTime(0.12 * s * s, t, 0.1);
   osc.frequency.setTargetAtTime(300 + 300 * s, t, 0.1);
 }

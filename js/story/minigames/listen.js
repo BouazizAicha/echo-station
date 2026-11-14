@@ -8,6 +8,7 @@
 import {
   TAU, clamp, setupCanvas, setupControls, tone, hum, vibrate, announcer,
   gameLoop, showResult, makeHandle, bar, panel, seeded, reducedMotion,
+  goalBanner,
 } from './kit.js';
 import { getAudioContext } from '../radio.js';
 
@@ -66,7 +67,6 @@ function run(mg, ui) {
   const spectrum = new Float32Array(120);
   let sig = { x: W / 2 + 40, y: VIEW_H / 2 - 30 };
 
-  say.say('Catch the last signal. Keep the dish on Pioneer 10\'s faint signal while the years go by. Listen: the tone gets louder when you are on it.', { force: true });
 
   function update(dt) {
     t += dt;
@@ -175,6 +175,16 @@ function run(mg, ui) {
     panel(ctx, 276, 12, 72, 32);
     ctx.fillStyle = '#eef0ff'; ctx.font = '700 16px "JetBrains Mono", monospace'; ctx.textAlign = 'center';
     ctx.fillText(String(Math.min(END_YEAR, Math.floor(view.year))), 312, 34);
+    // the goal, in words, and a small arrow from the circle toward the glow
+    goalBanner(ctx, W, 52, view.locked ? 'Great! Stay on the glow' : 'Move the circle onto the purple glow', view.locked ? '#5de4ff' : '#eef0ff');
+    if (!view.locked) {
+      const a = Math.atan2(sig.y - dish.y, sig.x - dish.x);
+      const r = view.radius + 14;
+      ctx.save(); ctx.translate(dish.x + Math.cos(a) * r, dish.y + Math.sin(a) * r); ctx.rotate(a);
+      ctx.fillStyle = 'rgba(180,155,255,.9)';
+      ctx.beginPath(); ctx.moveTo(9, 0); ctx.lineTo(-5, -7); ctx.lineTo(-5, 7); ctx.closePath(); ctx.fill();
+      ctx.restore();
+    }
     ui.hud.textContent = `Year ${Math.min(END_YEAR, Math.floor(view.year))} · Signal ${Math.round(view.strength * 100)}% · ${view.locked ? 'LOCKED' : 'searching'} · Data ${Math.round(maxData ? data / maxData * 100 : 0)}%`;
   }
 

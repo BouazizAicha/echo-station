@@ -8,6 +8,7 @@
 import {
   TAU, clamp, setupCanvas, setupControls, tone, burst, hum, vibrate, announcer,
   gameLoop, showResult, makeHandle, bar, panel, seeded, reducedMotion,
+  goalBanner, edgeArrow,
 } from './kit.js';
 
 const W = 360, H = 480, SOL = 8, SOLS = 8, GROUND = 360;
@@ -46,7 +47,6 @@ function run(mg, ui) {
     say.say(on ? 'Science on: earning points, using power.' : 'Science off: saving power.', { force: true });
   };
   setScience(true);
-  say.say('Survive the dust storm for 8 Martian days. Science earns points but uses power. Drive into dust devils to clean your solar panels.', { force: true });
 
   function update(dt) {
     t += dt;
@@ -179,6 +179,15 @@ function run(mg, ui) {
     ctx.fillStyle = science ? '#5de4ff' : '#9a9cc4'; ctx.fillText(`SCIENCE ${Math.round(points)}`, 218, 38);
     ctx.fillStyle = '#eef0ff'; ctx.textAlign = 'right';
     ctx.fillText(day > 0 ? (tau > 3 ? 'STORM' : 'DAY') : 'NIGHT', 342, 25);
+    // the goal, in words: what matters right now
+    const devil = devils.find(d => !d.cleaned);
+    let words = `Survive 8 days · Day ${Math.min(SOLS, Math.floor(t / SOL) + 1)}`, color = '#eef0ff';
+    if (devil) { words = 'Dust devil! Drive into it to clean the panels'; color = '#5de4ff'; }
+    else if (battery < 30 && science) { words = 'Battery low: turn science OFF (▲)'; color = '#ff9bd5'; }
+    else if (tau > 3) { words = 'Big storm: save power!'; color = '#ff9bd5'; }
+    else if (day === 0) words = `Night ${Math.min(SOLS, Math.floor(t / SOL) + 1)}: the heaters use power`;
+    goalBanner(ctx, W, 52, words, color);
+    if (devil && Math.abs(devil.x - rover) > 40) edgeArrow(ctx, devil.x < rover ? rover - 48 : rover + 48, GROUND - 70, devil.x < rover ? Math.PI : 0, '#5de4ff');
     ui.hud.textContent = `Sol ${Math.min(SOLS, Math.floor(t / SOL) + 1)}/${SOLS} · Battery ${Math.round(battery)}% · Panels ${Math.round(clean * 100)}% clean · Science ${Math.round(points)}`;
   }
 

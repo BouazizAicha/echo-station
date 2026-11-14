@@ -46,9 +46,9 @@ export function initSkyMap({
   overlay = null,              // extra drawing on top of the sky (sonar rings and echoes)
 }) {
   const context = canvas.getContext('2d');
-  const reduceMotion = typeof matchMedia !== 'undefined'
-    ? matchMedia('(prefers-reduced-motion: reduce)').matches
-    : false;
+  // Live check, so the app's "Calm mode" setting applies without reloading
+  const calm = () => (typeof matchMedia !== 'undefined' && matchMedia('(prefers-reduced-motion: reduce)').matches)
+    || document.body.classList.contains('a11y-calm');
 
   const view = { az: 180, alt: 45 };
   let running = false;
@@ -284,7 +284,7 @@ export function initSkyMap({
 
     // Unknown signal: a pulsing ring, as described in the brief.
     if (!foundAll && target.total > 0) {
-      const pulse = reduceMotion ? 0.5 : (Math.sin(time / 450) + 1) / 2;
+      const pulse = calm() ? 0.5 : (Math.sin(time / 450) + 1) / 2;
       context.strokeStyle = `rgba(255, 255, 255, ${0.18 + pulse * 0.35})`;
       context.lineWidth = 1.2;
       context.beginPath();
@@ -349,7 +349,7 @@ export function initSkyMap({
     }
 
     // Reticle.
-    const pulse = near && !reduceMotion ? 0.6 + 0.4 * Math.sin(time / 160) : 0.7;
+    const pulse = near && !calm() ? 0.6 + 0.4 * Math.sin(time / 160) : 0.7;
     context.strokeStyle = `rgba(93, 228, 255, ${pulse})`;
     context.lineWidth = 1.4;
     context.beginPath();

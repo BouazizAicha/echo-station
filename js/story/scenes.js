@@ -3,7 +3,7 @@
 // nothing flashes. With prefers-reduced-motion, the scene is drawn once and stays still.
 
 const TAU = Math.PI * 2;
-const reducedMotion = () => window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+const reducedMotion = () => (window.matchMedia('(prefers-reduced-motion: reduce)').matches || document.body.classList.contains('a11y-calm'));
 
 // Deterministic random numbers, so a scene looks the same every time
 function rng(seed) {

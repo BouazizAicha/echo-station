@@ -8,6 +8,7 @@
 import {
   TAU, clamp, setupCanvas, setupControls, tone, burst, hum, vibrate, announcer,
   gameLoop, showResult, makeHandle, starfield, bar, panel, seeded, reducedMotion,
+  goalBanner, warning,
 } from './kit.js';
 
 const W = 360, H = 480;
@@ -44,7 +45,6 @@ function run(mg, ui) {
   const lm = { x: 70, y: 50, vx: 17, vy: 8 };
   let fuel = FUEL_START, t = 0, state = 'fly', beepAt = 0, alarm = 0, said = new Set(), dust = [];
 
-  say.say('Land the Eagle. You are falling toward a field of boulders. Flat ground is to the right. Hold up to slow down.', { force: true });
 
   function update(dt) {
     t += dt;
@@ -192,6 +192,14 @@ function run(mg, ui) {
       ctx.fillStyle = '#eef0ff'; ctx.font = '10px Inter, sans-serif';
       ctx.fillText('Houston: "We\'re GO on that alarm!"', 158, 40);
     }
+    // the goal, in words, and a sign on the landing spot
+    const overZone = lm.x >= ZONE.a && lm.x <= ZONE.b;
+    goalBanner(ctx, W, 70, state === 'landed' ? 'Landed!' : overZone ? 'Now land slowly ↓' : lm.x < ZONE.a ? 'Fly to the FLAT GROUND →' : '← Fly back to the FLAT GROUND', overZone ? '#5de4ff' : '#eef0ff');
+    const bounce = reducedMotion() ? 0 : Math.sin(t * 3) * 4;
+    ctx.fillStyle = '#5de4ff'; ctx.textAlign = 'center'; ctx.font = '700 10px "JetBrains Mono", monospace';
+    ctx.fillText('LAND HERE', (ZONE.a + ZONE.b) / 2, 392 + bounce);
+    ctx.font = '700 16px Inter, sans-serif'; ctx.fillText('↓', (ZONE.a + ZONE.b) / 2, 410 + bounce);
+    if (state === 'fly' && altNow < 150 && lm.vy > SAFE_DOWN) warning(ctx, clamp(lm.x, 70, W - 70), lm.y - 26, 'TOO FAST! Hold ▲');
     ui.hud.textContent = `Fuel ${Math.round(fuel * SHOW)} s · Altitude ${Math.max(0, Math.round(altNow / 2))} m · Down ${Math.max(0, lm.vy / 2).toFixed(1)} m/s`;
   }
 

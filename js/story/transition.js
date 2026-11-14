@@ -2,6 +2,7 @@
 // ~1.8 s: radio noise that clears up, a "lock" chirp, then the robot's name.
 // Soft, no strobe (no flashing more than 3 times a second). Short fade if reduced motion.
 import { getAudioContext } from './radio.js';
+import { speak } from './speak.js';
 
 const $ = id => document.getElementById(id);
 
@@ -26,7 +27,7 @@ export function playTransition(robot) {
   const overlay = $('transition');
   const canvas = $('transition-noise');
   const name = $('transition-name');
-  const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const reduced = (window.matchMedia('(prefers-reduced-motion: reduce)').matches || document.body.classList.contains('a11y-calm'));
   const DURATION = reduced ? 500 : 1800;
 
   name.textContent = '';
@@ -34,6 +35,7 @@ export function playTransition(robot) {
   overlay.hidden = false;
   overlay.classList.remove('done');
   chirp();
+  speak(`Echo received! ${robot.name}.`, { interrupt: true });
 
   const ctx2d = canvas.getContext('2d');
   canvas.width = 160;            // low resolution noise, scaled up by CSS = cheap and soft

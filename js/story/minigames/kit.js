@@ -2,10 +2,12 @@
 // Canvas, controls (touch + keyboard), sound with left/right panning, vibration, announcements
 // for screen readers, star results. Every game is playable without seeing the screen (sound +
 // announcements) and without hearing it (everything is also shown and written).
-import { getAudioContext } from '../radio.js';
+import { getAudioContext, isMuted } from '../radio.js';
+import { settings } from '../settings.js';
+import { speak } from '../speak.js';
 
 export const TAU = Math.PI * 2;
-export const reducedMotion = () => window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+export const reducedMotion = () => (window.matchMedia('(prefers-reduced-motion: reduce)').matches || document.body.classList.contains('a11y-calm'));
 export const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
 
 /* ---------- canvas ---------- */
@@ -94,7 +96,7 @@ export function setupControls(ui, layout, { onTap, wide = false, hint } = {}) {
 /* ---------- sound ---------- */
 function ctxOrNull() {
   const ctx = getAudioContext();
-  if (ctx && ctx.state === 'suspended') ctx.resume();
+  if (ctx && ctx.state === 'suspended' && !isMuted()) ctx.resume();
   return ctx;
 }
 
@@ -169,6 +171,7 @@ export function hum({ freq = 300, type = 'lowpass' } = {}) {
 }
 
 export function vibrate(pattern) {
+  if (!settings.vibration) return;
   try { navigator.vibrate?.(pattern); } catch (e) { /* not supported (iPhone) */ }
 }
 
@@ -190,11 +193,95 @@ export function announcer(ui) {
       if (!force && now - last < 1200) return;      // never flood the screen reader
       last = now;
       live.textContent = text;
+      speak(text, { minGap: force ? 0 : 1500 });
       clearTimeout(timer);
       timer = setTimeout(() => { if (live.textContent === text) live.textContent = ''; }, 4500);
     },
     clear() { clearTimeout(timer); live.textContent = ''; },
   };
+}
+
+/* ---------- "How to play" card (shown before the game, and with the ? button) ---------- */
+let paused = false;
+export const isPaused = () => paused;
+
+function stageOf(ui) {
+  let stage = ui.canvas.parentElement;
+  if (!stage.classList.contains('mg-stage')) {
+    stage = document.createElement('div');
+    stage.className = 'mg-stage';
+    ui.canvas.replaceWith(stage);
+    stage.appendChild(ui.canvas);
+  }
+  return stage;
+}
+
+/**
+ * how = { goal, steps: [{ icon, text }], warn, startLabel }
+ * Resolves when the player presses Start. The game is paused while the card is open.
+ */
+export function howTo(ui, how) {
+  const stage = stageOf(ui);
+  stage.querySelector('.mg-howto')?.remove();
+  const card = document.createElement('div');
+  card.className = 'mg-howto';
+  card.setAttribute('role', 'dialog');
+  card.setAttribute('aria-label', 'How to play');
+  card.innerHTML = `
+    <p class="mono mg-howto-eyebrow">HOW TO PLAY</p>
+    <h3 class="mg-howto-goal" tabindex="-1"></h3>
+    <ol class="mg-howto-steps"></ol>
+    <p class="mg-howto-warn"></p>
+    <button type="button" class="big mg-howto-start"></button>`;
+  card.querySelector('.mg-howto-goal').textContent = how.goal;
+  const list = card.querySelector('.mg-howto-steps');
+  for (const step of how.steps || []) {
+    const li = document.createElement('li');
+    const icon = document.createElement('span');
+    icon.className = 'mg-howto-icon';
+    icon.setAttribute('aria-hidden', 'true');
+    icon.textContent = step.icon;
+    const text = document.createElement('span');
+    text.textContent = step.text;
+    li.append(icon, text);
+    list.appendChild(li);
+  }
+  const warn = card.querySelector('.mg-howto-warn');
+  warn.textContent = how.warn ? `⚠ ${how.warn}` : '';
+  warn.hidden = !how.warn;
+  const start = card.querySelector('.mg-howto-start');
+  start.textContent = how.startLabel || 'Start';
+  stage.appendChild(card);
+  speak(`How to play. ${how.goal} ${(how.steps || []).map(s => s.text).join('. ')}. ${how.warn || ''}`, { interrupt: true });
+  paused = true;
+  ui.controls.style.visibility = 'hidden';            // one thing at a time: first the rules
+  card.querySelector('.mg-howto-goal').focus({ preventScroll: true });
+  stage.scrollIntoView?.({ block: 'nearest' });
+  return new Promise(resolve => {
+    start.addEventListener('click', () => {
+      card.remove(); paused = false; ui.controls.style.visibility = '';
+      resolve();
+    }, { once: true });
+  });
+}
+
+// The small "?" button on the game, to read the rules again (pauses the game)
+export function helpButton(ui, how) {
+  ui.controls.querySelector('.mg-help')?.remove();
+  const b = document.createElement('button');
+  b.type = 'button';
+  b.className = 'mg-help';
+  b.textContent = '?';
+  b.setAttribute('aria-label', 'How to play (pauses the game)');
+  b.addEventListener('click', () => { howTo(ui, { ...how, startLabel: 'Continue' }); });
+  ui.controls.appendChild(b);
+  return () => b.remove();
+}
+
+export function closeHowTo(ui) {
+  ui.canvas.parentElement?.querySelector('.mg-howto')?.remove();
+  ui.controls.style.visibility = '';
+  paused = false;
 }
 
 /* ---------- loop and results ---------- */
@@ -204,7 +291,7 @@ export function gameLoop(update) {
     if (!running) return;
     const dt = Math.min(0.05, (now - last) / 1000);
     last = now;
-    update(dt, now / 1000);
+    if (!paused) update(dt, now / 1000);
     raf = requestAnimationFrame(step);
   };
   raf = requestAnimationFrame(step);
@@ -223,6 +310,7 @@ export function showResult(ui, { won, title, text, stars = 0 }) {
   ui.retryButton.textContent = won ? 'Play again' : 'Try again';
   ui.result.hidden = false;
   ui.result.dataset.won = won ? 'true' : 'false';
+  speak(`${won ? `${title}. ${stars} star${stars === 1 ? '' : 's'}.` : title} ${text}`, { interrupt: true });
   if (won) {
     tone(523, 0.18, { type: 'triangle' }); tone(659, 0.18, { type: 'triangle', delay: 0.12 });
     tone(784, 0.18, { type: 'triangle', delay: 0.24 }); tone(1047, 0.35, { type: 'triangle', delay: 0.36 });
@@ -262,6 +350,34 @@ export function starfield(ctx, W, H, n = 80, seed = 3, alpha = 1) {
     ctx.fillRect(r() * W, r() * H, r() < 0.1 ? 2 : 1, r() < 0.1 ? 2 : 1);
   }
   ctx.globalAlpha = 1;
+}
+
+// The goal, always visible at the top of the game, in plain words
+export function goalBanner(ctx, W, y, text, color = '#eef0ff') {
+  ctx.font = '700 13px Inter, system-ui, sans-serif';
+  const w = Math.min(W - 16, ctx.measureText(text).width + 24);
+  ctx.fillStyle = 'rgba(11,10,31,.82)';
+  ctx.beginPath(); ctx.roundRect((W - w) / 2, y, w, 26, 13); ctx.fill();
+  ctx.fillStyle = color; ctx.textAlign = 'center';
+  ctx.fillText(text, W / 2, y + 17.5, W - 30);
+}
+
+// A big pink warning next to something (e.g. "TOO FAST!")
+export function warning(ctx, x, y, text) {
+  ctx.font = '800 14px Inter, system-ui, sans-serif';
+  ctx.textAlign = 'center';
+  ctx.lineWidth = 4; ctx.strokeStyle = 'rgba(11,10,31,.9)';
+  ctx.strokeText(text, x, y);
+  ctx.fillStyle = '#ff9bd5';
+  ctx.fillText(text, x, y);
+}
+
+// An arrow on the edge of the game pointing to something off screen
+export function edgeArrow(ctx, x, y, angle, color = '#ff9bd5') {
+  ctx.save(); ctx.translate(x, y); ctx.rotate(angle);
+  ctx.fillStyle = color;
+  ctx.beginPath(); ctx.moveTo(14, 0); ctx.lineTo(-8, -10); ctx.lineTo(-3, 0); ctx.lineTo(-8, 10); ctx.closePath(); ctx.fill();
+  ctx.restore();
 }
 
 export function panel(ctx, x, y, w, h, r = 8) {

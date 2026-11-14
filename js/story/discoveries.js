@@ -9,7 +9,7 @@
 // mountDiscovery(container, robot, { onDone }) → cleanup()
 
 const TAU = Math.PI * 2;
-const reducedMotion = () => window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+const reducedMotion = () => (window.matchMedia('(prefers-reduced-motion: reduce)').matches || document.body.classList.contains('a11y-calm'));
 
 function el(tag, cls, text) {
   const e = document.createElement(tag);

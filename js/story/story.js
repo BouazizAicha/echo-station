@@ -13,7 +13,7 @@ const PARTS = [
   ['legacy', 'Who took over'],
 ];
 const CHARS_PER_SECOND = 40;
-const reducedMotion = () => window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+const reducedMotion = () => (window.matchMedia('(prefers-reduced-motion: reduce)').matches || document.body.classList.contains('a11y-calm'));
 const $ = id => document.getElementById(id);
 
 let run = 0;          // increases each time a story opens → cancels the previous typing

@@ -32,7 +32,7 @@
         <span>The real sky: live positions, coordinates, data and sources.</span>
       </button>
     </div>
-    <p class="hint">You can switch between the two anytime.</p>
+    <p class="hint">You can switch between the two anytime. Need bigger text, an audio guide or calmer screens? Tap ⚙ at the top.</p>
     <p class="hint">Best on a phone, outside, at night. Go outside with an adult.</p>
     <p class="hint">Belu is a fictional character. Every fact about the robots is real.</p>
   </section>
@@ -51,7 +51,7 @@
       <span class="live-chip"><span class="live-dot" aria-hidden="true"></span> LIVE</span>
     </header>
 
-    <div class="meter"><div id="signal-bar"></div></div>
+    <div class="meter" role="meter" aria-label="Signal strength" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"><div id="signal-bar"></div></div>
     <p id="radio-status" class="status" role="status" aria-live="polite">Only static… keep looking.</p>
     <p id="pointing" class="mono"></p>
 
@@ -60,8 +60,8 @@
         <canvas id="skymap" width="900" height="600" tabindex="0" role="img"
           aria-label="Sky map. The green reticle at the centre is your aim. Drag to pan, or use the arrow keys. The Moon is slightly left of centre at start."></canvas>
         <div id="antenna-controls" class="map-toolbar">
-          <button id="btn-antenna">Use my phone as an antenna</button>
-          <button id="btn-map">Sky map</button>
+          <button id="btn-antenna"><span aria-hidden="true">📱</span> Phone antenna</button>
+          <button id="btn-map"><span aria-hidden="true">🗺️</span> Sky map</button>
           <button id="btn-calibrate" hidden>Calibrate: point at the Moon, then tap</button>
         </div>
       </div>

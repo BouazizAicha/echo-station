@@ -16,7 +16,7 @@ const params = typeof location !== 'undefined'
 const RADIANS = Math.PI / 180;
 
 /** 0 = frozen, 1 = no smoothing. 0.15–0.3 feels good; use 0.1 if shaky. */
-let smoothing = 0.2;
+let smoothing = 0.15;
 
 /** Live state, also useful to the debug line. */
 export const pointing = {
@@ -91,6 +91,25 @@ function headingFrom(event) {
   return ((360 - event.alpha) % 360 + 360) % 360;
 }
 
+/**
+ * Direction of the BACK CAMERA from the full rotation (alpha, beta, gamma), W3C convention:
+ * R = Rz(alpha)·Rx(beta)·Ry(gamma), Earth frame x = East, y = North, z = Up.
+ * The camera looks along the device's -Z axis, so its direction is minus R's third column.
+ * Unlike "heading = 360 - alpha, altitude = beta - 90", this stays stable when the phone is
+ * upright or tilted up toward the Moon (no gimbal lock, gamma is taken into account).
+ */
+export function cameraDirection(alpha, beta, gamma) {
+  const a = alpha * RADIANS, b = beta * RADIANS, g = gamma * RADIANS;
+  const cA = Math.cos(a), sA = Math.sin(a), cB = Math.cos(b), sB = Math.sin(b), cG = Math.cos(g), sG = Math.sin(g);
+  const east = -(cG * sA * sB + cA * sG);
+  const north = -(sA * sG - cA * cG * sB);
+  const up = -(cB * cG);
+  return {
+    az: ((Math.atan2(east, north) / RADIANS) + 360) % 360,
+    alt: Math.asin(Math.max(-1, Math.min(1, up))) / RADIANS,
+  };
+}
+
 function handleOrientation(event, absolute) {
   const heading = headingFrom(event);
   if (heading === null) return;
@@ -103,13 +122,17 @@ function handleOrientation(event, absolute) {
   const beta = Number.isFinite(event.beta) ? event.beta : 90;
   const gamma = Number.isFinite(event.gamma) ? event.gamma : 0;
 
-  // Portrait, phone upright: beta = 90 -> horizon; beta = 135 -> 45° up.
-  const altitude = Math.max(-89.9, Math.min(89.9, beta - 90));
-
-  const rawDirection = {
-    az: (heading % 360) * (params.get('mirror') === '1' ? -1 : 1),
-    alt: altitude,
-  };
+  let rawDirection;
+  if (Number.isFinite(event.webkitCompassHeading)) {
+    // iPhone: the compass heading is already tilt-compensated (this path works, keep it).
+    // Portrait, phone upright: beta = 90 -> horizon; beta = 135 -> 45° up.
+    rawDirection = { az: heading % 360, alt: Math.max(-89.9, Math.min(89.9, beta - 90)) };
+  } else {
+    // Android: full 3D rotation → the real direction of the back camera.
+    const alpha = params.get('heading') === 'alpha' ? 360 - event.alpha : event.alpha;
+    rawDirection = cameraDirection(alpha, beta, gamma);
+  }
+  if (params.get('mirror') === '1') rawDirection.az = 360 - rawDirection.az;
   rawDirection.az = (rawDirection.az + 360) % 360;
 
   uncalibrated = smoothDir(rawDirection);

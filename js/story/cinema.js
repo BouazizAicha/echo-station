@@ -8,17 +8,18 @@
 //   7 Friends      add as a friend (bubble party) · secret fact · questions · mini-game · sources
 // Same robot JSON as Scientist mode; story-only extras come from storydata.js.
 import { playVoice, stopVoice, buildCues } from './voice.js';
-import { getAudioContext } from './radio.js';
+import { getAudioContext, isMuted } from './radio.js';
 import { isFriend, addFriend } from './friends.js';
 import { createScene } from './scenes.js';
 import { extrasFor, worldOf, yearOf } from './storydata.js';
 import { robotPicture } from './silhouettes.js';
 import { mountDiscovery, hasDiscovery } from './discoveries.js';
 import { minigameOf } from './minigames/index.js';
+import { speak, guideOn, stopSpeaking } from './speak.js';
 
 const CARDS = ['arrival', 'who', 'why', 'discovery', 'where', 'legacy', 'friend'];
 const CHARS_PER_SECOND = 45;
-const reducedMotion = () => window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+const reducedMotion = () => (window.matchMedia('(prefers-reduced-motion: reduce)').matches || document.body.classList.contains('a11y-calm'));
 const BELU = mood => `assets/images/belu-${mood}.svg`;
 
 let dom = null;
@@ -46,7 +47,7 @@ function buildDom() {
   section.innerHTML = `
     <canvas class="cine-scene" aria-hidden="true"></canvas>
     <header class="cine-top">
-      <button class="link cine-back" type="button">← Back to Belu</button>
+      <button class="link cine-back" type="button" aria-label="Back to Belu">← <span class="cine-back-text">Back to Belu</span></button>
       <ol class="cine-dots" aria-hidden="true">${CARDS.map(() => '<li></li>').join('')}</ol>
       <button class="link cine-skip" type="button">Skip ▸</button>
     </header>
@@ -227,6 +228,11 @@ function speakWithBrowser(robot, session) {
   }, 200);
   u.onend = u.onerror = () => { if (speaking === session) stopListening(); };
   window.speechSynthesis.cancel();
+  if (isMuted()) {
+    // Sound off: read-along subtitles only
+    setTimeout(() => { if (speaking === session) stopListening(); }, estimate * 1000 + 500);
+    return true;
+  }
   window.speechSynthesis.speak(u);
   return true;
 }
@@ -237,7 +243,7 @@ async function listen(robot, button) {
   speaking = session;
   button.innerHTML = '<span aria-hidden="true">■</span> Stop';
   let cues = null;
-  const me = await playVoice(`assets/audio/${robot.id}.mp3`, {
+  const me = isMuted() ? null : await playVoice(`assets/audio/${robot.id}.mp3`, {
     onTime: (t, duration) => {
       if (speaking !== session || !robot.voice_text) return;
       cues ??= buildCues(robot.voice_text, duration);
@@ -317,6 +323,7 @@ function cardDiscovery(card, state, myToken) {
       result.after(fig);
     }
     say(ex.belu.discovery, 'happy');
+    speak(`Discovery! ${ex.beat.result || ''} ${robot.story?.discoveries || ''}`, { interrupt: true });
     chime();
     dom.section.querySelector('.cine-next')?.classList.add('ready');
   };
@@ -324,7 +331,14 @@ function cardDiscovery(card, state, myToken) {
     if (ex.beat.how) card.appendChild(el('p', 'cine-how', ex.beat.how));
     const box = el('div', 'disc');
     card.appendChild(box);
-    state.cleanup = mountDiscovery(box, robot, { onDone: reveal });
+    const cleanupMoment = mountDiscovery(box, robot, { onDone: reveal });
+    // Audio guide: read the little status line of the discovery moment when it changes
+    const watcher = new MutationObserver(() => {
+      const line = box.querySelector('.disc-status')?.textContent;
+      if (line) speak(line, { minGap: 1200 });
+    });
+    watcher.observe(box, { subtree: true, childList: true, characterData: true });
+    state.cleanup = () => { watcher.disconnect(); cleanupMoment(); };
     skip = el('button', 'link cine-skip-game', 'Skip the game');
     skip.type = 'button';
     skip.addEventListener('click', reveal);
@@ -446,6 +460,7 @@ function cardFriend(card, { robot, ex, opts }) {
     party();
     chime([523, 659, 784, 1047]);
     say(ex.belu.friendYes, 'happy');
+    speak(`${robot.name} is Belu's friend! ${ex.belu.friendYes}`, { interrupt: true });
     if (opts.onFriend) opts.onFriend(robot);
   });
   refresh();
@@ -565,6 +580,17 @@ function go(index) {
   RENDER[CARDS[i]](card, current, myToken);
   card.appendChild(nav(i, current.robot, current.opts));
 
+  // Audio guide: read the card (title, text, instructions, what Belu says)
+  if (guideOn()) {
+    const parts = [
+      card.querySelector('.cine-title')?.textContent,
+      card.querySelector('.cine-text .sr-only')?.textContent,
+      card.querySelector('.cine-how')?.textContent,
+      dom.bubble.textContent ? `Belu says: ${dom.bubble.textContent}` : '',
+    ];
+    speak(parts.filter(Boolean).map(t => t.trim().replace(/[.…]+$/, '')).join('. '), { interrupt: true });
+  }
+
   // Move focus to the new title (keyboard and screen reader users follow the story)
   const title = card.querySelector('.cine-title');
   if (title) { title.tabIndex = -1; title.focus({ preventScroll: true }); }
@@ -603,6 +629,7 @@ export function resumeCinema() {
 export function stopCinema() {
   token++;
   stopListening();
+  stopSpeaking();
   if (current?.cleanup) current.cleanup();
   if (current) current.cleanup = null;
   scene?.stop();

@@ -34,7 +34,7 @@ export function openFinale({ onExit } = {}) {
   const timer = $('finale-timer');
   const pulse = $('finale-pulse');
   const lines = [...document.querySelectorAll('#finale-result [data-step]')];
-  const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const reduced = (window.matchMedia('(prefers-reduced-motion: reduce)').matches || document.body.classList.contains('a11y-calm'));
 
   // reset
   btn.hidden = false;

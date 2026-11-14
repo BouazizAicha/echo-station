@@ -47,6 +47,17 @@ export function onModeChange(fn) {
   return () => listeners.delete(fn);
 }
 
+// Top-right toolbar shared by the sound button and the mode switch
+export function topTools() {
+  let bar = document.getElementById('top-tools');
+  if (!bar) {
+    bar = document.createElement('div');
+    bar.id = 'top-tools';
+    document.body.appendChild(bar);
+  }
+  return bar;
+}
+
 // The floating switch (hidden on the first screen by CSS, where the choice is made)
 function createSwitch() {
   if (document.getElementById('mode-switch')) return;
@@ -55,7 +66,7 @@ function createSwitch() {
   button.type = 'button';
   button.innerHTML = '<span class="mode-switch-icon" aria-hidden="true"></span><span class="mode-switch-label"></span><span class="mode-switch-short" aria-hidden="true"></span>';
   button.addEventListener('click', () => setMode(button.dataset.target));
-  document.body.appendChild(button);
+  topTools().appendChild(button);
 }
 
 createSwitch();

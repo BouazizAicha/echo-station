@@ -649,3 +649,175 @@ body.mode-story #guide { display: none; }
 @media (prefers-reduced-motion: reduce) {
   .sonar-click.pinged .sonar-click-ring, .sonar-compass.show .sonar-arrow { animation: none; opacity: .9; }
 }
+
+/* =====================================================================
+   CALM LAYOUT (Dev B): fewer things moving, fewer words, bigger targets.
+   For 9–15 year-olds on a phone: one main action per screen, no over-stimulation.
+   ===================================================================== */
+
+/* ---- Top-right tools: sound + mode ---- */
+#top-tools { position: fixed; top: .6rem; right: .6rem; z-index: 60; display: flex; align-items: center; gap: .4rem; }
+#top-tools #mode-switch { position: static; }
+#sound-switch {
+  display: inline-flex; align-items: center; justify-content: center; gap: .35rem; margin: 0;
+  min-height: 40px; min-width: 40px; padding: .35rem .75rem; border-radius: 999px;
+  background: rgba(23, 21, 58, .88); border: 1px solid rgba(93, 228, 255, .3); font-size: .8rem; font-weight: 600;
+  -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px);
+}
+.sound-icon { font-size: 1rem; line-height: 1; }
+@media (max-width: 480px) {
+  .sound-label { display: none; }
+  #sound-switch { padding: 0; width: 40px; }
+}
+.pro-skip { right: auto; left: .75rem; }
+.cine-top { padding-right: 19rem; }
+@media (max-width: 480px) {
+  .cine-top { padding-right: 9.5rem; gap: .5rem; }
+  .cine-back-text { display: none; }
+  .cine-back { font-size: 1.3rem; min-width: 44px; }
+}
+
+/* ---- Fewer things moving ---- */
+.typing::after { animation: none; opacity: .7; }
+.live-dot { animation: none; }
+.cine-robot .ping { animation-iteration-count: 2; }
+.cine-porthole .ring.r2, .cine-porthole .ring.r3 { display: none; }
+.cine-porthole { --echo-dur: 2.4s !important; }
+[data-world="ceres"] .robot-pic, [data-world="deep"] .robot-pic { animation: floatSoft 10s ease-in-out infinite; }
+@keyframes floatSoft { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-5px); } }
+.cine-next.ready { animation: none; box-shadow: 0 0 0 3px rgba(93, 228, 255, .35); }
+.orbit-zoom.zoomed .oz-marker { animation-iteration-count: 3; }
+.belu-wrap .ring { border-right-width: 2px; }
+
+/* ---- Radio screen on a phone ---- */
+@media (max-width: 640px) {
+  #screen-radio .belu-wrap { width: 76px; }
+  #screen-radio .belu-header { gap: 1.1rem; }
+  #screen-radio .belu-header h2 { font-size: 1.15rem; }
+  #screen-radio .meter { height: 10px; margin: .6rem 0 .4rem; }
+  #radio-status { font-size: .92rem; margin: 0 0 .6rem; }
+  #pointing { display: none; }
+  .map-toolbar { flex-wrap: nowrap; padding: .5rem; }
+  .map-toolbar button { flex: 1; font-size: .88rem; padding: .55rem .5rem; }
+  .data-footer { font-size: .62rem; }
+  .sonar { padding: .75rem; }
+  .sonar-click { width: 96px; height: 96px; }
+  .sonar-compass { width: 64px; height: 64px; }
+  .sonar-arrow { font-size: 1.9rem; }
+  .sonar-text { font-size: .95rem; }
+}
+body.mode-story #list-view summary { font-size: 0; }
+body.mode-story #list-view summary::after { content: "▸ Can't find them? Tune in from the list"; font-size: .9rem; color: var(--muted); }
+body.mode-story #list-view[open] summary::after { content: "▾ Tune in from the list"; }
+
+/* ---- Mini-games: one clear screen ---- */
+#mg-intro { display: none; }
+#mg-hud { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+#screen-minigame h2 { margin: .25rem 0 .5rem; font-size: 1.3rem; }
+.mg-stage { position: relative; width: min(100%, calc(52svh * 3 / 4)); margin: .5rem auto; }
+.mg-stage #mg-canvas { width: 100%; margin: 0; }
+.mg-howto {
+  position: absolute; inset: 0; z-index: 3; overflow: auto; display: flex; flex-direction: column; gap: .55rem;
+  padding: 1rem; border-radius: 12px; background: rgba(11, 10, 31, .95); border: 1px solid rgba(93, 228, 255, .3);
+}
+.mg-howto-eyebrow { margin: 0; font-size: .7rem; letter-spacing: .16em; }
+.mg-howto-goal { margin: 0 0 .2rem; font-size: 1.2rem; line-height: 1.25; color: var(--fg); text-transform: none; letter-spacing: 0; outline: none; }
+.mg-howto-steps { list-style: none; padding: 0; margin: 0; display: grid; gap: .5rem; }
+.mg-howto-steps li { display: flex; align-items: center; gap: .65rem; font-size: .98rem; line-height: 1.3; }
+.mg-howto-icon { flex: none; min-width: 46px; height: 36px; padding: 0 .4rem; display: grid; place-items: center; border-radius: 10px;
+  background: var(--panel); border: 1px solid var(--line); font-weight: 700; color: var(--signal); }
+.mg-howto-warn { margin: .1rem 0 0; color: var(--accent); font-size: .92rem; }
+.mg-howto-warn[hidden] { display: none; }
+.mg-howto-start { margin-top: auto; width: 100%; }
+.mg-help { min-width: 56px !important; font-weight: 800; font-size: 1.2rem; }
+
+#screen-minigame > .hint { display: none; }
+#mg-controls { gap: .4rem; }
+#mg-controls button { padding: 0 .85rem; }
+.mg-help { min-width: 48px !important; }
+
+/* =====================================================================
+   SETTINGS & ACCESSIBILITY (Dev B)
+   ===================================================================== */
+#settings-button {
+  display: inline-flex; align-items: center; justify-content: center; gap: .35rem; margin: 0;
+  min-height: 40px; min-width: 40px; padding: .35rem .75rem; border-radius: 999px;
+  background: rgba(23, 21, 58, .88); border: 1px solid rgba(93, 228, 255, .3); font-size: .8rem; font-weight: 600;
+}
+#settings-button span:first-child { font-size: 1.05rem; line-height: 1; }
+.settings-label { display: none; }
+@media (min-width: 900px) { .settings-label { display: inline; } }
+@media (max-width: 480px) { #settings-button { width: 40px; padding: 0; } .cine-top { padding-right: 12.5rem; } }
+.cine-top { padding-right: 22rem; }
+@media (max-width: 480px) { .cine-top { padding-right: 12.5rem; } }
+
+/* Strong, visible focus for keyboard and switch users */
+:focus-visible { outline: 3px solid var(--signal); outline-offset: 2px; }
+button:focus-visible { outline: 3px solid var(--signal); outline-offset: 2px; }
+
+/* The panel */
+dialog.settings {
+  width: min(94vw, 460px); max-height: 90svh; margin: auto; padding: 1.1rem 1.1rem 1.25rem; overflow: auto;
+  color: var(--fg); background: #141236; border: 1px solid rgba(93, 228, 255, .35); border-radius: 20px;
+  box-shadow: 0 24px 60px rgba(0, 0, 0, .6);
+}
+dialog.settings::backdrop { background: rgba(5, 4, 20, .7); }
+.set-head { display: flex; align-items: center; justify-content: space-between; }
+.set-head h2 { margin: 0; outline: none; }
+.set-close { margin: 0; width: 44px; padding: 0; border-radius: 50%; }
+.set-intro { color: var(--muted); margin: .25rem 0 .75rem; }
+.set-row { display: flex; align-items: center; gap: .75rem; padding: .7rem 0; border: 0; border-top: 1px solid var(--line); margin: 0; cursor: pointer; }
+.set-icon { flex: none; width: 2rem; text-align: center; font-size: 1.3rem; font-weight: 700; color: var(--signal); }
+.set-text { flex: 1; display: flex; flex-direction: column; gap: .1rem; padding: 0; }
+.set-text strong { font-size: 1rem; }
+.set-help { color: var(--muted); font-size: .85rem; line-height: 1.35; }
+.set-switch { appearance: none; -webkit-appearance: none; flex: none; width: 52px; height: 30px; margin: 0; border-radius: 15px;
+  background: var(--line); position: relative; cursor: pointer; transition: background .2s; }
+.set-switch::after { content: ""; position: absolute; top: 3px; left: 3px; width: 24px; height: 24px; border-radius: 50%; background: var(--fg); transition: transform .2s; }
+.set-switch:checked { background: var(--signal); }
+.set-switch:checked::after { transform: translateX(22px); background: var(--bg); }
+.set-sizes { flex-wrap: wrap; }
+.set-size-group { display: flex; gap: .4rem; }
+.set-size-group input { position: absolute; opacity: 0; width: 1px; height: 1px; }
+.set-size { display: grid; place-items: center; min-width: 48px; height: 40px; padding: 0 .6rem; border-radius: 10px;
+  border: 1px solid var(--line); background: var(--panel); font-weight: 700; cursor: pointer; }
+.set-size-big { font-size: 1.1rem; }
+.set-size-bigger { font-size: 1.25rem; }
+.set-size-group input:checked + .set-size { background: var(--signal); color: var(--bg); border-color: var(--signal); }
+.set-size-group input:focus-visible + .set-size { outline: 3px solid var(--signal); outline-offset: 2px; }
+.set-note { color: var(--muted); font-size: .82rem; border-top: 1px solid var(--line); padding-top: .75rem; margin: 0 0 .9rem; }
+.set-done { width: 100%; }
+
+/* High contrast */
+body.a11y-contrast {
+  --muted: #dcdef8; --line: #8e8ad8; --panel: #1b1844;
+  background: #07061a;
+}
+body.a11y-contrast .cine-card, body.a11y-contrast .pro-caption, body.a11y-contrast .pro-end, body.a11y-contrast .why-text,
+body.a11y-contrast .why-end, body.a11y-contrast .sonar, body.a11y-contrast .guide, body.a11y-contrast .mg-howto,
+body.a11y-contrast #mg-result, body.a11y-contrast .map-panel {
+  background: #0d0b26 !important; border: 2px solid #8e8ad8 !important;
+  -webkit-backdrop-filter: none; backdrop-filter: none;
+}
+body.a11y-contrast button { border-width: 2px; border-color: #8e8ad8; }
+body.a11y-contrast button.big { border: 2px solid #ffffff; }
+body.a11y-contrast .cine-bubble { background: #ffffff; color: #000; }
+body.a11y-contrast .cine-chip, body.a11y-contrast .badge { background: #0b2a35; color: #9df0ff; }
+body.a11y-contrast .hint, body.a11y-contrast .status, body.a11y-contrast figcaption { color: #e6e7ff; }
+body.a11y-contrast #subtitles { background: #000; border: 2px solid #fff; font-size: 1.2rem; }
+
+/* Calm mode: no animations or transitions anywhere */
+body.a11y-calm *, body.a11y-calm *::before, body.a11y-calm *::after {
+  animation-duration: .001ms !important; animation-iteration-count: 1 !important; transition-duration: .001ms !important;
+}
+body.a11y-calm .belu-wrap .ring, body.a11y-calm .cine-porthole .ring, body.a11y-calm .cine-robot .ping { opacity: 0 !important; }
+
+/* Bigger text: let long words wrap, keep controls in reach */
+html[style*="125%"] .cine-title, html[style*="112.5%"] .cine-title { overflow-wrap: anywhere; }
+@media (max-width: 640px) { .sonar-click { width: 6rem; height: 6rem; } }
+@media (max-width: 480px) {
+  /* phone: the progress dots go just under the top bar, so Back and Skip never hide under the tools */
+  .cine-dots { position: absolute; top: 54px; left: 0; right: 0; pointer-events: none; }
+  .cine-skip { margin-left: auto; }
+  .cine-top { padding-right: 13.75rem; }
+}

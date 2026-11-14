@@ -3,8 +3,10 @@
 // friends Belu found light up where they are. Then: "Explore the sky with Belu".
 // The planet positions are illustrative (same distances from the Sun, angles chosen for clarity).
 
+import { speak } from './speak.js';
+
 const TAU = Math.PI * 2;
-const reducedMotion = () => window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+const reducedMotion = () => (window.matchMedia('(prefers-reduced-motion: reduce)').matches || document.body.classList.contains('a11y-calm'));
 const ease = x => (x <= 0 ? 0 : x >= 1 ? 1 : x * x * (3 - 2 * x));
 
 const LINES = [
@@ -168,6 +170,7 @@ export function showWhy({ robots = [], isFound = () => false, onExplore, onScien
     if (i === lineIndex) return;
     lineIndex = i;
     line.textContent = LINES[i].text;
+    speak(LINES[i].text, { interrupt: true });
     line.classList.remove('in'); void line.offsetWidth; line.classList.add('in');
   }
 

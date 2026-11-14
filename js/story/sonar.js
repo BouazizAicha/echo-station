@@ -7,6 +7,7 @@
 import { angularDistance } from '../engine/sky.js';
 import { computeGuide } from '../engine/guide.js';
 import { tone, burst, vibrate, clamp } from './minigames/kit.js';
+import { speak } from './speak.js';
 
 const SPEED = 90;           // degrees per second (the ring's speed across the sky)
 const RING_MAX = 2.4;       // seconds a ring is drawn
@@ -87,6 +88,7 @@ export function createSonar({ getAim, getTargets, mount }) {
       setTimeout(() => {
         vibrate(Math.round(30 + 120 * best.strength));
         text.textContent = words(best.guide, best.target);
+        speak(text.textContent, { interrupt: true });
         arrow.style.transform = `rotate(${best.guide.rotateDeg.toFixed(0)}deg)`;
         compass.classList.remove('show'); void compass.offsetWidth; compass.classList.add('show');
         compass.style.setProperty('--strength', best.strength.toFixed(2));

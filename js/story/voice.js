@@ -2,7 +2,7 @@
 // Plays assets/audio/<robot-id>.mp3 through the Web Audio context that was unlocked
 // by the "Start listening" tap, so it also works on iPhone without another tap.
 // If the file does not exist, nothing happens (the story still works with text only).
-import { getAudioContext } from './radio.js';
+import { getAudioContext, isMuted } from './radio.js';
 
 let current = null;
 
@@ -19,7 +19,7 @@ export async function playVoice(url, { onTime, onEnd } = {}) {
   } catch (e) {
     return null;
   }
-  if (ctx.state === 'suspended') await ctx.resume();
+  if (ctx.state === 'suspended' && !isMuted()) await ctx.resume();
 
   const src = ctx.createBufferSource();
   src.buffer = buffer;

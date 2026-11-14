@@ -12,8 +12,14 @@ import { playPrologue } from './story/prologue.js';
 import { showCinema, stopCinema, resumeCinema } from './story/cinema.js';
 import { showWhy } from './story/why.js';
 import { createSonar, starsFor } from './story/sonar.js';
+import { applySound } from './story/sound.js';
+import './story/settings.js';
+import { speak } from './story/speak.js';
+import { vibrate } from './story/minigames/kit.js';
 
 import {
+  angularDistance,
+  normalize180,
   compassPoint,
   formatLightTime,
   getLightTime,
@@ -229,8 +235,18 @@ function onAim(direction, source = 'map') {
   state.aiming = { az: direction.az, alt: direction.alt };
   if (state.screen !== 'radio') return;
 
-  const nearest = pickTarget(state.aiming, state.targets, state.robots, state.found);
+  let nearest = pickTarget(state.aiming, state.targets, state.robots, state.found);
   if (!nearest) return;
+  // Stay on the current target unless another one is clearly closer: otherwise, with the Moon and
+  // Mars close together in the sky, the arrow flips from one to the other and goes crazy.
+  const current = state.nearest && state.targets.find((target) => target.id === state.nearest.target.id);
+  if (current && nearest.target.id !== current.id
+      && activeTargets([current], state.robots, state.found).length) {
+    const currentDistance = angularDistance(state.aiming, current);
+    if (nearest.distance > 7 && nearest.distance > currentDistance - 8) {
+      nearest = { target: current, distance: currentDistance };
+    }
+  }
   state.nearest = nearest;
   state.level = clamp(1 - nearest.distance / TOLERANCE_DEG, 0, 1);
 
@@ -279,6 +295,17 @@ function updateSignalUi() {
 
   const bar = $('signal-bar');
   if (bar) bar.style.width = `${Math.round(level * 100)}%`;
+  const meter = bar?.parentElement;
+  const pct = Math.round(level * 20) * 5;
+  if (meter && meter.getAttribute('aria-valuenow') !== String(pct)) meter.setAttribute('aria-valuenow', String(pct));
+
+  // Vibration: the closer the friend, the more often the phone buzzes (helps without sound or sight)
+  const nowMs = performance.now();
+  const every = state.lockProgress > 0 ? 350 : 1200 - 800 * level;
+  if (level > 0.25 && nowMs - (state.lastBuzz || 0) > every) {
+    vibrate(state.lockProgress > 0 ? 25 : Math.round(15 + 45 * level));
+    state.lastBuzz = nowMs;
+  }
 
   const guide = $('guide');
   if (guide) guide.style.setProperty('--lock', state.lockProgress.toFixed(3));
@@ -311,8 +338,14 @@ function updateGuide() {
   const guide = computeGuide(state.aiming, state.nearest.target);
   const below = state.nearest.target.alt < 0;
 
-  // Below the horizon (Dev A): arrow dimmed but still rotatable, and a message
-  arrow.style.transform = `rotate(${guide.rotateDeg.toFixed(1)}deg)`;
+  // Smooth arrow: it turns gently toward the target instead of jumping with every sensor wobble.
+  // Very close: no arrow (it would spin), a target sign instead.
+  const onIt = guide.dist <= 6;
+  state.arrowDeg = state.arrowDeg == null
+    ? guide.rotateDeg
+    : state.arrowDeg + normalize180(guide.rotateDeg - state.arrowDeg) * 0.3;
+  arrow.textContent = onIt ? '◎' : '➜';
+  arrow.style.transform = onIt ? 'none' : `rotate(${state.arrowDeg.toFixed(1)}deg)`;
   arrow.dataset.belowHorizon = below ? 'true' : 'false';
 
   const label = state.nearest.target.label;
@@ -324,11 +357,15 @@ function updateGuide() {
         : `${label} is below the horizon. Follow the arrow down: Belu hears it through the Earth!`
       : guideMessage(guide, state.nearest.target);
 
-  // Only touch the DOM when the sentence changes: a screen reader would
-  // otherwise re-read it 12 times a second.
-  if (message !== state.lastGuideText) {
+  // Only touch the DOM when the sentence changes, and not more than every 0.8 s
+  // (degrees change all the time: a screen reader would re-read it constantly).
+  const now = performance.now();
+  const urgent = state.lockProgress > 0 || onIt;
+  if (message !== state.lastGuideText && (urgent || now - (state.lastGuideAt || 0) > 800)) {
     state.lastGuideText = message;
+    state.lastGuideAt = now;
     text.textContent = message;
+    if (!isStory()) speak(message, { minGap: urgent ? 0 : 3500 });
   }
 }
 
@@ -358,6 +395,7 @@ function lockTarget(target) {
   state.lockStart = null;
   state.lockProgress = 0;
   map?.stop();
+  vibrate([90, 60, 160]);
   // Story mode: how many sonar clicks it took (stars on the first card)
   state.pendingFind = isStory() && !state.found.has(robot.id) ? { clicks: sonar.clicks } : null;
   sonar.reset();
@@ -646,6 +684,7 @@ function locateUser() {
 
 function startListening() {
   startRadio();
+  applySound();
   setSignal(0);
   locateUser();
   show('screen-radio');
@@ -678,6 +717,7 @@ $('btn-start').addEventListener('click', () => {
 $('btn-story')?.addEventListener('click', () => {
   setMode('story');
   startRadio();
+  applySound();
   muteRadio();
   if (params.has('finale') || params.has('noprologue')) { startListening(); return; }
   playPrologue({ robots: state.robots, onDone: startListening });

@@ -8,6 +8,7 @@
 import {
   TAU, clamp, setupCanvas, setupControls, tone, burst, hum, vibrate, announcer,
   gameLoop, showResult, makeHandle, bar, panel, seeded,
+  goalBanner, warning, edgeArrow,
 } from './kit.js';
 
 const W = 360, H = 480, WORLD = 1100;
@@ -57,7 +58,6 @@ function run(mg, ui) {
   let battery = BATTERY, t = 0, state = 'play', beepAt = 0, gust = 0, gustDir = 0, nextGust = 7;
   let hoverAt = null, flash = 0, sandWarned = false, emptyWarned = false;
 
-  say.say('Scout for Perseverance. Take off with up. Take photos of 3 places by hovering low over the camera marks, then land on airfield B, far to the right.', { force: true });
 
   const nextGoal = () => {
     const spot = SPOTS.find(s => !photos.has(s.x));
@@ -238,6 +238,17 @@ function run(mg, ui) {
     for (const s of SPOTS) { ctx.fillStyle = photos.has(s.x) ? '#5de4ff' : '#ff9bd5'; ctx.fillRect(mx(s.x) - 2, 18, 4, 4); }
     ctx.fillStyle = '#ffffff'; ctx.beginPath(); ctx.arc(mx(heli.x), 25, 3, 0, TAU); ctx.fill();
 
+    // the goal, in words, and an arrow when it is off screen
+    const goal = nextGoal();
+    let words = photos.size < 3 ? `Photo ${photos.size + 1} of 3: fly to the pink CAMERA box` : 'Now land on AIRFIELD B';
+    if (!heli.flying && state === 'play') words = battery > 0 ? 'Hold ▲ to take off' : words;
+    if (hoverAt != null) words = 'Stay low and still… 📷';
+    goalBanner(ctx, W, 52, words, hoverAt != null ? '#5de4ff' : '#eef0ff');
+    const gx = goal.x - camX;
+    if (gx < 0) edgeArrow(ctx, 18, 250, Math.PI);
+    if (gx > W) edgeArrow(ctx, W - 18, 250, 0);
+    const above = groundY(heli.x) - (heli.y + 22);
+    if (heli.flying && above < 90 && heli.vy > SAFE_DOWN) warning(ctx, clamp(heli.x - camX, 70, W - 70), heli.y - 30, 'TOO FAST! Hold ▲');
     const alt = Math.max(0, Math.round((groundY(heli.x) - (heli.y + 22)) / 4));
     ui.hud.textContent = `Battery ${Math.round(battery / BATTERY * 100)}% · Height ${alt} m · Photos ${photos.size}/3`;
   }

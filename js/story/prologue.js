@@ -6,8 +6,9 @@
 //   5. Belu calls… no answer. "Help Belu find his friends."
 // The scene is drawn on a canvas; Belu himself is an <img>, so D's drawings replace him automatically.
 // With prefers-reduced-motion: no movement, the parts advance with a Next button.
-import { getAudioContext } from './radio.js';
+import { getAudioContext, isMuted } from './radio.js';
 import { makeStars, drawStars } from './scenes.js';
+import { speak } from './speak.js';
 
 const TAU = Math.PI * 2;
 const BELU = mood => `assets/images/belu-${mood}.svg`;
@@ -49,7 +50,7 @@ const year = d => (d ? String(d).slice(0, 4) : '');
 function blip(freq, duration = 0.25, volume = 0.08, type = 'sine', endFreq = null) {
   const ctx = getAudioContext();
   if (!ctx) return;
-  if (ctx.state === 'suspended') ctx.resume();
+  if (ctx.state === 'suspended' && !isMuted()) ctx.resume();
   const t = ctx.currentTime;
   const o = ctx.createOscillator(), g = ctx.createGain();
   o.type = type;
@@ -114,7 +115,7 @@ export function playPrologue({ robots = [], onDone } = {}) {
   const endCard = root.querySelector('.pro-end');
   const bctx = back.getContext('2d');
   const fctx = front.getContext('2d');
-  const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const reduced = (window.matchMedia('(prefers-reduced-motion: reduce)').matches || document.body.classList.contains('a11y-calm'));
 
   const friends = (robots.length ? robots : FALLBACK_ROBOTS)
     .filter(r => SPOTS[r.sky_target])
@@ -338,6 +339,7 @@ export function playPrologue({ robots = [], onDone } = {}) {
     if (i === phase) return;
     phase = i;
     caption.textContent = PHASES[i].text;
+    speak(PHASES[i].text, { interrupt: true });
     caption.parentElement.classList.remove('in');
     void caption.offsetWidth;                 // restart the fade-in
     caption.parentElement.classList.add('in');
@@ -354,6 +356,7 @@ export function playPrologue({ robots = [], onDone } = {}) {
     bar.style.width = '100%';
     endCard.hidden = false;
     endCard.querySelector('h2').focus();
+    speak(`${endCard.querySelector('h2').textContent}. ${endCard.querySelector('h2 + p').textContent}`, { interrupt: true });
   }
 
   function tick(now) {
