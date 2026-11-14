@@ -1,9 +1,17 @@
 {
  "target": "pioneer10",
- "source": "FALLBACK – TheSkyLive (theskylive.com/where-is-pioneer10), values read in November 2026. Replace with the JPL Horizons export if it works.",
- "frame": "apparent RA (hours) / Dec (degrees), geocentric; dist_au approximate",
+ "source": "TheSkyLive, November 2026 (fallback)",
+ "static": true,
+ "note": "Pioneer 10 moves very little across our sky. A fixed direction is enough for the event. Replace with Horizons data when available.",
+ "ra": 5.318056,
+ "dec": 26.116667,
+ "dist_au": 141.0,
  "points": [
-  { "t": "2026-11-01T00:00Z", "ra": 5.3181, "dec": 26.117, "dist_au": 141.3 },
-  { "t": "2027-11-01T00:00Z", "ra": 5.3181, "dec": 26.117, "dist_au": 143.8 }
+  {
+   "t": "2026-01-01T00:00:00Z",
+   "ra": 5.318056,
+   "dec": 26.116667,
+   "dist_au": 141.0
+  }
  ]
 }

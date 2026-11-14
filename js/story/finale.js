@@ -2,6 +2,7 @@
 // The kid "fires a laser" at the Apollo 11 mirror. The waiting time is the REAL round trip
 // computed from today's Earth–Moon distance (about 2.5 s). Then the facts appear.
 import { getAudioContext } from './radio.js';
+import * as Astronomy from '../lib/astronomy.browser.min.js';
 
 const $ = id => document.getElementById(id);
 const C_KM_S = 299792.458;

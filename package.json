@@ -1,0 +1,12 @@
+{
+  "name": "echo-station-dev-a",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Echo Station — role A: real sky positions, phone antenna, guidance arrow, sky map, light-time.",
+  "scripts": {
+    "serve": "python3 -m http.server 8080",
+    "test": "node --test tests/*.test.mjs",
+    "data": "python3 tools/horizons_to_json.py"
+  }
+}
