@@ -1,18 +1,25 @@
 :root {
-  --bg: #05070d;
-  --fg: #e8ecf4;
-  --muted: #8a94a8;
-  --signal: #5dffb0;
-  --accent: #ffb347;
-  --panel: #111827;
-  font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  /* Final palette (moodboard by Oumayma): ocean night + aqua echoes */
+  --bg: #0b0a1f;
+  --fg: #eef0ff;
+  --muted: #9a9cc4;
+  --signal: #5de4ff;
+  --accent: #ff9bd5;
+  --panel: #17153a;
+  --line: #2c2860;
+  --signal-dark: #0f2f3a;
+  --moon: #c9d3e6;
+  --mars: #ff8a5c;
+  --far: #b49bff;
+  font-family: "Inter", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
 }
 
 * { box-sizing: border-box; }
 
 body {
   margin: 0;
-  background: var(--bg);
+  background: linear-gradient(180deg, var(--bg) 0%, var(--bg) 35%, #1d1648 100%) fixed;
+  min-height: 100vh;
   color: var(--fg);
   line-height: 1.5;
 }
@@ -23,19 +30,20 @@ body {
   padding: 2rem 1.25rem 4rem;
 }
 
+h1, h2, h3, .transition-text h2 { font-family: "Space Grotesk", "Inter", sans-serif; }
 h1 { font-size: 2.5rem; letter-spacing: .2em; margin-top: 3rem; }
 h2 { font-size: 1.5rem; }
 h3 { color: var(--muted); font-size: 1rem; text-transform: uppercase; letter-spacing: .1em; margin-top: 2rem; }
 
 .tagline { font-size: 1.15rem; }
 .hint, .status { color: var(--muted); }
-.mono { font-family: ui-monospace, Menlo, Consolas, monospace; color: var(--signal); font-size: .9rem; }
+.mono { font-family: "JetBrains Mono", ui-monospace, Menlo, Consolas, monospace; color: var(--signal); font-size: .9rem; }
 
 button {
   font: inherit;
   color: var(--fg);
   background: var(--panel);
-  border: 1px solid #2a3550;
+  border: 1px solid var(--line);
   border-radius: 10px;
   padding: .75rem 1rem;
   margin: .25rem 0;
@@ -43,7 +51,7 @@ button {
   min-height: 44px; /* touch target */
 }
 button:hover, button:focus-visible { border-color: var(--signal); outline: none; }
-button.big { background: var(--signal); color: #04110a; font-weight: 700; border: none; padding: 1rem 1.5rem; }
+button.big { background: var(--signal); color: var(--bg); font-weight: 700; border: none; padding: 1rem 1.5rem; }
 button.link { background: none; border: none; color: var(--muted); padding: 0; }
 
 .meter { height: 14px; background: var(--panel); border-radius: 7px; overflow: hidden; margin: 1rem 0; }
@@ -71,7 +79,7 @@ details a { color: var(--signal); }
 .typing::after { content: '▍'; color: var(--signal); animation: caret 1s steps(1) infinite; }
 @keyframes caret { 50% { opacity: 0; } }
 .badge:empty { display: none; }
-.badge { display: inline-block; background: #12302a; color: var(--signal); border-radius: 6px; padding: .15rem .5rem; margin: 0 0 .5rem; font-size: .85rem; }
+.badge { display: inline-block; background: var(--signal-dark); color: var(--signal); border-radius: 6px; padding: .15rem .5rem; margin: 0 0 .5rem; font-size: .85rem; }
 #btn-skip { margin-top: 1rem; }
 
 #subtitles {
@@ -101,8 +109,8 @@ details a { color: var(--signal); }
 
 /* ===== Dev B: finale ===== */
 #finale-sky { position: relative; height: 240px; margin: 1.5rem 0; }
-#finale-moon { position: absolute; top: 0; left: 50%; width: 70px; height: 70px; margin-left: -35px; border-radius: 50%; background: #c9d3e6; box-shadow: 0 0 30px rgba(201, 211, 230, .35); }
-#finale-beam { position: absolute; top: 70px; bottom: 0; left: 50%; border-left: 2px dashed rgba(93, 255, 176, .35); }
+#finale-moon { position: absolute; top: 0; left: 50%; width: 70px; height: 70px; margin-left: -35px; border-radius: 50%; background: var(--moon); box-shadow: 0 0 30px rgba(201, 211, 230, .35); }
+#finale-beam { position: absolute; top: 70px; bottom: 0; left: 50%; border-left: 2px dashed rgba(93, 228, 255, .35); }
 #finale-pulse { position: absolute; left: 50%; bottom: 0; width: 14px; height: 14px; margin: 0 0 -7px -7px; border-radius: 50%; background: var(--signal); box-shadow: 0 0 16px var(--signal); opacity: 0; }
 #finale-timer { font-size: 2rem; text-align: center; min-height: 2.5rem; }
 #btn-fire { display: block; margin: 0 auto; }
@@ -131,15 +139,15 @@ details a { color: var(--signal); }
 .belu-line h2 { margin: 0; }
 .greeting { font-style: italic; font-size: 1.1rem; margin: 0; }
 #btn-friend { margin: 1rem 0; }
-#btn-friend:disabled { background: #12302a; color: var(--signal); cursor: default; }
+#btn-friend:disabled { background: var(--signal-dark); color: var(--signal); cursor: default; }
 .finale-belu .finale-last { margin: 0 !important; }
 
 /* ===== Belu's friends ===== */
 #friends-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: .75rem; margin: 1rem 0; }
 .friend-card { display: flex; flex-direction: column; align-items: flex-start; gap: .2rem; text-align: left;
-  background: var(--panel); border: 1px solid #2a3550; border-radius: 12px; padding: .7rem; margin: 0; }
+  background: var(--panel); border: 1px solid var(--line); border-radius: 12px; padding: .7rem; margin: 0; }
 .friend-card.unknown { opacity: .55; }
-.friend-pic { width: 100%; aspect-ratio: 4 / 3; border-radius: 8px; background: #0d1424; overflow: hidden;
+.friend-pic { width: 100%; aspect-ratio: 4 / 3; border-radius: 8px; background: #121034; overflow: hidden;
   display: grid; place-items: center; font-size: 2rem; color: var(--muted); margin-bottom: .3rem; }
 .friend-pic img { width: 100%; height: 100%; object-fit: cover; }
 .friend-place { color: var(--muted); font-size: .85rem; }

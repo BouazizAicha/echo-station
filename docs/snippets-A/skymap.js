@@ -72,20 +72,20 @@ export function initSkyMap(canvas, { getTargets, isFound, onAim }) {
 
     // sky and ground
     const g = ctx.createLinearGradient(0, 0, 0, H);
-    g.addColorStop(0, '#05070d');
-    g.addColorStop(1, '#0d1424');
+    g.addColorStop(0, '#0b0a1f');
+    g.addColorStop(1, '#1d1648');
     ctx.fillStyle = g;
     ctx.fillRect(0, 0, W, H);
-    ctx.fillStyle = '#080c14';
+    ctx.fillStyle = '#07061a';
     ctx.fillRect(0, hy, W, Math.max(0, H - hy));
-    ctx.strokeStyle = '#8a94a8';
+    ctx.strokeStyle = '#9a9cc4';
     ctx.lineWidth = dpr;
     ctx.beginPath(); ctx.moveTo(0, hy); ctx.lineTo(W, hy); ctx.stroke();
 
     // cardinal points
     ctx.font = `${12 * dpr}px system-ui, sans-serif`;
     ctx.textAlign = 'center';
-    ctx.fillStyle = '#8a94a8';
+    ctx.fillStyle = '#9a9cc4';
     for (const [label, az] of CARDINALS) {
       const p = toScreen({ az, alt: 0 });
       if (p.x > -30 && p.x < W + 30) ctx.fillText(label, p.x, hy + 16 * dpr);
@@ -100,21 +100,21 @@ export function initSkyMap(canvas, { getTargets, isFound, onAim }) {
         ctx.fillStyle = '#c9d3e6';
         ctx.beginPath(); ctx.arc(p.x, p.y, 9 * dpr, 0, Math.PI * 2); ctx.fill();
       } else if (found) {
-        ctx.fillStyle = '#5dffb0';
+        ctx.fillStyle = '#5de4ff';
         ctx.beginPath(); ctx.arc(p.x, p.y, 5 * dpr, 0, Math.PI * 2); ctx.fill();
       } else {                                   // unknown signal: a soft pulsing ring
         const r = (7 + 3 * Math.sin(t / 350)) * dpr;
-        ctx.strokeStyle = 'rgba(93, 255, 176, 0.6)';
+        ctx.strokeStyle = 'rgba(93, 228, 255, 0.6)';
         ctx.beginPath(); ctx.arc(p.x, p.y, r, 0, Math.PI * 2); ctx.stroke();
       }
       if (found || tg.target === 'moon') {
-        ctx.fillStyle = '#e8ecf4';
+        ctx.fillStyle = '#eef0ff';
         ctx.fillText(tg.label, p.x, p.y - 14 * dpr);
       }
     }
 
     // reticle in the centre = where we aim
-    ctx.strokeStyle = '#5dffb0';
+    ctx.strokeStyle = '#5de4ff';
     ctx.lineWidth = 1.5 * dpr;
     ctx.beginPath(); ctx.arc(W / 2, H / 2, 16 * dpr, 0, Math.PI * 2); ctx.stroke();
 

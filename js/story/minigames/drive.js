@@ -166,7 +166,7 @@ export function start(robot, ui) {
     ctx.rotate(rover.a);
     ctx.fillStyle = '#d9dde6';
     ctx.fillRect(-12, -8, 24, 16);                     // body (front = +x)
-    ctx.fillStyle = '#5dffb0';
+    ctx.fillStyle = '#5de4ff';
     ctx.fillRect(8, -3, 4, 6);                         // front marker
     for (const [fx, sx] of [[10, 9], [10, -9], [0, 9], [0, -9], [-10, 9], [-10, -9]]) {
       const isStuck = stuck && fx === 10 && sx === 9 * side;

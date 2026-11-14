@@ -48,7 +48,7 @@ export function playTransition(robot) {
         const strength = 1 - p;                            // the noise clears up
         for (let i = 0; i < img.data.length; i += 4) {
           const v = Math.random() * 255 * strength * 0.55;
-          img.data[i] = v * 0.6; img.data[i + 1] = v; img.data[i + 2] = v * 0.8; img.data[i + 3] = 255;
+          img.data[i] = v * 0.45; img.data[i + 1] = v * 0.8; img.data[i + 2] = v; img.data[i + 3] = 255;   // aqua-blue noise
         }
         ctx2d.putImageData(img, 0, 0);
       }
