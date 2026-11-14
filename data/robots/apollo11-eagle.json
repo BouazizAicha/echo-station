@@ -31,9 +31,10 @@
   "voice_text": "Hello Belu… you found me! I've been waiting here since 1969. I'm Eagle's descent stage, the lower half of a Moon lander. My four legs still stand in the lunar dust. NASA sent me to help humans reach the Moon and return home. I carried Neil Armstrong and Buzz Aldrin safely to the surface. They collected Moon rocks, some about 3.7 billion years old. Tiny fragments hinted that the young Moon once had an ocean of melted rock. Then I became their launch platform. They flew away… but I stayed. A spacecraft later photographed me and the trails they left behind. My landing leg carries a message of peace. In 2026, Artemis II astronauts flew around the Moon. And my mission's laser mirror still helps scientists study our neighbor.",
   "proof_image": {
     "file": "assets/images/apollo11-lroc.jpg",
-    "caption": "Apollo 11's descent stage and the trails left by astronauts' footsteps, viewed from lunar orbit by NASA's Lunar Reconnaissance Orbiter.",
+    "caption": "Apollo 11's descent stage and surface tracks photographed from lunar orbit by LRO's LROC camera (image M117338434R).",
     "credit": "NASA/GSFC/Arizona State University",
-    "source_url": "https://science.nasa.gov/resource/apollo-11-landing-site-from-dawn-to-dusk/"
+    "source_url": "https://lroc.im-ldi.com/featured_sites/apollo-11/site_images",
+    "image_id": "M117338434R"
   },
   "minigame": null,
   "sources": [
@@ -80,6 +81,42 @@
     {
       "title": "NASA – Artemis II Historic Lunar Flyby April 6, 2026",
       "url": "https://www.nasa.gov/blogs/missions/2026/04/06/artemis-ii-flight-day-6-crew-wraps-historic-lunar-flyby/"
+    },
+    {
+      "title": "Mission data reference: NASA NSSDCA",
+      "url": "https://nssdc.gsfc.nasa.gov/planetary/lunar/lunar_artifact_impacts.html"
+    },
+    {
+      "title": "Mission data reference: LROC Apollo 11 site images",
+      "url": "https://lroc.im-ldi.com/featured_sites/apollo-11/site_images"
     }
-  ]
+  ],
+  "beat": "Moon rocks hint at an ancient magma ocean!",
+  "successors": [
+    "Apollo 12",
+    "Apollo 14",
+    "Apollo 15",
+    "Apollo 16",
+    "Apollo 17",
+    "Artemis"
+  ],
+  "mission_data": {
+    "nssdca_id": "1969-059C",
+    "mass_kg": 2034,
+    "mass_scope": "Descent-stage dry mass including initially stowed surface equipment; not present-day remaining mass.",
+    "mass_source_url": "https://nssdc.gsfc.nasa.gov/nmc/spacecraft/display.action?id=1969-059C",
+    "site_coordinates": {
+      "latitude_deg": 0.67416,
+      "longitude_deg": 23.47314,
+      "body": "moon",
+      "scope": "Descent-stage landing site",
+      "convention": "North-positive latitude; east-positive longitude in degrees.",
+      "source_url": "https://nssdc.gsfc.nasa.gov/planetary/lunar/lunar_artifact_impacts.html"
+    },
+    "distance_traveled_km": null,
+    "flights": null,
+    "not_applicable_note": "No rover traverse or helicopter flight count applies to the descent stage.",
+    "nssdca_source_url": "https://nssdc.gsfc.nasa.gov/nmc/spacecraft/display.action?id=1969-059C",
+    "verified_on": "2026-11-14"
+  }
 }

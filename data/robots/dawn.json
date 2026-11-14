@@ -88,6 +88,34 @@
     {
       "title": "NASA – Dawn Objectives",
       "url": "https://science.nasa.gov/mission/dawn/objectives/"
+    },
+    {
+      "title": "Mission data reference: NASA mission reference",
+      "url": "https://science.nasa.gov/planetary-science/programs/discovery/"
+    },
+    {
+      "title": "NASA NSSDCA spacecraft record",
+      "url": "https://nssdc.gsfc.nasa.gov/nmc/spacecraft/display.action?id=2007-043A"
     }
-  ]
+  ],
+  "beat": "Bright spots turn out to be salt!",
+  "successors": [
+    "Lucy",
+    "Psyche"
+  ],
+  "mission_data": {
+    "nssdca_id": "2007-043A",
+    "mass_kg": 747.1,
+    "mass_scope": "Spacecraft dry mass from NASA Dawn Quick Facts; excludes launch propellants. Not its current orbital mass.",
+    "mass_source_url": "https://science.nasa.gov/mission/dawn/toolkit/quick-facts/",
+    "site_coordinates": null,
+    "site_coordinates_note": "Dawn remains in orbit around Ceres; it has no fixed surface latitude/longitude.",
+    "distance_traveled_km": null,
+    "flights": null,
+    "not_applicable_note": "No surface traverse or helicopter flight count applies to an orbiter.",
+    "successors_note": "Later asteroid-exploration missions, not missions replacing Dawn at Ceres.",
+    "successors_source_url": "https://science.nasa.gov/planetary-science/programs/discovery/",
+    "nssdca_source_url": "https://nssdc.gsfc.nasa.gov/nmc/spacecraft/display.action?id=2007-043A",
+    "verified_on": "2026-11-14"
+  }
 }
