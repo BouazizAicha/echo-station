@@ -1,0 +1,93 @@
+{
+  "id": "dawn",
+  "name": "Dawn",
+  "type": "orbiter",
+  "body": "ceres",
+  "site": "Orbit around Ceres, main asteroid belt",
+  "launched": "2007-09-27",
+  "landed": null,
+  "last_signal": "2018-10-31",
+  "status": "silent",
+  "sky_target": "ceres",
+  "greeting": "Hello Belu… I'm Dawn. Come closer, and let me tell you about two ancient worlds.",
+  "story": {
+    "who_i_am": "I'm Dawn, a robotic explorer with wide, winglike solar panels. I circled Vesta, a giant asteroid, then Ceres, a dwarf planet.",
+    "why_sent": "NASA sent me to study leftovers from the solar system's beginnings. Comparing these worlds helps explain how planets grew.",
+    "discoveries": "I found bright salt deposits in Ceres' Occator Crater. My measurements traced them to salty water from below the surface. That means this small world has a watery story beneath its crust.",
+    "where_now": "I still circle Ceres silently, like a tiny moon. I lost contact when my pointing thrusters ran out of fuel.",
+    "legacy": "My stored measurements still help scientists investigate the hidden interiors of Vesta and Ceres. New studies explore whether ancient Ceres could have supported life, without finding life itself."
+  },
+  "human_touch": "My team attached a tiny chip carrying space enthusiasts' names, taking their names beyond Earth.",
+  "questions": [
+    {
+      "q": "How did you travel between worlds?",
+      "a": "My ion engines used electricity to shoot tiny charged particles of xenon gas backward. That gently pushed me forward, like a slow, steady nudge. I became the first spacecraft to orbit two worlds beyond Earth."
+    },
+    {
+      "q": "Did you land on Ceres?",
+      "a": "No. I am an orbiter: I circle a world instead of landing. My orbit was chosen to avoid contaminating Ceres with Earth's microbes. Engineers expected me to remain in orbit for decades."
+    },
+    {
+      "q": "Did you discover life?",
+      "a": "No. Scientists found no evidence of life on Ceres. Studies using my data suggest ancient Ceres may have had water and chemical energy. These could have helped tiny living things survive, if any ever existed."
+    }
+  ],
+  "voice_text": "Hello Belu… I'm Dawn. I explored Vesta, a giant asteroid, and Ceres, a dwarf planet. Both circle the Sun between Mars and Jupiter. NASA sent me to learn how worlds began. My ion engines gave gentle pushes that added up over time. I became the first spacecraft to orbit two worlds beyond Earth. At Ceres, bright patches held a surprise… salt! Scientists used my measurements to trace salty water beneath the surface. Could ancient Ceres have supported tiny living things? Perhaps… but we have found no evidence of life there. Eventually, my pointing thrusters ran out of fuel. I could no longer aim my antenna toward Earth. I went silent… but I didn't land. I still circle Ceres, like a tiny moon. My journey has ended. The discoveries from my data continue.",
+  "proof_image": {
+    "file": "assets/images/dawn-ceres.jpg",
+    "caption": "Occator Crater and its bright deposits on Ceres, photographed by Dawn from orbit. This mosaic shows the world Dawn studied, not the spacecraft itself.",
+    "credit": "NASA/JPL-Caltech/UCLA/MPS/DLR/IDA/PSI",
+    "source_url": "https://science.nasa.gov/resource/occator-crater-and-ceres-brightest-spots/"
+  },
+  "minigame": null,
+  "sources": [
+    {
+      "title": "NASA – Dawn mission overview",
+      "url": "https://science.nasa.gov/mission/dawn/"
+    },
+    {
+      "title": "NASA – Dawn Quick Facts (launch, targets, firsts)",
+      "url": "https://science.nasa.gov/mission/dawn/toolkit/quick-facts/"
+    },
+    {
+      "title": "NASA – Dawn Ion Propulsion",
+      "url": "https://science.nasa.gov/mission/dawn/technology/ion-propulsion/"
+    },
+    {
+      "title": "NASA – Mystery Solved: Bright Areas on Ceres Come From Salty Water Below",
+      "url": "https://www.nasa.gov/centers-and-facilities/jpl/mystery-solved-bright-areas-on-ceres-come-from-salty-water-below/"
+    },
+    {
+      "title": "NASA – Dawn End of Mission (orbit and planetary protection)",
+      "url": "https://science.nasa.gov/mission/dawn/toolkit/end-of-mission/"
+    },
+    {
+      "title": "NASA – Dawn Mission Status (fuel depletion and loss of signal)",
+      "url": "https://science.nasa.gov/mission/dawn/mission-status/"
+    },
+    {
+      "title": "NASA JPL – Dawn Journal: Dear Dawntasmagorias (final radio signal)",
+      "url": "https://www.jpl.nasa.gov/blog/2018/11/dear-dawntasmagorias"
+    },
+    {
+      "title": "NASA JPL – Studies Reveal Hidden Secrets About Interiors of Moon, Vesta",
+      "url": "https://www.jpl.nasa.gov/news/nasa-studies-reveal-hidden-secrets-about-interiors-of-moon-vesta/"
+    },
+    {
+      "title": "NASA JPL – Ceres May Have Had Long-Standing Energy to Fuel Habitability",
+      "url": "https://www.jpl.nasa.gov/news/nasa-ceres-may-have-had-long-standing-energy-to-fuel-habitability/"
+    },
+    {
+      "title": "NASA – Occator Crater and Ceres' Brightest Spots (PIA20350)",
+      "url": "https://science.nasa.gov/resource/occator-crater-and-ceres-brightest-spots/"
+    },
+    {
+      "title": "The Planetary Society – Installation of the names microchip on Dawn (NASA photo and caption)",
+      "url": "https://www.planetary.org/space-images/installation-of-the-names"
+    },
+    {
+      "title": "NASA – Dawn Objectives",
+      "url": "https://science.nasa.gov/mission/dawn/objectives/"
+    }
+  ]
+}

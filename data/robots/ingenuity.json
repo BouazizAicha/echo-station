@@ -1,0 +1,89 @@
+{
+  "id": "ingenuity",
+  "name": "Ingenuity",
+  "type": "helicopter",
+  "body": "mars",
+  "site": "Valinor Hills, Jezero Crater",
+  "launched": "2020-07-30",
+  "landed": "2021-02-18",
+  "last_signal": "2024-11-26",
+  "status": "silent",
+  "sky_target": "mars",
+  "greeting": "Hello Belu… look up! I'm Ingenuity, the little helicopter that flew on Mars.",
+  "story": {
+    "who_i_am": "I'm Ingenuity, a small helicopter with a body about the size of a tissue box. I reached Mars tucked beneath the Perseverance rover.",
+    "why_sent": "NASA sent me to test powered, controlled flight on another planet. I had to lift off, stay steady, and land safely.",
+    "discoveries": "I became the first aircraft to achieve powered, controlled flight on another planet. I completed 72 flights, far beyond my short test plan. Later, I photographed routes for Perseverance.",
+    "where_now": "I rest at Valinor Hills, where a hard landing damaged my blades. Perseverance photographed me afterward, showing that my body was still standing.",
+    "legacy": "My flight data helps engineers design future Mars helicopters. NASA is also building Dragonfly to explore Titan, Saturn's largest moon."
+  },
+  "human_touch": "My team tucked a scrap of Wright brothers' airplane fabric beneath my solar panel.",
+  "questions": [
+    {
+      "q": "How could you fly in such thin air?",
+      "a": "Mars has air about 100 times thinner than Earth's. My long, lightweight blades spun about 2,400 times each minute to lift me. My solar panel charged the batteries that powered my motors."
+    },
+    {
+      "q": "Did someone steer you with a joystick?",
+      "a": "No! Radio messages take too long to travel between Earth and Mars. My team sent instructions ahead of time. My onboard computer guided each flight."
+    },
+    {
+      "q": "Are you completely broken?",
+      "a": "My blades are damaged, so I cannot fly again. My team programmed me to record pictures, temperatures, and equipment checks while staying put. My last communication with Perseverance was on November 26, 2024. We cannot confirm whether I still collect data today."
+    }
+  ],
+  "voice_text": "Hello Belu… look up! I'm Ingenuity, the little helicopter that flew on Mars. Perseverance carried me beneath its belly. NASA sent me to answer a daring question: could powered, controlled flight work on another planet? Mars has very thin air. My long blades had to spin fast to lift me. And I did it! I made history… then kept going, completing 72 flights. I even photographed routes for Perseverance. A hard landing damaged my blades, so I cannot fly again. I rest at Valinor Hills, where Perseverance photographed me still standing. My team programmed me to keep recording data without moving. We don't know whether I still do that today. But my flight data helps engineers imagine future Mars helicopters. My blades are still… but my story can lift your imagination.",
+  "proof_image": {
+    "file": "assets/images/ingenuity-perseverance.jpg",
+    "caption": "Ingenuity at its final airfield, Valinor Hills, photographed by Perseverance on February 4, 2024. This enhanced-color mosaic exaggerates subtle color differences to reveal detail.",
+    "credit": "NASA/JPL-Caltech/ASU/MSSS",
+    "source_url": "https://science.nasa.gov/resource/perseverance-spots-ingenuity-at-its-final-airfield/"
+  },
+  "minigame": null,
+  "sources": [
+    {
+      "title": "NASA – Ingenuity Mars Helicopter",
+      "url": "https://science.nasa.gov/mission/mars-2020-perseverance/ingenuity-mars-helicopter/"
+    },
+    {
+      "title": "NASA JPL – Ingenuity Landing Press Kit: Quick Facts",
+      "url": "https://www.jpl.nasa.gov/news/press_kits/mars_2020/ingenuity/landing/quick_facts/"
+    },
+    {
+      "title": "NASA JPL – Ingenuity Succeeds in Historic First Flight",
+      "url": "https://www.jpl.nasa.gov/news/nasas-ingenuity-mars-helicopter-succeeds-in-historic-first-flight/"
+    },
+    {
+      "title": "NASA – After Three Years on Mars, Ingenuity Helicopter Mission Ends",
+      "url": "https://www.nasa.gov/news-release/after-three-years-on-mars-nasas-ingenuity-helicopter-mission-ends/"
+    },
+    {
+      "title": "NASA – Ingenuity Mars Helicopter Team Says Goodbye … for Now",
+      "url": "https://www.nasa.gov/solar-system/nasas-ingenuity-mars-helicopter-team-says-goodbye-for-now/"
+    },
+    {
+      "title": "NASA – The Mars Report: February 2025 (last communication)",
+      "url": "https://science.nasa.gov/mars/the-mars-report/2025-february/"
+    },
+    {
+      "title": "NASA – Perseverance Spots Ingenuity at Its Final Airfield",
+      "url": "https://science.nasa.gov/resource/perseverance-spots-ingenuity-at-its-final-airfield/"
+    },
+    {
+      "title": "NASA – The Wright Brothers",
+      "url": "https://science.nasa.gov/photojournal/the-wright-brothers/"
+    },
+    {
+      "title": "NASA JPL – Ingenuity (autonomous flight)",
+      "url": "https://www.jpl.nasa.gov/missions/ingenuity/"
+    },
+    {
+      "title": "NASA JPL – Testing the Next Generation of Mars Helicopter Rotor Blades",
+      "url": "https://www.jpl.nasa.gov/videos/testing-the-next-generation-of-mars-helicopter-rotor-blades/"
+    },
+    {
+      "title": "NASA – Dragonfly",
+      "url": "https://science.nasa.gov/mission/dragonfly/"
+    }
+  ]
+}
