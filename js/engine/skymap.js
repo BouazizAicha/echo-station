@@ -39,7 +39,12 @@ function clamp(value, min, max) {
  *   isFound: (robot: object) => boolean,
  * }} options
  */
-export function initSkyMap({ canvas, onAim, getTargets, getRobots, isFound }) {
+export function initSkyMap({
+  canvas, onAim, getTargets, getRobots, isFound,
+  isHidden = () => false,      // Story mode: hidden targets (Belu's sonar reveals them)
+  showGuide = () => true,      // Story mode: no arrow, the sonar is the guide
+  overlay = null,              // extra drawing on top of the sky (sonar rings and echoes)
+}) {
   const context = canvas.getContext('2d');
   const reduceMotion = typeof matchMedia !== 'undefined'
     ? matchMedia('(prefers-reduced-motion: reduce)').matches
@@ -252,6 +257,7 @@ export function initSkyMap({ canvas, onAim, getTargets, getRobots, isFound }) {
   }
 
   function drawTarget(target, time) {
+    if (isHidden(target)) return;
     const point = project(target.az, target.alt);
     const rect = canvas.getBoundingClientRect();
     if (point.x < -40 || point.x > rect.width + 40 || point.y < -40 || point.y > rect.height + 40) return;
@@ -314,7 +320,7 @@ export function initSkyMap({ canvas, onAim, getTargets, getRobots, isFound }) {
     const centerY = rect.height / 2;
     const near = nearest && nearest.distance < 6;
 
-    if (nearest) {
+    if (nearest && showGuide()) {
       const guide = computeGuide(view, nearest.target);
       context.save();
       context.translate(centerX, centerY);
@@ -386,6 +392,7 @@ export function initSkyMap({ canvas, onAim, getTargets, getRobots, isFound }) {
     drawGrid(width, height);
     for (const target of targetsWithRobots()) drawTarget(target, time);
     drawGuide(time);
+    overlay?.(context, { project, width, height, time, scale, view });
     drawHud(width, height);
   }
 

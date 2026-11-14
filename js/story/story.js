@@ -1,6 +1,7 @@
 // Story screen (Dev B): typed text, voice, subtitles, photo, questions, sources, "add as a friend".
 import { playVoice, stopVoice, buildCues } from './voice.js';
 import { isFriend, addFriend } from './friends.js';
+import { hasMinigame, minigameOf } from './minigames/index.js';
 
 const BELU = { neutral: 'assets/images/belu-neutral.svg', happy: 'assets/images/belu-happy.svg' };
 
@@ -112,8 +113,8 @@ export async function showStory(robot, { onMinigame, onFriend } = {}) {
 
   // Mini-game button
   const mg = $('btn-minigame');
-  mg.hidden = !robot.minigame;
-  mg.textContent = `Help ${robot.name}`;
+  mg.hidden = !hasMinigame(robot);
+  mg.textContent = `▶ Play: ${minigameOf(robot)?.title || `Help ${robot.name}`}`;
   mg.onclick = () => { if (onMinigame) onMinigame(robot); };
 
   // Sources

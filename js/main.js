@@ -3,7 +3,7 @@
 import { startRadio, setSignal, muteRadio } from './story/radio.js';
 import { showStory, stopStory, skipTyping } from './story/story.js';
 import { playTransition } from './story/transition.js';
-import { startMinigame, hasMinigame } from './story/minigames/index.js';
+import { startMinigame, hasMinigame, minigameOf } from './story/minigames/index.js';
 import { openFinale } from './story/finale.js';
 import { renderFriends, countFriends } from './story/friends.js';
 // Story mode (Dev B): mode choice, prologue, cinematic stories, "Why it matters"
@@ -11,6 +11,7 @@ import { isStory, setMode, onModeChange } from './story/mode.js';
 import { playPrologue } from './story/prologue.js';
 import { showCinema, stopCinema, resumeCinema } from './story/cinema.js';
 import { showWhy } from './story/why.js';
+import { createSonar, starsFor } from './story/sonar.js';
 
 import {
   compassPoint,
@@ -30,7 +31,7 @@ import {
 } from './engine/antenna.js';
 import { computeGuide, guideMessage } from './engine/guide.js';
 import { initSkyMap } from './engine/skymap.js';
-import { pickTarget } from './engine/targeting.js';
+import { pickTarget, activeTargets } from './engine/targeting.js';
 
 const TOLERANCE_DEG = 20;   // signal reaches 0 at 20° from the target
 const LOCK_LEVEL = 0.7;     // 70% of that = about 6° away
@@ -357,6 +358,9 @@ function lockTarget(target) {
   state.lockStart = null;
   state.lockProgress = 0;
   map?.stop();
+  // Story mode: how many sonar clicks it took (stars on the first card)
+  state.pendingFind = isStory() && !state.found.has(robot.id) ? { clicks: sonar.clicks } : null;
+  sonar.reset();
   tuneTo(robot);
 }
 
@@ -386,8 +390,11 @@ function openStory(robot) {
     map?.refresh();
     show('screen-cinema');
     updateFinaleButton();
+    const find = state.pendingFind;
+    state.pendingFind = null;
     showCinema(robot, {
       light,
+      found: find ? { clicks: find.clicks, stars: starsFor(find.clicks) } : null,
       onMinigame: openMinigame,
       onFriend: updateFriendsButton,
       onExit: backToRadio,
@@ -462,8 +469,9 @@ function openMinigame(robot) {
   stopStory();
   stopCinema();
   show('screen-minigame');
-  $('mg-title').textContent = `Help ${robot.name}`;
-  $('mg-intro').textContent = robot.minigame?.intro || '';
+  const game = minigameOf(robot);
+  $('mg-title').textContent = game?.title || `Help ${robot.name}`;
+  $('mg-intro').textContent = game?.intro || '';
   if (state.game) state.game.stop();
   state.game = startMinigame(robot, {
     canvas: $('mg-canvas'), hud: $('mg-hud'), controls: $('mg-controls'),
@@ -646,6 +654,20 @@ function startListening() {
   if (params.has('finale')) goFinale();   // shortcut for filming the video
 }
 
+// Belu's sonar (Story mode): the robots are hidden, echoes reveal them
+const sonar = createSonar({
+  getAim: () => state.aiming,
+  getTargets: () => {
+    const active = activeTargets(state.targets, state.robots, state.found);
+    return active.length ? active : [];
+  },
+  mount: document.querySelector('#screen-radio .hud'),
+});
+document.addEventListener('keydown', (event) => {
+  if (state.screen !== 'radio' || !isStory()) return;
+  if ((event.key === 'c' || event.key === 'C') && !event.target.closest('input, textarea')) sonar.ping();
+});
+
 // Scientist mode: straight to the sky
 $('btn-start').addEventListener('click', () => {
   setMode('science');
@@ -703,6 +725,12 @@ Promise.all([loadRobots(), loadSkyTables()])
     if (list) list.textContent = 'Could not load the sky data.';
   });
 
+// A target whose robots are all found stays visible in Story mode
+function targetDone(target) {
+  const robots = state.robots.filter((robot) => robot.sky_target === target.id);
+  return robots.length > 0 && robots.every((robot) => state.found.has(robot.id));
+}
+
 function initMap() {
   const canvas = $('skymap');
   if (!canvas) return;
@@ -712,6 +740,9 @@ function initMap() {
     getTargets: () => state.targets,
     getRobots: () => state.robots,
     isFound: (robot) => state.found.has(robot.id),
+    isHidden: (target) => isStory() && !targetDone(target),
+    showGuide: () => !isStory(),
+    overlay: (context, info) => { if (isStory()) sonar.draw(context, info); },
   });
 
   // Handy for the phone debug session and for tests.

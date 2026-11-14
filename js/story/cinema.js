@@ -14,6 +14,7 @@ import { createScene } from './scenes.js';
 import { extrasFor, worldOf, yearOf } from './storydata.js';
 import { robotPicture } from './silhouettes.js';
 import { mountDiscovery, hasDiscovery } from './discoveries.js';
+import { minigameOf } from './minigames/index.js';
 
 const CARDS = ['arrival', 'who', 'why', 'discovery', 'where', 'legacy', 'friend'];
 const CHARS_PER_SECOND = 45;
@@ -268,6 +269,7 @@ function cardArrival(card, { robot, ex, opts }, myToken) {
     b.addEventListener('click', () => listen(robot, b));
     row.appendChild(b);
   }
+  if (opts.found) row.appendChild(chip(`Found in ${opts.found.clicks} click${opts.found.clicks === 1 ? '' : 's'} ${'★'.repeat(opts.found.stars)}${'☆'.repeat(3 - opts.found.stars)}`));
   if (opts.light) row.appendChild(chip(`Signal time to Earth: ${opts.light}`));
   card.appendChild(row);
   say(ex.belu.arrival, 'happy');
@@ -454,8 +456,9 @@ function cardFriend(card, { robot, ex, opts }) {
     secret.append(el('p', 'mono', 'SECRET FACT'), el('p', null, robot.human_touch));
     card.appendChild(secret);
   }
-  if (robot.minigame && opts.canPlay?.(robot)) {
-    const help = el('button', 'cine-help', `Help ${robot.name} (mini-game)`);
+  if (opts.canPlay?.(robot)) {
+    const game = minigameOf(robot);
+    const help = el('button', 'cine-help', `▶ Play: ${game?.title || `Help ${robot.name}`}`);
     help.type = 'button';
     help.addEventListener('click', () => opts.onMinigame && opts.onMinigame(robot));
     card.appendChild(help);
