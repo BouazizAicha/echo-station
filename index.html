@@ -8,8 +8,6 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=JetBrains+Mono&family=Space+Grotesk:wght@500;700&display=swap">
   <link rel="stylesheet" href="css/style.css">
-  <!-- astronomy-engine (MIT) – computes real sky positions of the Moon, Mars... -->
-  <script src="js/lib/astronomy.browser.min.js"></script>
 </head>
 <body>
 
@@ -27,31 +25,61 @@
     <p class="hint">Belu is a fictional character. Every fact about the robots is real.</p>
   </section>
 
-  <!-- 2. RADIO / ANTENNA -->
+  <!-- 2. RADIO / ANTENNA (Dev A: sky map, signal, guide, counter) -->
   <section id="screen-radio" class="screen" hidden>
-    <div class="belu-header">
-      <div class="belu-wrap" id="belu-radio">
-        <img id="belu-radio-img" src="assets/images/belu-neutral.svg" alt="Belu the beluga, listening">
-        <span class="ring"></span><span class="ring r2"></span><span class="ring r3"></span>
+    <header class="radio-top">
+      <div class="belu-header">
+        <div class="belu-wrap" id="belu-radio">
+          <img id="belu-radio-img" src="assets/images/belu-neutral.svg" alt="Belu the beluga, listening">
+          <span class="ring"></span><span class="ring r2"></span><span class="ring r3"></span>
+        </div>
+        <h2>Belu is listening…</h2>
       </div>
-      <h2>Belu is listening…</h2>
-    </div>
+      <p id="counter" class="counter" aria-label="Robots found"></p>
+      <span class="live-chip"><span class="live-dot" aria-hidden="true"></span> LIVE</span>
+    </header>
+
     <div class="meter"><div id="signal-bar"></div></div>
-    <p id="radio-status" class="status">Only static… keep looking.</p>
+    <p id="radio-status" class="status" role="status" aria-live="polite">Only static… keep looking.</p>
     <p id="pointing" class="mono"></p>
 
-    <button id="btn-friends">Belu's friends</button>
-    <button id="btn-finale" class="big" hidden>Belu hears a very old echo…</button>
+    <div class="radio-layout">
+      <div id="skymap-wrap" class="map-panel">
+        <canvas id="skymap" width="900" height="600" tabindex="0" role="img"
+          aria-label="Sky map. The green reticle at the centre is your aim. Drag to pan, or use the arrow keys. The Moon is slightly left of centre at start."></canvas>
+        <div id="antenna-controls" class="map-toolbar">
+          <button id="btn-antenna">Use my phone as an antenna</button>
+          <button id="btn-map">Sky map</button>
+          <button id="btn-calibrate" hidden>Calibrate: point at the Moon, then tap</button>
+        </div>
+      </div>
 
-    <div id="antenna-controls">
-      <button id="btn-antenna">Use my phone as an antenna</button>
-      <button id="btn-calibrate" hidden>Calibrate: point at the Moon, then tap</button>
+      <aside class="hud" aria-label="Signal and guidance">
+        <section id="guide" class="guide" aria-label="Guidance arrow">
+          <div class="guide-ring" aria-hidden="true"></div>
+          <div id="guide-arrow" class="guide-arrow" aria-hidden="true">➜</div>
+          <p id="guide-text" class="guide-text" aria-live="polite">Follow the arrow.</p>
+        </section>
+
+        <p id="target-readout" class="target-readout mono" aria-live="polite"></p>
+
+        <details id="list-view" class="panel list-view">
+          <summary>List view <span class="summary-note">targets &amp; accessibility</span></summary>
+          <ul id="target-list"></ul>
+          <p class="mono micro">Arrow keys pan the map · Shift + arrow goes faster · Home recentres on the Moon.</p>
+        </details>
+
+        <p id="debug" class="debug mono" hidden></p>
+
+        <footer class="data-footer">
+          <p><span class="eyebrow">Data</span> <span id="data-source">Moon/Mars: astronomy-engine · Ceres/Pioneer 10: NASA/JPL Horizons</span></p>
+        </footer>
+      </aside>
     </div>
 
-    <!-- Desktop / no-sensor fallback. Dev 1 replaces this list with the sky map. -->
-    <div id="manual-tuning">
-      <h3>Manual tuning</h3>
-      <div id="robot-list"></div>
+    <div class="radio-actions">
+      <button id="btn-friends">Belu's friends</button>
+      <button id="btn-finale" class="big" hidden>Belu hears a very old echo…</button>
     </div>
   </section>
 

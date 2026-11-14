@@ -1,71 +1,248 @@
-// Phone-as-antenna (Dev 1).
-// Converts the phone orientation into the direction the BACK CAMERA is pointing:
-// azimuth (0 = North, 90 = East) and altitude (0 = horizon, 90 = straight up).
-//
-// Phone compasses are imprecise (10–20°). The fix: the user points at the Moon
-// (which they can see) and taps "Calibrate". We store the offset and apply it everywhere.
-//
-// ⚠️ Needs HTTPS (GitHub Pages is fine). Test on a real Android AND a real iPhone.
+/**
+ * antenna.js — the phone becomes a radio antenna.
+ *
+ * DeviceOrientation gives three angles. We turn them into the direction of
+ * the back camera (azimuth 0 = North, altitude 0 = horizon), smooth the
+ * direction as a 3D vector (so 359° -> 0° never jumps), then apply the
+ * one-time Moon calibration offset.
+ */
 
-const listeners = [];
-let offsetAz = 0;
-let current = null;
+import { getHorizontal, normalize180 } from './sky.js';
 
-export function hasSensors() {
-  return typeof window.DeviceOrientationEvent !== 'undefined';
+const params = typeof location !== 'undefined'
+  ? new URLSearchParams(location.search)
+  : new URLSearchParams();
+
+const RADIANS = Math.PI / 180;
+
+/** 0 = frozen, 1 = no smoothing. 0.15–0.3 feels good; use 0.1 if shaky. */
+let smoothing = 0.2;
+
+/** Live state, also useful to the debug line. */
+export const pointing = {
+  az: 0,
+  alt: 0,
+  raw: null,
+  accuracy: null,
+  active: false,
+  screenAngle: 0,
+  calibrated: false,
+  offsetAz: 0,
+  offsetAlt: 0,
+};
+
+let smoothedVector = null;
+let uncalibrated = { az: 0, alt: 0 };
+let listener = null;
+let running = false;
+let usingAbsolute = false;
+let firstEventResolve = null;
+let firstEventTimer = null;
+
+function emit() {
+  if (!listener) return;
+  listener({
+    az: pointing.az,
+    alt: pointing.alt,
+    raw: pointing.raw,
+    accuracy: pointing.accuracy,
+    uncalibrated: { ...uncalibrated },
+  });
 }
 
-// Must be called from a tap (iOS asks for permission).
+/** The brief's smoothing: average unit vectors, never angles. */
+export function smoothDir(direction) {
+  const v = [
+    Math.cos(direction.alt * RADIANS) * Math.sin(direction.az * RADIANS), // East
+    Math.cos(direction.alt * RADIANS) * Math.cos(direction.az * RADIANS), // North
+    Math.sin(direction.alt * RADIANS), // Up
+  ];
+  smoothedVector = smoothedVector
+    ? smoothedVector.map((component, index) => component + smoothing * (v[index] - component))
+    : v;
+  const length = Math.hypot(...smoothedVector);
+  return {
+    az: (Math.atan2(smoothedVector[0], smoothedVector[1]) / RADIANS + 360) % 360,
+    alt: Math.asin(smoothedVector[2] / length) / RADIANS,
+  };
+}
+
+export function setSmoothing(value) {
+  const next = Number(value);
+  if (Number.isFinite(next) && next >= 0 && next <= 1) smoothing = next;
+}
+
+/** Register the one aim callback used by main.js. */
+export function onPointing(callback) {
+  listener = callback;
+}
+
+function headingFrom(event) {
+  // iPhone: webkitCompassHeading is already a true compass heading.
+  // (Do NOT do 360 - webkitCompassHeading: that mirrors East to 270.)
+  if (Number.isFinite(event.webkitCompassHeading)) {
+    return event.webkitCompassHeading;
+  }
+  if (!Number.isFinite(event.alpha)) return null;
+
+  // Android: alpha turns counter-clockwise, so heading = 360 - alpha.
+  // Override with ?heading=alpha if a device reports the other convention.
+  if (params.get('heading') === 'alpha') return ((event.alpha % 360) + 360) % 360;
+  return ((360 - event.alpha) % 360 + 360) % 360;
+}
+
+function handleOrientation(event, absolute) {
+  const heading = headingFrom(event);
+  if (heading === null) return;
+
+  // Prefer the absolute event on Android; keep the relative one for iPhone,
+  // where webkitCompassHeading only appears on deviceorientation.
+  if (absolute) usingAbsolute = true;
+  else if (usingAbsolute && !Number.isFinite(event.webkitCompassHeading)) return;
+
+  const beta = Number.isFinite(event.beta) ? event.beta : 90;
+  const gamma = Number.isFinite(event.gamma) ? event.gamma : 0;
+
+  // Portrait, phone upright: beta = 90 -> horizon; beta = 135 -> 45° up.
+  const altitude = Math.max(-89.9, Math.min(89.9, beta - 90));
+
+  const rawDirection = {
+    az: (heading % 360) * (params.get('mirror') === '1' ? -1 : 1),
+    alt: altitude,
+  };
+  rawDirection.az = (rawDirection.az + 360) % 360;
+
+  uncalibrated = smoothDir(rawDirection);
+  pointing.az = (uncalibrated.az + pointing.offsetAz + 360) % 360;
+  pointing.alt = Math.max(-89.9, Math.min(89.9, uncalibrated.alt + pointing.offsetAlt));
+  pointing.raw = {
+    alpha: event.alpha,
+    beta: event.beta,
+    gamma: event.gamma,
+    webkitCompassHeading: event.webkitCompassHeading ?? null,
+    absolute: Boolean(absolute || event.absolute),
+  };
+  pointing.accuracy = Number.isFinite(event.webkitCompassAccuracy)
+    ? event.webkitCompassAccuracy
+    : null;
+  pointing.screenAngle = typeof screen !== 'undefined' && screen.orientation
+    ? screen.orientation.angle || 0
+    : 0;
+
+  emit();
+
+  if (firstEventResolve) {
+    firstEventResolve();
+    firstEventResolve = null;
+    clearTimeout(firstEventTimer);
+  }
+}
+
+function orientationHandler(event) {
+  handleOrientation(event, false);
+}
+
+function absoluteHandler(event) {
+  handleOrientation(event, true);
+}
+
+function attachListeners() {
+  window.addEventListener('deviceorientationabsolute', absoluteHandler, true);
+  window.addEventListener('deviceorientation', orientationHandler, true);
+}
+
+function detachListeners() {
+  window.removeEventListener('deviceorientationabsolute', absoluteHandler, true);
+  window.removeEventListener('deviceorientation', orientationHandler, true);
+}
+
+/**
+ * Ask for permission (iOS) and start listening.
+ * Must be called from a user gesture (button tap).
+ * @returns {Promise<void>} resolves after the first orientation event
+ */
 export async function enableAntenna() {
-  if (!hasSensors()) return false;
+  if (running) return;
+
+  if (typeof DeviceOrientationEvent === 'undefined') {
+    throw new Error('This device has no motion sensor. Use the sky map instead.');
+  }
+
   if (typeof DeviceOrientationEvent.requestPermission === 'function') {
-    try {
-      const res = await DeviceOrientationEvent.requestPermission();
-      if (res !== 'granted') return false;
-    } catch (e) {
-      return false;
+    const permission = await DeviceOrientationEvent.requestPermission();
+    if (permission !== 'granted') {
+      throw new Error('Motion access was refused. Use the sky map, or allow it in Settings.');
     }
   }
-  // Android Chrome: absolute (north-referenced) orientation
-  const evt = 'ondeviceorientationabsolute' in window ? 'deviceorientationabsolute' : 'deviceorientation';
-  window.addEventListener(evt, onOrientation, true);
-  return true;
+
+  // Best effort; Safari ignores this.
+  try {
+    await screen.orientation?.lock?.('portrait');
+  } catch {
+    // Portrait lock is a nicety, not a requirement.
+  }
+
+  running = true;
+  pointing.active = true;
+  attachListeners();
+
+  await new Promise((resolve, reject) => {
+    firstEventResolve = resolve;
+    firstEventTimer = setTimeout(() => {
+      running = false;
+      pointing.active = false;
+      detachListeners();
+      firstEventResolve = null;
+      reject(new Error('No orientation data arrived. Use the sky map instead.'));
+    }, 2500);
+  });
 }
 
-function onOrientation(e) {
-  if (e.beta == null || e.gamma == null) return;
-  let alpha = e.alpha ?? 0;
-  // iOS gives a real compass heading separately. TODO: verify on a real iPhone.
-  if (typeof e.webkitCompassHeading === 'number') alpha = 360 - e.webkitCompassHeading;
-
-  const p = pointing(alpha, e.beta, e.gamma);
-  current = { az: (p.az + offsetAz + 360) % 360, alt: p.alt, rawAz: p.az };
-  listeners.forEach(fn => fn(current));
+export function disableAntenna() {
+  running = false;
+  pointing.active = false;
+  detachListeners();
 }
 
-// W3C device orientation (alpha, beta, gamma in degrees) → back-camera direction.
-// World frame: x = East, y = North, z = Up. Rotation R = Rz(alpha)·Rx(beta)·Ry(gamma).
-export function pointing(alpha, beta, gamma) {
-  const r = Math.PI / 180;
-  const ca = Math.cos(alpha * r), sa = Math.sin(alpha * r);
-  const cb = Math.cos(beta * r),  sb = Math.sin(beta * r);
-  const cg = Math.cos(gamma * r), sg = Math.sin(gamma * r);
-  // Back camera = -Z axis of the device
-  const x = -(ca * sg + sa * sb * cg);
-  const y = -(sa * sg - ca * sb * cg);
-  const z = -(cb * cg);
-  const alt = Math.asin(Math.max(-1, Math.min(1, z))) / r;
-  const az = (Math.atan2(x, y) / r + 360) % 360;
-  return { az, alt };
+/**
+ * Aim at the Moon, measure the error once, and apply the correction to
+ * every target. Returns the measured offsets in degrees.
+ * @param {'moon'|'mars'|'ceres'|'pioneer10'} targetId
+ */
+export function calibrate(targetId = 'moon') {
+  if (!pointing.active) {
+    throw new Error('Start the antenna before calibrating.');
+  }
+  const target = getHorizontal(targetId);
+  const offsetAz = normalize180(target.az - uncalibrated.az);
+  const offsetAlt = target.alt - uncalibrated.alt;
+
+  pointing.offsetAz = offsetAz;
+  pointing.offsetAlt = offsetAlt;
+  pointing.calibrated = true;
+
+  // Apply immediately so the UI does not wait for the next sensor event.
+  pointing.az = (uncalibrated.az + offsetAz + 360) % 360;
+  pointing.alt = Math.max(-89.9, Math.min(89.9, uncalibrated.alt + offsetAlt));
+  emit();
+
+  return {
+    dAz: offsetAz,
+    dAlt: offsetAlt,
+    target,
+  };
 }
 
-export function onPointing(fn) {
-  listeners.push(fn);
+export function resetCalibration() {
+  pointing.offsetAz = 0;
+  pointing.offsetAlt = 0;
+  pointing.calibrated = false;
 }
 
-// trueAz = real azimuth of the Moon right now (from sky.js)
-export function calibrate(trueAz) {
-  if (!current) return false;
-  offsetAz = trueAz - current.rawAz;
-  return true;
+export function getCalibration() {
+  return {
+    az: pointing.offsetAz,
+    alt: pointing.offsetAlt,
+    calibrated: pointing.calibrated,
+  };
 }

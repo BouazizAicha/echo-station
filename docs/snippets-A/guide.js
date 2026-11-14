@@ -1,18 +1,57 @@
-// Guidance arrow (Dev A) – tells the user where to move the phone.
-// dir and target are { az, alt } in degrees (az: 0 = North, 90 = East).
-// Returns the CSS rotation for an arrow that points RIGHT at 0°, a hint text, and the distance in degrees.
+/**
+ * guide.js — the arrow that turns a kid's random sky-sweeping into a path.
+ *
+ * We compare the horizontal gap (wrapped to -180..180, positive = right)
+ * and the height gap. The horizontal gap is multiplied by cos(altitude):
+ * near the zenith a large azimuth change is only a small movement.
+ * atan2 gives the rotation angle, with CSS conventions (0 = right, -90 = up).
+ */
+
+import { normalize180 } from './sky.js';
+
+const RADIANS = Math.PI / 180;
+
+/**
+ * @param {{az:number, alt:number}} dir current aim
+ * @param {{az:number, alt:number, label?:string}} target
+ */
 export function computeGuide(dir, target) {
-  const dAz = ((target.az - dir.az + 540) % 360) - 180;      // -180..180, positive = to the right
-  const dAlt = target.alt - dir.alt;                          // positive = higher
-  const horiz = dAz * Math.cos(dir.alt * Math.PI / 180);      // sideways angle shrinks near the zenith
-  const rotateDeg = Math.atan2(-dAlt, horiz) * 180 / Math.PI; // CSS: 0 = right, -90 = up, 90 = down
+  const dAzRaw = normalize180(target.az - dir.az); // -180..180, + = to the right
+  const dAlt = target.alt - dir.alt; // + = higher
+  const horiz = dAzRaw * Math.cos(dir.alt * RADIANS);
+  const rotateDeg = Math.atan2(-dAlt, horiz) / RADIANS; // CSS: 0 = right, -90 = up
   const dist = Math.hypot(horiz, dAlt);
+  const dAz = normalize180(target.az - dir.az);
 
-  let text;
-  if (dist < 6) text = "You're on it! Hold still.";
-  else if (Math.abs(horiz) >= Math.abs(dAlt)) text = horiz > 0 ? 'Turn right' : 'Turn left';
-  else text = dAlt > 0 ? 'Aim higher' : 'Aim lower';
-  if (target.alt < 0 && dist >= 6) text += ' (it is below the horizon: aim through the Earth!)';
+  return { dAz, dAzRaw, dAlt, horiz, rotateDeg, dist };
+}
 
-  return { rotateDeg, text, dist };
+/**
+ * Human instruction. Kept short because a screen reader may read it.
+ * The caller only writes it to the DOM when the text actually changes.
+ */
+export function guideMessage(guide, target) {
+  const label = target.label || 'the target';
+  // A target under the horizon cannot be aimed at: never tell the player to
+  // turn toward it or to "look down" past the ground.
+  if (target.alt < 0) return `${label} is below the horizon right now.`;
+  if (guide.dist <= 6) return "You're on it! Hold still.";
+
+  const parts = [];
+  const azGap = Math.abs(guide.dAz);
+  if (azGap >= 4) {
+    parts.push(`Turn ${Math.round(azGap)}° ${guide.dAz > 0 ? 'right' : 'left'}`);
+  }
+
+  const altGap = Math.abs(guide.dAlt);
+  if (altGap >= 4) {
+    parts.push(`look ${guide.dAlt > 0 ? 'up' : 'down'} ${Math.round(altGap)}°`);
+  }
+
+  if (!parts.length) return `${label} is close — small movements.`;
+  return `${capitalize(parts.join(' and '))} toward ${label}.`;
+}
+
+function capitalize(text) {
+  return text.charAt(0).toUpperCase() + text.slice(1);
 }

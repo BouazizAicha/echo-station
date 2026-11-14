@@ -1,37 +1,151 @@
-<!-- ===== index.html – inside <section id="screen-radio"> (Dev A) ===== -->
+<!--
+  PARTIE 6 / index_additions.html
+  HTML + CSS à ajouter à index.html et css/style.css.
+  La version complète est déjà branchée dans index.html et css/style.css.
+-->
 
-<!-- Guidance arrow: put it just under the signal meter -->
-<div id="guide" hidden>
-  <svg id="guide-arrow" viewBox="0 0 100 100" width="64" height="64" aria-hidden="true">
-    <path d="M10 50 H75 M52 26 L80 50 L52 74" fill="none" stroke="currentColor"
-          stroke-width="10" stroke-linecap="round" stroke-linejoin="round"/>
-  </svg>
-  <p id="guide-text" aria-live="polite"></p>
+<!-- 1. Dans l'écran radio, remplacer le bloc « Manual tuning » par : -->
+<div id="skymap-wrap" class="map-panel">
+  <canvas id="skymap" width="900" height="600" tabindex="0" role="img"
+    aria-label="Sky map. The green reticle at the centre is your aim. Drag to pan, or use the arrow keys."></canvas>
+  <p class="map-caption">Drag · arrow keys (Shift = faster) · Home recentres on the Moon</p>
 </div>
 
-<!-- Counter -->
-<p id="counter" class="mono"></p>
+<!-- 2. Le compteur, dans l'en-tête de l'écran radio : -->
+<p id="counter" class="counter" aria-label="Robots found"></p>
 
-<!-- Sky map: replaces the "Manual tuning" block -->
-<canvas id="skymap" aria-label="Sky map. Drag, or use the arrow keys, to look around the real sky."></canvas>
-<p class="hint">Drag the sky or use the arrow keys. Put a signal in the green circle and hold still.</p>
+<!-- 3. La flèche de guidage, à côté de la carte : -->
+<section id="guide" class="guide" aria-label="Guidance arrow">
+  <div class="guide-ring" aria-hidden="true"></div>
+  <div id="guide-arrow" class="guide-arrow" aria-hidden="true">➜</div>
+  <p id="guide-text" class="guide-text" aria-live="polite">Follow the arrow.</p>
+</section>
 
-<!-- Keep the list for accessibility, folded -->
-<details id="manual-tuning">
+<!-- 4. Le mode debug, dans l'écran radio : -->
+<p id="debug" class="debug mono" hidden></p>
+
+<!-- 5. Le délai lumière, dans l'écran Histoire (avec B) : -->
+<p id="story-light" class="light-time">Light-time: —</p>
+
+<!-- 6. La liste accessible (garder la liste dans un <details>) : -->
+<details id="list-view" class="panel list-view">
   <summary>List view</summary>
-  <div id="robot-list"></div>
+  <ul id="target-list"></ul>
 </details>
 
-<!-- Debug line (only filled with ?debug) -->
-<p id="debug" class="mono"></p>
-
-<!-- ===== css/style.css ===== -->
 <style>
-#guide { display: flex; align-items: center; gap: .75rem; margin: .5rem 0; }
-#guide-arrow { color: var(--signal); transition: transform .15s linear; flex: none; }
-#skymap { width: 100%; height: 320px; border-radius: 12px; display: block; margin-top: 1rem; }
-#skymap[hidden] { display: none; }
-#skymap:focus-visible { outline: 2px solid var(--signal); }
-#debug { font-size: .7rem; word-break: break-all; }
-@media (prefers-reduced-motion: reduce) { #guide-arrow { transition: none; } }
+  /* --- Indispensable : sans cette règle, la carte ne se cache pas --- */
+  #skymap[hidden] {
+    display: none !important;
+  }
+
+  #skymap {
+    display: block;
+    width: 100%;
+    aspect-ratio: 3 / 2;
+    border: 1px solid var(--line);
+    border-radius: 18px;
+    background: #070b14;
+    touch-action: none;
+    cursor: grab;
+  }
+
+  #skymap:active {
+    cursor: grabbing;
+  }
+
+  .counter {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .counter-item {
+    padding: 7px 12px;
+    border: 1px solid var(--line);
+    border-radius: 999px;
+    color: var(--muted);
+    font-family: var(--mono);
+    font-size: 0.7rem;
+  }
+
+  .counter-item[data-complete="true"] {
+    border-color: rgba(110, 247, 165, 0.5);
+    background: rgba(110, 247, 165, 0.14);
+    color: var(--green);
+  }
+
+  .guide {
+    --lock: 0;
+    position: relative;
+    display: grid;
+    grid-template-columns: 84px 1fr;
+    align-items: center;
+    gap: 8px;
+    min-height: 112px;
+    padding: 14px 18px 14px 12px;
+    border: 1px solid var(--line);
+    border-radius: 18px;
+    background: rgba(255, 255, 255, 0.015);
+  }
+
+  .guide-ring {
+    position: absolute;
+    top: 21px;
+    left: 21px;
+    width: 78px;
+    height: 78px;
+    border-radius: 50%;
+    background: conic-gradient(var(--green) calc(var(--lock) * 1turn), rgba(110, 247, 165, 0.12) 0);
+    -webkit-mask: radial-gradient(circle, transparent 34px, #000 35px);
+    mask: radial-gradient(circle, transparent 34px, #000 35px);
+  }
+
+  .guide-arrow {
+    position: relative;
+    display: grid;
+    place-items: center;
+    width: 84px;
+    height: 84px;
+    color: var(--green);
+    font-size: 2.6rem;
+    transform: rotate(0deg);
+    transform-origin: center;
+    transition: transform 140ms ease-out;
+  }
+
+  .guide-arrow[data-below-horizon="true"] {
+    opacity: 0.28;
+  }
+
+  .guide-text {
+    position: relative;
+    font-size: 0.95rem;
+  }
+
+  .debug {
+    padding: 10px 12px;
+    border: 1px dashed rgba(255, 196, 107, 0.35);
+    border-radius: 12px;
+    color: #ffd89a;
+    font-size: 0.66rem;
+    line-height: 1.5;
+    word-break: break-word;
+  }
+
+  .debug[hidden] {
+    display: none;
+  }
+
+  @media (max-width: 620px) {
+    #skymap {
+      aspect-ratio: 4 / 3;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .guide-arrow {
+      transition: none;
+    }
+  }
 </style>
