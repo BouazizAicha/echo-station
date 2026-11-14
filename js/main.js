@@ -1,11 +1,14 @@
-// Echo Station – integrated flow: intro → Belu listens (antenna / sky map) → story → friends, mini-game, finale.
-// Role A (sky, antenna, guide, sky map, counter, light-time) with role B's story untouched.
-import { startRadio, setSignal, muteRadio } from './story/radio.js';
-import { showStory, stopStory, skipTyping } from './story/story.js';
-import { playTransition } from './story/transition.js';
-import { startMinigame } from './story/minigames/index.js';
-import { openFinale } from './story/finale.js';
-import { renderFriends, countFriends } from './story/friends.js';
+/**
+ * main.js — Dev A integration (sky, antenna, guide, sky map, counter).
+ *
+ * The story screen, voices, radio static, transition and finale belong to
+ * Dev B. This harness stops at the lock panel so the antenna can be tested
+ * on real phones tonight; B replaces `openLockPanel()` with the story.
+ *
+ * Signal: strength = 1 - distance / TOLERANCE_DEG.
+ * Lock: strength stays >= LOCK_LEVEL for LOCK_TIME_MS.
+ * With 20 / 0.7 / 1500 that is about 6° held for 1.5 s.
+ */
 
 import {
   compassPoint,
@@ -18,8 +21,8 @@ import {
 } from './engine/sky.js';
 import {
   calibrate,
-  disableAntenna,
   enableAntenna,
+  disableAntenna,
   onPointing,
   pointing,
 } from './engine/antenna.js';
@@ -27,15 +30,15 @@ import { computeGuide, guideMessage } from './engine/guide.js';
 import { initSkyMap } from './engine/skymap.js';
 import { pickTarget } from './engine/targeting.js';
 
-const TOLERANCE_DEG = 20;   // signal reaches 0 at 20° from the target
-const LOCK_LEVEL = 0.7;     // 70% of that = about 6° away
-const LOCK_TIME_MS = 1500;  // hold still this long to lock on
-const FINALE_AT = 3;        // robots to find before the finale unlocks
+const TOLERANCE_DEG = 20;
+const LOCK_LEVEL = 0.7;
+const LOCK_TIME_MS = 1500;
 const SKY_REFRESH_MS = 10000;
-const BELOW_HORIZON_LEAD = 35; // nudge the map after a story so it does not re-lock
+const STORAGE_KEY = 'echo-station-found-v1';
 
 const params = new URLSearchParams(location.search);
 const DEBUG = params.has('debug');
+const START_ON_MAP = params.has('map');
 
 const state = {
   screen: 'intro',
@@ -48,11 +51,11 @@ const state = {
   lockStart: null,
   lockProgress: 0,
   suppressUntil: 0,
-  antennaActive: false,
   gotOrientation: false,
+  antennaActive: false,
   lastUiAt: 0,
   lastGuideText: '',
-  lastRobot: null,
+  skyRefreshTimer: 0,
 };
 
 let map = null;
@@ -68,28 +71,12 @@ function signed(value, digits = 1) {
   return Number(value) >= 0 ? `+${rounded}` : rounded;
 }
 
-function show(id) {
-  for (const screen of document.querySelectorAll('.screen')) {
-    screen.hidden = screen.id !== id;
-  }
-  state.screen = id.replace('screen-', '');
-  window.scrollTo(0, 0);
-}
-
-function setRadioStatus(message, kind = '') {
-  const element = $('radio-status');
-  if (!element) return;
-  element.textContent = message;
-  element.dataset.kind = kind;
-}
-
 /* ------------------------------------------------------------------ */
 /* Data                                                                */
 /* ------------------------------------------------------------------ */
 
-// index.json is either a list of robot ids (role B) or a list of objects.
 async function loadRobots() {
-  const response = await fetch('data/robots/index.json', { cache: 'no-cache' });
+  const response = await fetch(new URL('data/robots/index.json', document.baseURI), { cache: 'no-cache' });
   if (!response.ok) throw new Error(`robots index: HTTP ${response.status}`);
   const documentObject = await response.json();
   const entries = Array.isArray(documentObject) ? documentObject : (documentObject.robots || []);
@@ -98,7 +85,7 @@ async function loadRobots() {
   for (const entry of entries) {
     if (typeof entry === 'string') {
       try {
-        const robotResponse = await fetch(`data/robots/${entry}.json`, { cache: 'no-cache' });
+        const robotResponse = await fetch(new URL(`data/robots/${entry}.json`, document.baseURI));
         if (robotResponse.ok) robots.push(await robotResponse.json());
       } catch (error) {
         console.warn(`[robots] ${entry}:`, error);
@@ -110,24 +97,50 @@ async function loadRobots() {
   return robots.filter((robot) => robot && robot.id && robot.sky_target);
 }
 
-/* ------------------------------------------------------------------ */
-/* Sky positions                                                       */
-/* ------------------------------------------------------------------ */
-
-function refreshSky() {
-  state.targets = getSkyTargets();
-  renderRobotList();
-  renderCounter();
-  map?.refresh();
-  updateDataSource();
+function loadFound() {
+  try {
+    const stored = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
+    if (Array.isArray(stored)) stored.forEach((id) => state.found.add(id));
+  } catch {
+    // Private mode, quota, corrupted value: start fresh.
+  }
 }
 
-function targetFor(skyTarget) {
-  return state.targets.find((target) => target.id === skyTarget) || null;
+function saveFound() {
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify([...state.found]));
+  } catch {
+    // Not essential.
+  }
 }
 
-function targetLabel(skyTarget) {
-  return targetFor(skyTarget)?.label || skyTarget;
+/* ------------------------------------------------------------------ */
+/* Screens                                                             */
+/* ------------------------------------------------------------------ */
+
+function show(screenName) {
+  for (const screen of document.querySelectorAll('.screen')) {
+    screen.classList.toggle('is-active', screen.id === `screen-${screenName}`);
+  }
+  state.screen = screenName;
+  document.body.dataset.screen = screenName;
+  window.scrollTo({ top: 0, behavior: 'instant' });
+}
+
+function toast(message) {
+  const element = $('toast');
+  if (!element) return;
+  element.textContent = message;
+  element.classList.add('is-visible');
+  clearTimeout(toast.timer);
+  toast.timer = setTimeout(() => element.classList.remove('is-visible'), 3200);
+}
+
+function setStatus(message, kind = '') {
+  const element = $('antenna-status');
+  if (!element) return;
+  element.textContent = message;
+  element.dataset.kind = kind;
 }
 
 /* ------------------------------------------------------------------ */
@@ -154,11 +167,10 @@ function renderCounter() {
   container.innerHTML = '';
   for (const group of GROUPS) {
     const { found, total } = groupStats(group.targets);
-    if (!total) continue;
     const item = document.createElement('span');
     item.className = 'counter-item';
     item.textContent = `${group.label} ${found}/${total}`;
-    item.dataset.complete = found === total ? 'true' : 'false';
+    item.dataset.complete = found === total && total > 0 ? 'true' : 'false';
     container.append(item);
   }
 }
@@ -170,10 +182,9 @@ function renderRobotList() {
 
   for (const target of state.targets) {
     const robots = state.robots.filter((robot) => robot.sky_target === target.id);
-    if (!robots.length) continue; // no robot to find there (e.g. Ceres tonight)
     const found = robots.filter((robot) => state.found.has(robot.id)).length;
-
     const item = document.createElement('li');
+
     const info = document.createElement('span');
     info.className = 'target-info';
     info.textContent = `${target.label} · ${target.az.toFixed(0)}° ${compassPoint(target.az)} / ${target.alt.toFixed(0)}°${target.alt < 0 ? ' (below horizon)' : ''}`;
@@ -189,10 +200,9 @@ function renderRobotList() {
     button.disabled = target.alt < 0;
     button.addEventListener('click', () => {
       if (!map) return;
-      if (state.antennaActive) useSkyMap();
       map.start();
       map.lookAt(target.id);
-      setRadioStatus(`Sky map centred on ${target.label}.`, 'ok');
+      toast(`Sky map centred on ${target.label}.`);
     });
 
     item.append(info, count, button);
@@ -201,8 +211,23 @@ function renderRobotList() {
 }
 
 /* ------------------------------------------------------------------ */
-/* Signal, guide, lock                                                 */
+/* Sky, signal, guide                                                  */
 /* ------------------------------------------------------------------ */
+
+function refreshSky() {
+  state.targets = getSkyTargets();
+  const observerElement = $('observer-name');
+  if (observerElement) {
+    const observer = getObserver();
+    observerElement.textContent = `${observer.name} · ${observer.latitude.toFixed(2)}°, ${observer.longitude.toFixed(2)}°`;
+  }
+  renderRobotList();
+  if (map) map.refresh();
+}
+
+function chooseNearest(aim) {
+  return pickTarget(aim, state.targets, state.robots, state.found);
+}
 
 /**
  * The single entry point for both the antenna and the sky map.
@@ -213,20 +238,22 @@ function onAim(direction, source = 'map') {
   state.aiming = { az: direction.az, alt: direction.alt };
   if (state.screen !== 'radio') return;
 
-  const nearest = pickTarget(state.aiming, state.targets, state.robots, state.found);
+  const nearest = chooseNearest(state.aiming);
   if (!nearest) return;
   state.nearest = nearest;
-  state.level = clamp(1 - nearest.distance / TOLERANCE_DEG, 0, 1);
+
+  const level = clamp(1 - nearest.distance / TOLERANCE_DEG, 0, 1);
+  state.level = level;
 
   const now = performance.now();
-  if (state.level >= LOCK_LEVEL && now >= state.suppressUntil) {
+  if (level >= LOCK_LEVEL && now >= state.suppressUntil) {
     if (state.lockStart === null) state.lockStart = now;
     const held = now - state.lockStart;
     state.lockProgress = clamp(held / LOCK_TIME_MS, 0, 1);
     if (held >= LOCK_TIME_MS) {
       state.lockStart = null;
       state.lockProgress = 0;
-      lockTarget(nearest.target);
+      lockRobot(nearest.target);
       return;
     }
   } else {
@@ -234,7 +261,7 @@ function onAim(direction, source = 'map') {
     state.lockProgress = 0;
   }
 
-  // UI at ~12 Hz; the map sends at 10 Hz and sensors can fire at 60 Hz.
+  // UI at ~12 Hz; sensors can fire at 60 Hz.
   if (now - state.lastUiAt >= 80) {
     state.lastUiAt = now;
     updateSignalUi();
@@ -243,47 +270,36 @@ function onAim(direction, source = 'map') {
   }
 }
 
-// Belu's echo rings speed up with the signal, and he smiles when he hears a friend.
-let beluState = '';
-function updateBelu(strength) {
-  const duration = (1.8 - 1.4 * strength).toFixed(1);
-  const mood = strength >= LOCK_LEVEL ? 'happy' : 'neutral';
-  const key = `${duration}${mood}`;
-  if (key === beluState) return;
-  beluState = key;
-  $('belu-radio')?.style.setProperty('--echo-dur', `${duration}s`);
-  const image = $('belu-radio-img');
-  if (image) image.src = `assets/images/belu-${mood}.svg`;
-}
-
 function updateSignalUi() {
-  const level = state.level;
-  setSignal(level);
-  updateBelu(level);
+  const fill = $('signal-fill');
+  const text = $('signal-text');
+  const targetName = $('target-name');
+  const targetCoords = $('target-coords');
+  const reticle = $('guide');
 
-  const bar = $('signal-bar');
-  if (bar) bar.style.width = `${Math.round(level * 100)}%`;
+  if (fill) fill.style.transform = `scaleX(${state.level.toFixed(3)})`;
+  if (reticle) reticle.style.setProperty('--lock', state.lockProgress.toFixed(3));
 
-  const guide = $('guide');
-  if (guide) guide.style.setProperty('--lock', state.lockProgress.toFixed(3));
-
-  if (state.lockProgress > 0) {
-    setRadioStatus("You're on it! Hold still…");
-  } else if (level > 0) {
-    setRadioStatus(`Belu hears something… signal ${Math.round(level * 100)}%`);
-  } else {
-    setRadioStatus('Only static… keep looking.');
+  const locked = state.lockProgress > 0;
+  if (text) {
+    if (locked) text.textContent = "You're on it! Hold still.";
+    else if (state.level > 0) text.textContent = `Signal ${Math.round(state.level * 100)}%`;
+    else text.textContent = 'Searching — follow the arrow';
   }
 
-  const readout = $('target-readout');
   const nearest = state.nearest;
-  if (readout && nearest) {
-    readout.textContent = `${nearest.target.label} · ${nearest.target.az.toFixed(0)}° ${compassPoint(nearest.target.az)} / ${nearest.target.alt.toFixed(0)}° · ${nearest.distance.toFixed(1)}° away`;
+  if (nearest) {
+    if (targetName) targetName.textContent = nearest.target.label;
+    if (targetCoords) {
+      targetCoords.textContent = `AZ ${nearest.target.az.toFixed(1)}° ${compassPoint(nearest.target.az)} · ALT ${nearest.target.alt.toFixed(1)}° · ${nearest.distance.toFixed(1)}° away`;
+    }
   }
 
-  const pointingLine = $('pointing');
-  if (pointingLine) {
-    pointingLine.textContent = `Aiming: azimuth ${state.aiming.az.toFixed(0)}°, altitude ${state.aiming.alt.toFixed(0)}°`;
+  const source = $('data-source');
+  if (source) {
+    const ceres = state.targets.find((target) => target.id === 'ceres');
+    const pioneer = state.targets.find((target) => target.id === 'pioneer10');
+    source.textContent = `Moon/Mars: astronomy-engine · Ceres: ${ceres?.source || '—'} · Pioneer 10: ${pioneer?.source || '—'}`;
   }
 }
 
@@ -295,13 +311,15 @@ function updateGuide() {
   const guide = computeGuide(state.aiming, state.nearest.target);
   const below = state.nearest.target.alt < 0;
 
-  // No arrow toward a target under the horizon: dim it and stop spinning.
-  arrow.style.transform = `rotate(${below ? 0 : guide.rotateDeg.toFixed(1)}deg)`;
+  // Below the horizon: translucent ground, message, arrow dimmed but rotatable
+  arrow.style.transform = `rotate(${guide.rotateDeg.toFixed(1)}deg)`;
   arrow.dataset.belowHorizon = below ? 'true' : 'false';
 
   const message = state.lockProgress > 0
     ? "You're on it! Hold still."
-    : guideMessage(guide, state.nearest.target);
+    : below
+      ? "Below the horizon: Belu hears it through the Earth!"
+      : guideMessage(guide, state.nearest.target);
 
   // Only touch the DOM when the sentence changes: a screen reader would
   // otherwise re-read it 12 times a second.
@@ -311,148 +329,67 @@ function updateGuide() {
   }
 }
 
-function updateDataSource() {
-  const element = $('data-source');
-  if (!element) return;
-  const ceres = targetFor('ceres');
-  const pioneer = targetFor('pioneer10');
-  const observer = getObserver();
-  element.textContent = `Data: Moon/Mars astronomy-engine · Ceres ${ceres?.source || '—'} · Pioneer 10 ${pioneer?.source || '—'} · observer ${observer.name}`;
-}
-
 /* ------------------------------------------------------------------ */
-/* Lock → transition → story                                           */
+/* Lock                                                                */
 /* ------------------------------------------------------------------ */
 
-function lockTarget(target) {
-  const candidates = state.robots.filter((robot) => robot.sky_target === target.id);
-  const robot = candidates.find((candidate) => !state.found.has(candidate.id)) || candidates[0];
+function lockRobot(target) {
+  const robot = state.robots.find(
+    (candidate) => candidate.sky_target === target.id && !state.found.has(candidate.id),
+  );
   if (!robot) {
+    toast(`All robots on ${target.label} are already found.`);
     state.suppressUntil = performance.now() + 1800;
-    setRadioStatus(`No robot is listening on ${target.label}.`, 'error');
     return;
   }
 
-  state.suppressUntil = performance.now() + 2600;
-  state.lockStart = null;
-  state.lockProgress = 0;
-  map?.stop();
-  tuneTo(robot);
-}
-
-// Static → transition → story (used by the antenna, the sky map and the list)
-let transitioning = false;
-async function tuneTo(robot) {
-  if (transitioning) return;
-  transitioning = true;
-  muteRadio();
-  await playTransition(robot);
-  transitioning = false;
-  openStory(robot);
-}
-
-function openStory(robot) {
-  state.lastRobot = robot;
   state.found.add(robot.id);
-  muteRadio();
-
-  const target = targetFor(robot.sky_target);
-  const light = $('story-light');
-  if (light) {
-    try {
-      light.textContent = target
-        ? `Light-time from ${target.label}: ${formatLightTime(getLightTime(robot.sky_target))}`
-        : '';
-    } catch {
-      light.textContent = '';
-    }
-  }
-
+  saveFound();
   renderCounter();
   renderRobotList();
-  map?.refresh();
-  show('screen-story');
-  updateFinaleButton();
-  showStory(robot, { onMinigame: openMinigame, onFriend: updateFriendsButton });
-}
-
-function backToRadio() {
-  stopStory();
-  setSignal(0);
-  state.suppressUntil = performance.now() + 1200;
+  state.suppressUntil = performance.now() + 2200;
   state.lockStart = null;
   state.lockProgress = 0;
 
-  if (!state.antennaActive && map) {
-    // Move the crosshair off the target, otherwise it locks again instantly.
-    if (state.lastRobot) map.lookAt(state.lastRobot.sky_target, BELOW_HORIZON_LEAD);
-    map.start();
+  openLockPanel(robot, target);
+}
+
+/**
+ * Dev A stops here. Dev B replaces this panel with the real story screen.
+ */
+function openLockPanel(robot, target) {
+  const name = $('lock-name');
+  const light = $('lock-light');
+  const coords = $('lock-coords');
+  if (name) name.textContent = robot.name;
+  if (light) {
+    try {
+      light.textContent = `Light-time from ${target.label}: ${formatLightTime(getLightTime(target.id))}`;
+    } catch {
+      light.textContent = 'Light-time: —';
+    }
   }
+  if (coords) {
+    coords.textContent = `AZ ${target.az.toFixed(1)}° ${compassPoint(target.az)} · ALT ${target.alt.toFixed(1)}°`;
+  }
+  map?.stop();
+  show('lock');
+}
 
-  refreshSky();
-  show('screen-radio');
-  setRadioStatus('Only static… keep looking.');
+function closeLockPanel() {
+  show('radio');
+  if (!state.antennaActive) map?.start();
+  else map?.stop();
 }
 
 /* ------------------------------------------------------------------ */
-/* Belu's friends                                                      */
+/* Antenna                                                             */
 /* ------------------------------------------------------------------ */
 
-function updateFriendsButton() {
-  $('btn-friends').textContent = `Belu's friends · ${countFriends(state.robots)}/${state.robots.length}`;
-}
-
-function openFriends() {
-  stopStory();
-  muteRadio();
-  const n = countFriends(state.robots);
-  $('friends-count').textContent = `${n} of ${state.robots.length} friends found`;
-  renderFriends($('friends-grid'), state.robots, { onOpen: (robot) => openStory(robot) });
-  show('screen-friends');
-}
-
-/* ------------------------------------------------------------------ */
-/* Mini-game                                                           */
-/* ------------------------------------------------------------------ */
-
-function openMinigame(robot) {
-  stopStory();
-  show('screen-minigame');
-  $('mg-title').textContent = `Help ${robot.name}`;
-  $('mg-intro').textContent = robot.minigame?.intro || '';
-  if (state.game) state.game.stop();
-  state.game = startMinigame(robot, {
-    canvas: $('mg-canvas'), hud: $('mg-hud'), controls: $('mg-controls'),
-    result: $('mg-result'), resultTitle: $('mg-result-title'), resultText: $('mg-result-text'),
-    retryButton: $('btn-mg-retry'),
-  });
-  if (DEBUG) window.__game = state.game;   // for testing
-}
-
-function closeMinigame() {
-  if (state.game) state.game.stop();
-  state.game = null;
-  show('screen-story');
-}
-
-/* ------------------------------------------------------------------ */
-/* Finale                                                              */
-/* ------------------------------------------------------------------ */
-
-function updateFinaleButton() {
-  $('btn-finale').hidden = state.found.size < Math.min(FINALE_AT, state.robots.length);
-}
-
-function goFinale() {
-  muteRadio();
-  show('screen-finale');
-  openFinale({ onExit: () => { setSignal(0); show('screen-radio'); } });
-}
-
-/* ------------------------------------------------------------------ */
-/* Antenna and sky map                                                 */
-/* ------------------------------------------------------------------ */
-
+/**
+ * Called by antenna.js for every smoothed sensor reading.
+ * First reading: the real antenna takes over from the sky map.
+ */
 function onAntenna(direction) {
   if (!state.gotOrientation) {
     const canvas = $('skymap');
@@ -461,28 +398,27 @@ function onAntenna(direction) {
     state.gotOrientation = true;
     state.antennaActive = true;
     map?.stop();
-    setRadioStatus('Antenna live — point the back camera at the Moon, then calibrate.', 'ok');
+    setStatus('Antenna live — point the back camera at the Moon, then calibrate.', 'ok');
   }
   onAim(direction, 'antenna');
 }
 
 async function startAntenna() {
-  setRadioStatus('Requesting motion access…');
+  setStatus('Requesting motion access…');
   try {
     await enableAntenna();
     state.antennaActive = true;
-    state.gotOrientation = true;
     const canvas = $('skymap');
     if (canvas) canvas.hidden = true;
     $('skymap-wrap')?.classList.add('is-antenna');
     map?.stop();
-    $('btn-antenna').hidden = true;
-    $('btn-calibrate').hidden = false;
-    setRadioStatus('Antenna live — point the back camera at the Moon, then calibrate.', 'ok');
+    state.gotOrientation = true;
+    setStatus('Antenna live — point the back camera at the Moon, then calibrate.', 'ok');
+    toast('Motion sensors active. Aim at the Moon and tap Calibrate.');
   } catch (error) {
     state.antennaActive = false;
-    $('btn-calibrate').hidden = true;
-    setRadioStatus(error.message || 'Motion sensors unavailable. Use the sky map.', 'error');
+    setStatus(error.message || 'Motion sensors unavailable. Use the sky map.', 'error');
+    toast('Antenna unavailable. The sky map still works.');
     map?.start();
   }
 }
@@ -494,27 +430,21 @@ function useSkyMap() {
   const canvas = $('skymap');
   if (canvas) canvas.hidden = false;
   $('skymap-wrap')?.classList.remove('is-antenna');
-  $('btn-antenna').hidden = false;
-  $('btn-calibrate').hidden = true;
   map?.start();
-  setRadioStatus('Sky map live — drag it, or use the arrow keys.', 'ok');
+  setStatus('Sky map live — drag, use the arrow keys, or Shift + arrows.', 'ok');
 }
 
 function calibrateMoon() {
   if (!pointing.active) {
-    setRadioStatus('Start the phone antenna before calibrating.', 'error');
-    return;
-  }
-  const moon = targetFor('moon');
-  if (!moon || moon.alt < 0) {
-    setRadioStatus('The Moon is below the horizon right now: calibration skipped.', 'error');
+    toast('Start the phone antenna before calibrating.');
     return;
   }
   try {
     const result = calibrate('moon');
-    setRadioStatus(`Calibrated on the Moon (${signed(result.dAz)}° az, ${signed(result.dAlt)}° alt).`, 'ok');
+    toast(`Calibrated: ${signed(result.dAz)}° azimuth, ${signed(result.dAlt)}° altitude.`);
+    setStatus(`Calibrated on the Moon (${signed(result.dAz)}° az).`, 'ok');
   } catch (error) {
-    setRadioStatus(error.message, 'error');
+    toast(error.message);
   }
 }
 
@@ -525,15 +455,16 @@ function calibrateMoon() {
 function showDebug(direction, source) {
   const element = $('debug');
   if (!element) return;
-  const moon = targetFor('moon');
+  const moon = state.targets.find((target) => target.id === 'moon');
   const raw = direction.raw || {};
+  const calibration = pointing;
   element.textContent = [
     `src ${source}`,
     `aim ${state.aiming.az.toFixed(1)}/${state.aiming.alt.toFixed(1)}`,
     `moon ${moon ? `${moon.az.toFixed(1)}/${moon.alt.toFixed(1)}` : '—'}`,
     `raw α ${raw.alpha != null ? Number(raw.alpha).toFixed(1) : '—'} β ${raw.beta != null ? Number(raw.beta).toFixed(1) : '—'} γ ${raw.gamma != null ? Number(raw.gamma).toFixed(1) : '—'}`,
     `acc ${pointing.accuracy != null ? `${Number(pointing.accuracy).toFixed(0)}°` : '—'}`,
-    `cal ${signed(pointing.offsetAz)}/${signed(pointing.offsetAlt)}`,
+    `cal ${signed(calibration.offsetAz)}/${signed(calibration.offsetAlt)}`,
     `nearest ${state.nearest ? `${state.nearest.target.label} ${state.nearest.distance.toFixed(1)}°` : '—'}`,
     `level ${Math.round(state.level * 100)}%`,
   ].join(' · ');
@@ -543,7 +474,7 @@ function showDebug(direction, source) {
 /* Geolocation                                                         */
 /* ------------------------------------------------------------------ */
 
-function locateUser() {
+function locate() {
   if (!navigator.geolocation) return;
   navigator.geolocation.getCurrentPosition(
     (position) => {
@@ -555,10 +486,10 @@ function locateUser() {
       });
       refreshSky();
       map?.centerOnMoon();
-      setRadioStatus(`Sky for ${getObserver().name}.`, 'ok');
+      toast('Using your location for the sky.');
     },
     () => {
-      // Tunis default is fine: the brief is written for Tunis.
+      // Tunis default is fine; the brief is written for Tunis.
     },
     { enableHighAccuracy: false, timeout: 6000, maximumAge: 600000 },
   );
@@ -568,64 +499,65 @@ function locateUser() {
 /* Boot                                                                */
 /* ------------------------------------------------------------------ */
 
-$('btn-start').addEventListener('click', () => {
-  startRadio();
-  setSignal(0);
-  locateUser();
-  show('screen-radio');
-  refreshSky();
-  map?.start();
-  if (params.has('finale')) goFinale();   // shortcut for filming the video
-});
+async function boot() {
+  if (DEBUG) {
+    document.body.classList.add('is-debug');
+    $('debug')?.removeAttribute('hidden');
+  }
+  loadFound();
 
-$('btn-antenna')?.addEventListener('click', startAntenna);
-$('btn-map')?.addEventListener('click', useSkyMap);
-$('btn-calibrate')?.addEventListener('click', calibrateMoon);
-$('btn-back')?.addEventListener('click', backToRadio);
-$('btn-skip')?.addEventListener('click', skipTyping);
-$('btn-mg-back')?.addEventListener('click', closeMinigame);
-$('btn-mg-done')?.addEventListener('click', closeMinigame);
-$('btn-finale')?.addEventListener('click', goFinale);
-$('btn-friends')?.addEventListener('click', openFriends);
-$('btn-friends-back')?.addEventListener('click', () => { setSignal(0); refreshSky(); show('screen-radio'); map?.start(); });
-
-if (DEBUG) $('debug')?.removeAttribute('hidden');
-
-onPointing(onAntenna);
-
-Promise.all([loadRobots(), loadSkyTables()])
-  .then(([robots]) => {
-    state.robots = robots;
+  $('start-button')?.addEventListener('click', () => {
+    show('radio');
+    map?.start();
     refreshSky();
-    updateFriendsButton();
-    updateFinaleButton();
-    initMap();
-    window.setInterval(() => {
-      refreshSky();
-      if (state.screen === 'radio' && state.nearest) {
-        updateSignalUi();
-        updateGuide();
-      }
-    }, SKY_REFRESH_MS);
-  })
-  .catch((error) => {
-    console.error(error);
-    setRadioStatus('Could not load the sky data. Run a local server (see README).', 'error');
-    const list = $('target-list');
-    if (list) list.textContent = 'Could not load the sky data.';
+    locate();
+    if (START_ON_MAP) useSkyMap();
   });
 
-function initMap() {
-  const canvas = $('skymap');
-  if (!canvas) return;
+  $('radio-back')?.addEventListener('click', () => show('intro'));
+  $('btn-antenna')?.addEventListener('click', startAntenna);
+  $('btn-map')?.addEventListener('click', useSkyMap);
+  $('btn-calibrate')?.addEventListener('click', calibrateMoon);
+  $('lock-continue')?.addEventListener('click', closeLockPanel);
+
+  try {
+    const [robots] = await Promise.all([loadRobots(), loadSkyTables()]);
+    state.robots = robots;
+  } catch (error) {
+    console.error(error);
+    setStatus('Could not load the robot list. Check data/robots/index.json.', 'error');
+  }
+
+  state.targets = getSkyTargets();
+  renderCounter();
+  renderRobotList();
+
   map = initSkyMap({
-    canvas,
+    canvas: $('skymap'),
     onAim: (aim) => onAim(aim, 'map'),
     getTargets: () => state.targets,
     getRobots: () => state.robots,
     isFound: (robot) => state.found.has(robot.id),
   });
 
+  onPointing(onAntenna);
+
+  state.skyRefreshTimer = window.setInterval(() => {
+    refreshSky();
+    if (state.screen === 'radio' && state.nearest) {
+      updateSignalUi();
+      updateGuide();
+    }
+  }, SKY_REFRESH_MS);
+
+  const counter = $('counter');
+  if (counter && counter.childElementCount === 0) renderCounter();
+
   // Handy for the phone debug session and for tests.
   window.EchoStation = { state, get pointing() { return pointing; }, map };
 }
+
+boot().catch((error) => {
+  console.error('[Echo Station] boot failed:', error);
+  setStatus('Startup failed. Open the console for details.', 'error');
+});

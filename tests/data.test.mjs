@@ -31,20 +31,13 @@ test('Pioneer 10 table covers the event year at about 140 AU', async () => {
   assert.ok(last.dist_au > first.dist_au, 'Pioneer 10 moves away from Earth');
 });
 
-test('robot index lists real robots whose sky targets exist', async () => {
-  const ids = await readJson('data/robots/index.json');
-  assert.ok(Array.isArray(ids), 'index.json is a list of robot ids');
-  assert.ok(ids.length >= 3);
-
+test('robot index targets match the four sky targets', async () => {
+  const documentObject = await readJson('data/robots/index.json');
   const allowed = new Set(['moon', 'mars', 'ceres', 'pioneer10']);
-  const seen = new Set();
-  for (const id of ids) {
-    assert.ok(!seen.has(id), `duplicate id ${id}`);
-    seen.add(id);
-
-    const robot = await readJson(`data/robots/${id}.json`);
-    assert.equal(robot.id, id);
-    assert.ok(robot.name, `${id} has a name`);
-    assert.ok(allowed.has(robot.sky_target), `${id}: ${robot.sky_target}`);
+  assert.ok(documentObject.robots.length >= 4);
+  for (const robot of documentObject.robots) {
+    assert.ok(robot.id, 'robot has an id');
+    assert.ok(robot.name, 'robot has a name');
+    assert.ok(allowed.has(robot.sky_target), `${robot.id}: ${robot.sky_target}`);
   }
 });

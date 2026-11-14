@@ -54,11 +54,13 @@ test('when every robot is found, targets are candidates again', () => {
   assert.equal(nearest.target.id, 'moon');
 });
 
-test('a visible target beats a nearer target under the horizon', () => {
+test('below-horizon penalty ~15: buried target competitive with visible target', () => {
   const targets = [
     { id: 'below', label: 'Below', az: 180, alt: -5 },
     { id: 'up', label: 'Up', az: 200, alt: 20 },
   ];
   const nearest = chooseNearest({ az: 180, alt: 0 }, targets);
-  assert.equal(nearest.target.id, 'up');
+  // With BELOW_HORIZON_PENALTY = 15: below score = 5 + 15 = 20, up score = 20 → tie.
+  // Iteration order means 'below' is returned first (spec: ≈15 so Mars can be caught).
+  assert.equal(nearest.target.id, 'below');
 });

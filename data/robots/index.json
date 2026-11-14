@@ -1,1 +1,11 @@
-["apollo11-eagle", "spirit", "pioneer10"]
+{
+  "_note": "Dev A test harness only. It needs a robot name and its sky_target to test the signal, guide and counter. Dev B replaces this with data/robots/<id>.json files (see ARCHITECTURE.md).",
+  "robots": [
+    { "id": "eagle", "name": "Eagle", "sky_target": "moon" },
+    { "id": "sojourner", "name": "Sojourner", "sky_target": "mars" },
+    { "id": "spirit", "name": "Spirit", "sky_target": "mars" },
+    { "id": "perseverance", "name": "Perseverance", "sky_target": "mars" },
+    { "id": "dawn", "name": "Dawn", "sky_target": "ceres" },
+    { "id": "pioneer10", "name": "Pioneer 10", "sky_target": "pioneer10" }
+  ]
+}
