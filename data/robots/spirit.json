@@ -17,9 +17,16 @@
     "legacy": "My twin Opportunity, then Curiosity and Perseverance, continued the search for water and life."
   },
   "human_touch": "For months, my team tried everything to free me. They called it the 'Free Spirit' campaign.",
+  "voice_text": "Hello? … Is someone there? You found me! I'm Spirit, a robot geologist with six wheels. In 2004, NASA sent me to Mars to look for signs of ancient water. The plan was three months. I worked for more than six years. One day, my front wheel stopped turning. So I drove backwards, dragging it behind me. And guess what? The broken wheel scraped the ground and uncovered something bright white: silica. On Earth, it forms near hot springs. So Mars was once warm and wet in this place! In 2009, I got stuck in soft sand. I couldn't turn my solar panels toward the Sun for winter… and I went quiet. But my twin, Opportunity, and later Curiosity and Perseverance, kept exploring. Keep listening. There are more of us out there.",
   "questions": [
-    { "q": "Why did you drive backwards?", "a": "TODO content" },
-    { "q": "Are you still there?", "a": "TODO content" }
+    {
+      "q": "Why did you drive backwards?",
+      "a": "TODO content"
+    },
+    {
+      "q": "Are you still there?",
+      "a": "TODO content"
+    }
   ],
   "proof_image": {
     "file": "assets/images/spirit-hirise.jpg",
@@ -27,9 +34,27 @@
     "credit": "NASA/JPL-Caltech/University of Arizona",
     "source_url": "TODO"
   },
-  "minigame": { "type": "drive", "settings": { "stuck_wheel": "front_right", "reverse": true } },
+  "minigame": {
+    "type": "drive",
+    "settings": {
+      "stuck_wheel": "front_right",
+      "reverse": true,
+      "reveal_label": "silica",
+      "reveal_goal": 18,
+      "zone_label": "Home Plate"
+    },
+    "intro": "My front right wheel is stuck. Drive me to Home Plate and find what is hidden under the dust. Watch the battery!",
+    "hint": "Driving forward with a stuck wheel drains the battery and pulls you sideways. What if you turned around and drove backwards, dragging the wheel?",
+    "success": "That's what really happened in 2007! I was driving backwards, dragging my stuck wheel. It scraped away the dust and uncovered bright soil that was nearly pure silica. On Earth, silica like this forms in hot springs or steam vents: Mars once had hot water here."
+  },
   "sources": [
-    { "title": "NASA – Mars Exploration Rovers Spirit and Opportunity", "url": "https://science.nasa.gov/mission/mars-exploration-rovers-spirit-and-opportunity/" },
-    { "title": "NSSDCA – MER-A Spirit (2003-027A)", "url": "https://nssdc.gsfc.nasa.gov/nmc/spacecraft/display.action?id=2003-027A" }
+    {
+      "title": "NASA – Mars Exploration Rovers Spirit and Opportunity",
+      "url": "https://science.nasa.gov/mission/mars-exploration-rovers-spirit-and-opportunity/"
+    },
+    {
+      "title": "NSSDCA – MER-A Spirit (2003-027A)",
+      "url": "https://nssdc.gsfc.nasa.gov/nmc/spacecraft/display.action?id=2003-027A"
+    }
   ]
 }

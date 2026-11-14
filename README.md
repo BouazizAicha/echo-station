@@ -6,6 +6,8 @@ Since 1969, NASA has left robots all over the solar system. Most of them went si
 Echo Station turns your phone into an antenna: point it at the real sky, find the robots,
 and let them tell their own story.
 
+**How it is built:** see [ARCHITECTURE.md](ARCHITECTURE.md) (languages, folders, modules, data model, how the antenna works).
+
 ## Run it locally
 
 The app loads JSON files, so it needs a local server (opening `index.html` directly won't work):

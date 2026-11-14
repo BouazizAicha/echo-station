@@ -12,18 +12,33 @@
 
   <!-- 1. INTRO -->
   <section id="screen-intro" class="screen">
+    <div class="belu-wrap big">
+      <img src="assets/images/belu-neutral.svg" alt="Belu the beluga">
+      <span class="ring"></span><span class="ring r2"></span><span class="ring r3"></span>
+    </div>
     <h1>ECHO STATION</h1>
-    <p class="tagline">Since 1969, NASA has left robots all over the solar system.<br>Most of them went silent. Can you find them?</p>
+    <p class="tagline">Belu the beluga finds his way with echoes: like dolphins, belugas send clicks and listen to what comes back.</p>
+    <p class="tagline">His friends, the robots NASA has sent across the solar system since 1969, went silent one by one. <b>Help Belu find them!</b></p>
     <button id="btn-start" class="big">Start listening</button>
     <p class="hint">Best on a phone, outside, at night. Go outside with an adult.</p>
+    <p class="hint">Belu is a fictional character. Every fact about the robots is real.</p>
   </section>
 
   <!-- 2. RADIO / ANTENNA -->
   <section id="screen-radio" class="screen" hidden>
-    <h2>Searching for signals…</h2>
+    <div class="belu-header">
+      <div class="belu-wrap" id="belu-radio">
+        <img id="belu-radio-img" src="assets/images/belu-neutral.svg" alt="Belu the beluga, listening">
+        <span class="ring"></span><span class="ring r2"></span><span class="ring r3"></span>
+      </div>
+      <h2>Belu is listening…</h2>
+    </div>
     <div class="meter"><div id="signal-bar"></div></div>
-    <p id="radio-status" class="status">Static only.</p>
+    <p id="radio-status" class="status">Only static… keep looking.</p>
     <p id="pointing" class="mono"></p>
+
+    <button id="btn-friends">Belu's friends</button>
+    <button id="btn-finale" class="big" hidden>Belu hears a very old echo…</button>
 
     <div id="antenna-controls">
       <button id="btn-antenna">Use my phone as an antenna</button>
@@ -37,31 +52,108 @@
     </div>
   </section>
 
-  <!-- 3. STORY -->
+  <!-- 3. STORY (Dev B: js/story/story.js) -->
   <section id="screen-story" class="screen" hidden>
-    <button id="btn-back" class="link">← Back to the radio</button>
+    <button id="btn-back" class="link">← Back to Belu</button>
     <p class="mono" id="story-meta"></p>
     <h2 id="story-name"></h2>
+    <p id="story-light" class="badge mono"></p>
+    <div class="belu-line">
+      <img id="belu-story" src="assets/images/belu-neutral.svg" alt="Belu the beluga" width="84">
+      <p id="story-greeting" class="greeting"></p>
+    </div>
     <div id="story-sections"></div>
-    <figure id="story-proof" hidden>
-      <img id="proof-img" alt="">
-      <figcaption id="proof-caption"></figcaption>
-    </figure>
-    <p id="story-human" class="human"></p>
-    <h3>Ask me something</h3>
-    <div id="story-questions"></div>
-    <button id="btn-minigame" class="big" hidden>Live my mission</button>
-    <details id="story-sources">
-      <summary>Sources</summary>
-      <ul id="sources-list"></ul>
-    </details>
+    <button id="btn-skip" class="link">Skip ▸</button>
+    <div id="story-after" hidden>
+      <button id="btn-friend" class="big"></button>
+      <figure id="story-proof" hidden>
+        <img id="proof-img" alt="">
+        <figcaption id="proof-caption"></figcaption>
+      </figure>
+      <p id="story-human" class="human"></p>
+      <h3>Ask me something</h3>
+      <div id="story-questions"></div>
+      <button id="btn-minigame" class="big" hidden>Help</button>
+      <details id="story-sources">
+        <summary>Sources</summary>
+        <ul id="sources-list"></ul>
+      </details>
+    </div>
   </section>
 
-  <!-- 4. FINALE (laser) – Dev 2 -->
-  <section id="screen-finale" class="screen" hidden>
-    <h2>Some still answer.</h2>
-    <p>TODO Dev 2: laser to the Moon, ~2.5 s round trip, echo.</p>
+  <!-- FRIENDS (Dev B: js/story/friends.js) -->
+  <section id="screen-friends" class="screen" hidden>
+    <button id="btn-friends-back" class="link">← Back to Belu</button>
+    <div class="belu-line">
+      <img src="assets/images/belu-happy.svg" alt="Belu the beluga, happy" width="96">
+      <h2>Belu's friends</h2>
+    </div>
+    <p id="friends-count" class="mono"></p>
+    <div id="friends-grid"></div>
+    <p class="hint">Belu is a fictional character. Every fact about the robots is real.</p>
   </section>
+
+  <!-- 4. MINI-GAME (Dev B: js/story/minigames/) -->
+  <section id="screen-minigame" class="screen" hidden>
+    <button id="btn-mg-back" class="link">← Back to the story</button>
+    <h2 id="mg-title"></h2>
+    <p id="mg-intro"></p>
+    <canvas id="mg-canvas" aria-label="Mini-game: drive the rover with the arrow keys or the buttons below."></canvas>
+    <p id="mg-hud" class="mono"></p>
+    <div id="mg-controls">
+      <button data-key="left" aria-label="Turn left">◀</button>
+      <button data-key="up" aria-label="Forward">▲</button>
+      <button data-key="down" aria-label="Reverse">▼</button>
+      <button data-key="right" aria-label="Turn right">▶</button>
+    </div>
+    <p class="hint">Keyboard: arrow keys. Phone: hold the buttons.</p>
+    <div id="mg-result" hidden aria-live="polite">
+      <h3 id="mg-result-title"></h3>
+      <p id="mg-result-text"></p>
+      <button id="btn-mg-retry">Try again</button>
+      <button id="btn-mg-done" class="big">Back to the story</button>
+    </div>
+  </section>
+
+  <!-- 5. FINALE (Dev B: js/story/finale.js) -->
+  <section id="screen-finale" class="screen" hidden>
+    <p class="mono">FINAL ECHO · APOLLO 11 LASER MIRROR · 1969</p>
+    <h2>Some still answer.</h2>
+    <p>Belu finds his friends with echoes. Scientists do the same with the Moon! In 1969, the Apollo 11 astronauts left a mirror there. Fire a laser at it… and wait for the echo.</p>
+    <div id="finale-sky" aria-hidden="true">
+      <div id="finale-moon"></div>
+      <div id="finale-beam"></div>
+      <div id="finale-pulse"></div>
+    </div>
+    <p id="finale-timer" class="mono"></p>
+    <button id="btn-fire" class="big">Fire the laser</button>
+    <div id="finale-result" aria-live="polite">
+      <p data-step hidden><b>Echo received: <span id="finale-rt"></span> seconds.</b> That is how long light takes to go to the Moon and back right now.</p>
+      <p data-step hidden>The mirror has no battery and no engine. It just sends light back exactly where it came from.</p>
+      <p data-step hidden>Observatories still fire lasers at it today. Thanks to these mirrors, we know the Moon is moving away from Earth by about 3.8 cm every year.</p>
+      <p data-step hidden>Just like Belu, scientists listen to echoes to explore.</p>
+      <div data-step hidden class="belu-line finale-belu">
+        <img src="assets/images/belu-happy.svg" alt="Belu the beluga, happy" width="110">
+        <p class="finale-last">They're not gone. Some still answer.</p>
+      </div>
+      <p data-step hidden class="hint">This is a simulation, using the real Earth–Moon distance at this moment. Belu is a fictional character.</p>
+      <button id="btn-finale-back" data-step hidden>Back to Belu</button>
+    </div>
+  </section>
+
+  <!-- Subtitles for the robot voices -->
+  <div id="subtitles" hidden></div>
+
+  <!-- Transition static → story (Dev B: js/story/transition.js) -->
+  <div id="transition" hidden>
+    <canvas id="transition-noise" aria-hidden="true"></canvas>
+    <div class="transition-text">
+      <img src="assets/images/belu-happy.svg" alt="" width="120">
+      <p class="mono">ECHO RECEIVED</p>
+      <h2 id="transition-name"></h2>
+      <p class="mono" id="transition-body"></p>
+    </div>
+  </div>
 
   <script type="module" src="js/main.js"></script>
 </body>

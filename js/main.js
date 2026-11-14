@@ -1,19 +1,18 @@
-// Echo Station – main flow: intro → radio/antenna → story.
+// Echo Station – main flow: intro → Belu listens (antenna / sky map) → story → friends, mini-game, finale.
 import { startRadio, setSignal, muteRadio } from './story/radio.js';
 import { enableAntenna, onPointing, calibrate } from './engine/antenna.js';
 import { loadSkyTables, getHorizontal, angularDistance } from './engine/sky.js';
+import { showStory, stopStory, skipTyping } from './story/story.js';
+import { playTransition } from './story/transition.js';
+import { startMinigame } from './story/minigames/index.js';
+import { openFinale } from './story/finale.js';
+import { renderFriends, countFriends } from './story/friends.js';
 
 const TOLERANCE_DEG = 15;   // how close you must aim to start hearing a signal
 const LOCK_LEVEL = 0.85;    // signal strength needed to lock on
 const LOCK_TIME_MS = 1500;  // hold still this long to lock on
+const FINALE_AT = 3;        // robots to find before the laser finale unlocks (judges are in a hurry!)
 
-const STORY_PARTS = [
-  ['who_i_am', 'Who I am'],
-  ['why_sent', 'Why I was sent'],
-  ['discoveries', 'What I discovered'],
-  ['where_now', 'Where I am now'],
-  ['legacy', 'Who took over'],
-];
 
 const state = {
   robots: [],
@@ -80,9 +79,10 @@ function onAim(dir) {
   const strength = best ? Math.max(0, 1 - best.d / TOLERANCE_DEG) : 0;
   setSignal(strength);
   $('signal-bar').style.width = `${Math.round(strength * 100)}%`;
+  updateBelu(strength);
 
   if (strength >= LOCK_LEVEL) {
-    $('radio-status').textContent = 'Signal detected… hold still.';
+    $('radio-status').textContent = 'An echo! Hold still…';
     state.lockStart ??= Date.now();
     if (Date.now() - state.lockStart > LOCK_TIME_MS) {
       state.lockStart = null;
@@ -90,14 +90,37 @@ function onAim(dir) {
     }
   } else {
     state.lockStart = null;
-    $('radio-status').textContent = strength > 0.3 ? 'Something is out there…' : 'Static only.';
+    $('radio-status').textContent = strength > 0.3 ? 'Belu hears something…' : 'Only static… keep looking.';
   }
+}
+
+// Belu's echo rings speed up with the signal, and he smiles when he hears a friend
+let beluState = '';
+function updateBelu(strength) {
+  const dur = (1.8 - 1.4 * strength).toFixed(1);
+  const mood = strength >= LOCK_LEVEL ? 'happy' : 'neutral';
+  const key = dur + mood;
+  if (key === beluState) return;
+  beluState = key;
+  $('belu-radio').style.setProperty('--echo-dur', `${dur}s`);
+  $('belu-radio-img').src = `assets/images/belu-${mood}.svg`;
 }
 
 function lockOn(target) {
   const candidates = state.robots.filter(r => r.sky_target === target);
   const robot = candidates.find(r => !state.found.has(r.id)) || candidates[0];
-  if (robot) openStory(robot);
+  if (robot) tuneTo(robot);
+}
+
+// Static → transition → story (used by the antenna, the sky map and the list)
+let transitioning = false;
+async function tuneTo(robot) {
+  if (transitioning) return;
+  transitioning = true;
+  muteRadio();
+  await playTransition(robot);
+  transitioning = false;
+  openStory(robot);
 }
 
 function renderRobotList() {
@@ -106,7 +129,7 @@ function renderRobotList() {
   for (const robot of state.robots) {
     const b = document.createElement('button');
     b.textContent = `${robot.name} · ${robot.body}`;
-    b.addEventListener('click', () => openStory(robot));
+    b.addEventListener('click', () => tuneTo(robot));
     list.appendChild(b);
   }
 }
@@ -115,79 +138,55 @@ function renderRobotList() {
 function openStory(robot) {
   state.found.add(robot.id);
   muteRadio();
-
-  $('story-meta').textContent =
-    `${robot.body.toUpperCase()} · ${robot.site} · last signal: ${robot.last_signal || 'still active'}`;
-  $('story-name').textContent = robot.name;
-
-  const sections = $('story-sections');
-  sections.innerHTML = '';
-  for (const [key, label] of STORY_PARTS) {
-    if (!robot.story?.[key]) continue;
-    const div = document.createElement('div');
-    div.className = 'story-part';
-    const h = document.createElement('h4');
-    h.textContent = label;
-    const p = document.createElement('p');
-    p.textContent = robot.story[key];
-    div.append(h, p);
-    sections.appendChild(div);
-  }
-
-  const fig = $('story-proof');
-  if (robot.proof_image?.file) {
-    const img = $('proof-img');
-    img.onerror = () => { fig.hidden = true; };
-    img.src = robot.proof_image.file;
-    img.alt = robot.proof_image.caption || '';
-    $('proof-caption').textContent =
-      `${robot.proof_image.caption || ''} — Credit: ${robot.proof_image.credit || ''}`;
-    fig.hidden = false;
-  } else {
-    fig.hidden = true;
-  }
-
-  $('story-human').textContent = robot.human_touch || '';
-  $('story-human').hidden = !robot.human_touch;
-
-  const qs = $('story-questions');
-  qs.innerHTML = '';
-  for (const { q, a } of robot.questions || []) {
-    const wrap = document.createElement('div');
-    wrap.className = 'qa';
-    const b = document.createElement('button');
-    b.textContent = q;
-    const ans = document.createElement('p');
-    ans.className = 'answer';
-    ans.textContent = a;
-    ans.hidden = true;
-    b.addEventListener('click', () => { ans.hidden = !ans.hidden; });
-    wrap.append(b, ans);
-    qs.appendChild(wrap);
-  }
-
-  const mg = $('btn-minigame');
-  mg.hidden = !robot.minigame;
-  mg.textContent = 'Live my mission';
-  mg.onclick = () => {
-    // TODO Dev 2: load the mini-game matching robot.minigame.type with robot.minigame.settings
-    mg.textContent = 'Mini-game coming soon';
-  };
-
-  const sl = $('sources-list');
-  sl.innerHTML = '';
-  for (const s of robot.sources || []) {
-    const li = document.createElement('li');
-    const a = document.createElement('a');
-    a.href = s.url;
-    a.textContent = s.title;
-    a.target = '_blank';
-    a.rel = 'noopener';
-    li.appendChild(a);
-    sl.appendChild(li);
-  }
-
   show('screen-story');
+  updateFinaleButton();
+  showStory(robot, { onMinigame: openMinigame, onFriend: updateFriendsButton });
+}
+
+// ---------- Belu's friends ----------
+function updateFriendsButton() {
+  $('btn-friends').textContent = `Belu's friends · ${countFriends(state.robots)}/${state.robots.length}`;
+}
+
+function openFriends() {
+  stopStory();
+  muteRadio();
+  const n = countFriends(state.robots);
+  $('friends-count').textContent = `${n} of ${state.robots.length} friends found`;
+  renderFriends($('friends-grid'), state.robots, { onOpen: robot => openStory(robot) });
+  show('screen-friends');
+}
+
+// ---------- Mini-game ----------
+function openMinigame(robot) {
+  stopStory();
+  show('screen-minigame');
+  $('mg-title').textContent = `Help ${robot.name}`;
+  $('mg-intro').textContent = robot.minigame?.intro || '';
+  if (state.game) state.game.stop();
+  state.game = startMinigame(robot, {
+    canvas: $('mg-canvas'), hud: $('mg-hud'), controls: $('mg-controls'),
+    result: $('mg-result'), resultTitle: $('mg-result-title'), resultText: $('mg-result-text'),
+    retryButton: $('btn-mg-retry'),
+  });
+  if (location.search.includes('debug')) window.__game = state.game;   // for testing
+}
+
+function closeMinigame() {
+  if (state.game) state.game.stop();
+  state.game = null;
+  show('screen-story');
+}
+
+// ---------- Finale ----------
+function updateFinaleButton() {
+  $('btn-finale').hidden = state.found.size < Math.min(FINALE_AT, state.robots.length);
+}
+
+function goFinale() {
+  muteRadio();
+  show('screen-finale');
+  openFinale({ onExit: () => { setSignal(0); show('screen-radio'); } });
 }
 
 // ---------- Buttons ----------
@@ -196,6 +195,7 @@ $('btn-start').addEventListener('click', () => {
   setSignal(0);
   locateUser();
   show('screen-radio');
+  if (new URLSearchParams(location.search).has('finale')) goFinale();   // shortcut for filming the video
 });
 
 $('btn-antenna').addEventListener('click', async () => {
@@ -226,14 +226,22 @@ $('btn-calibrate').addEventListener('click', () => {
 });
 
 $('btn-back').addEventListener('click', () => {
+  stopStory();
   setSignal(0);
   show('screen-radio');
 });
 
+$('btn-skip').addEventListener('click', skipTyping);
+$('btn-mg-back').addEventListener('click', closeMinigame);
+$('btn-mg-done').addEventListener('click', closeMinigame);
+$('btn-finale').addEventListener('click', goFinale);
+$('btn-friends').addEventListener('click', openFriends);
+$('btn-friends-back').addEventListener('click', () => { setSignal(0); show('screen-radio'); });
+
 onPointing(onAim);
 
 loadRobots()
-  .then(renderRobotList)
+  .then(() => { renderRobotList(); updateFriendsButton(); })
   .catch(err => {
     console.error(err);
     $('robot-list').textContent = 'Could not load robots. Run a local server (see README).';

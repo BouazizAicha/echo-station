@@ -1,0 +1,37 @@
+<!-- ===== index.html – inside <section id="screen-radio"> (Dev A) ===== -->
+
+<!-- Guidance arrow: put it just under the signal meter -->
+<div id="guide" hidden>
+  <svg id="guide-arrow" viewBox="0 0 100 100" width="64" height="64" aria-hidden="true">
+    <path d="M10 50 H75 M52 26 L80 50 L52 74" fill="none" stroke="currentColor"
+          stroke-width="10" stroke-linecap="round" stroke-linejoin="round"/>
+  </svg>
+  <p id="guide-text" aria-live="polite"></p>
+</div>
+
+<!-- Counter -->
+<p id="counter" class="mono"></p>
+
+<!-- Sky map: replaces the "Manual tuning" block -->
+<canvas id="skymap" aria-label="Sky map. Drag, or use the arrow keys, to look around the real sky."></canvas>
+<p class="hint">Drag the sky or use the arrow keys. Put a signal in the green circle and hold still.</p>
+
+<!-- Keep the list for accessibility, folded -->
+<details id="manual-tuning">
+  <summary>List view</summary>
+  <div id="robot-list"></div>
+</details>
+
+<!-- Debug line (only filled with ?debug) -->
+<p id="debug" class="mono"></p>
+
+<!-- ===== css/style.css ===== -->
+<style>
+#guide { display: flex; align-items: center; gap: .75rem; margin: .5rem 0; }
+#guide-arrow { color: var(--signal); transition: transform .15s linear; flex: none; }
+#skymap { width: 100%; height: 320px; border-radius: 12px; display: block; margin-top: 1rem; }
+#skymap[hidden] { display: none; }
+#skymap:focus-visible { outline: 2px solid var(--signal); }
+#debug { font-size: .7rem; word-break: break-all; }
+@media (prefers-reduced-motion: reduce) { #guide-arrow { transition: none; } }
+</style>
