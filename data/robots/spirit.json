@@ -17,18 +17,6 @@
     "where_now": "I remain stuck in soft soil at Troy, inside Gusev Crater. I went silent as winter approached and my solar power dwindled.",
     "legacy": "My twin Opportunity kept exploring after I went quiet. Curiosity and Perseverance carried on investigating Mars' past and its potential for life."
   },
-<<<<<<< HEAD
-  "human_touch": "For months, my team tried everything to free me. They called it the 'Free Spirit' campaign.",
-  "voice_text": "Hello? … Is someone there? You found me! I'm Spirit, a robot geologist with six wheels. In 2004, NASA sent me to Mars to look for signs of ancient water. The plan was three months. I worked for more than six years. One day, my front wheel stopped turning. So I drove backwards, dragging it behind me. And guess what? The broken wheel scraped the ground and uncovered something bright white: silica. On Earth, it forms near hot springs. So Mars was once warm and wet in this place! In 2009, I got stuck in soft sand. I couldn't turn my solar panels toward the Sun for winter… and I went quiet. But my twin, Opportunity, and later Curiosity and Perseverance, kept exploring. Keep listening. There are more of us out there.",
-  "questions": [
-    {
-      "q": "Why did you drive backwards?",
-      "a": "TODO content"
-    },
-    {
-      "q": "Are you still there?",
-      "a": "TODO content"
-=======
   "human_touch": "My team tested escape maneuvers in an Earth sandbox during their Free Spirit campaign.",
   "questions": [
     {
@@ -42,7 +30,6 @@
     {
       "q": "Did getting stuck end your science?",
       "a": "Not immediately! I kept studying my surroundings without driving. But I could not reach a good winter position for sunlight. My team last heard from me on March 22, 2010."
->>>>>>> 86d8e9e532bad47b3297a7866ecef76da46f1eec
     }
   ],
   "voice_text": "Hello Belu… I'm Spirit. I explored Mars on wheels, hunting for clues in rocks. NASA planned about three months for me. I kept working for more than six years! Along the way, a broken wheel became an unexpected helper. I drove backward, dragging my right-front wheel. It scraped away soil and uncovered silica. On Earth, this kind of mineral can form near hot springs or steam vents. Could ancient Mars have had places like that? My discoveries helped scientists say yes. Later, I became stuck in soft soil. My team tested escape ideas in a sandbox on Earth. I kept doing science without moving… until winter approached and my solar power dwindled. My radio went quiet. But Opportunity, Curiosity, and Perseverance carried the exploration forward. Keep looking closely, Belu… surprising clues can hide beneath the dust.",
@@ -56,14 +43,6 @@
     "type": "drive",
     "settings": {
       "stuck_wheel": "front_right",
-      "reverse": true
-    }
-  },
-<<<<<<< HEAD
-  "minigame": {
-    "type": "drive",
-    "settings": {
-      "stuck_wheel": "front_right",
       "reverse": true,
       "reveal_label": "silica",
       "reveal_goal": 18,
@@ -73,15 +52,6 @@
     "hint": "Driving forward with a stuck wheel drains the battery and pulls you sideways. What if you turned around and drove backwards, dragging the wheel?",
     "success": "That's what really happened in 2007! I was driving backwards, dragging my stuck wheel. It scraped away the dust and uncovered bright soil that was nearly pure silica. On Earth, silica like this forms in hot springs or steam vents: Mars once had hot water here."
   },
-  "sources": [
-    {
-      "title": "NASA – Mars Exploration Rovers Spirit and Opportunity",
-      "url": "https://science.nasa.gov/mission/mars-exploration-rovers-spirit-and-opportunity/"
-    },
-    {
-      "title": "NSSDCA – MER-A Spirit (2003-027A)",
-      "url": "https://nssdc.gsfc.nasa.gov/nmc/spacecraft/display.action?id=2003-027A"
-=======
   "sources": [
     {
       "title": "NASA – Mars Exploration Rovers: Spirit and Opportunity",
@@ -126,7 +96,6 @@
     {
       "title": "The Planetary Society – Spirit’s specular reflection (mirror of the HiRISE image)",
       "url": "https://www.planetary.org/space-images/spirit-s-specular-reflection"
->>>>>>> 86d8e9e532bad47b3297a7866ecef76da46f1eec
     }
   ]
 }
