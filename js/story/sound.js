@@ -3,12 +3,13 @@
 // When muted, voices are replaced by read-along subtitles.
 import { setMuted, setStaticEnabled } from './radio.js';
 import { topTools } from './mode.js';
+import { ICONS } from './icons.js';
 
 const KEY = 'echo-station-sound';
 const MODES = [
-  { id: 'all', icon: '🔊', label: 'Sound on', next: 'No radio static' },
-  { id: 'quiet', icon: '🔉', label: 'No static', next: 'Muted' },
-  { id: 'off', icon: '🔇', label: 'Muted', next: 'Sound on' },
+  { id: 'all', icon: ICONS.soundOn, label: 'Sound on', next: 'No radio static' },
+  { id: 'quiet', icon: ICONS.soundQuiet, label: 'No static', next: 'Muted' },
+  { id: 'off', icon: ICONS.soundOff, label: 'Muted', next: 'Sound on' },
 ];
 
 let mode = 'all';
@@ -25,7 +26,7 @@ function apply() {
   setStaticEnabled(mode === 'all');
   setMuted(mode === 'off');
   if (mode === 'off') { try { window.speechSynthesis?.cancel(); } catch (e) { /* ignore */ } }
-  button.querySelector('.sound-icon').textContent = m.icon;
+  button.querySelector('.sound-icon').innerHTML = m.icon;
   button.querySelector('.sound-label').textContent = m.label;
   button.setAttribute('aria-label', `${m.label}. Tap for: ${m.next}.`);
   button.title = `${m.label} (tap for: ${m.next})`;

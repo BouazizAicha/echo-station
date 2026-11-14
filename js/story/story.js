@@ -1,4 +1,7 @@
-// Story screen (Dev B): typed text, voice, subtitles, photo, questions, sources, "add as a friend".
+// Scientist mode: the robot's "mission file" (Dev B).
+// Photo first, then a Mission data panel (dates, catalog ID, mass, distance, landing site… each
+// with its source), the five parts of the story (shown at once: no typing effect), questions,
+// mini-game and all sources. The voice plays with subtitles when assets/audio/<id>.mp3 exists.
 import { playVoice, stopVoice, buildCues } from './voice.js';
 import { isFriend, addFriend } from './friends.js';
 import { hasMinigame, minigameOf } from './minigames/index.js';
@@ -12,12 +15,10 @@ const PARTS = [
   ['where_now', 'Where I am now'],
   ['legacy', 'Who took over'],
 ];
-const CHARS_PER_SECOND = 40;
-const reducedMotion = () => (window.matchMedia('(prefers-reduced-motion: reduce)').matches || document.body.classList.contains('a11y-calm'));
+const WORLD = { moon: 'Moon', mars: 'Mars', ceres: 'Ceres' };
 const $ = id => document.getElementById(id);
 
-let run = 0;          // increases each time a story opens → cancels the previous typing
-let skip = false;
+let run = 0;
 
 function el(tag, cls, text) {
   const e = document.createElement(tag);
@@ -26,38 +27,89 @@ function el(tag, cls, text) {
   return e;
 }
 
-// Types `text` into `target`, letter by letter. Screen readers get the full text at once (sr-only copy).
-async function typeInto(target, text, myRun) {
-  const sr = el('span', 'sr-only', text);
-  const vis = el('span', 'typed');
-  vis.setAttribute('aria-hidden', 'true');
-  target.append(sr, vis);
-  if (reducedMotion() || skip) { vis.textContent = text; return; }
-  vis.classList.add('typing');
-  const start = performance.now();
-  await new Promise(resolve => {
-    const step = now => {
-      if (myRun !== run) return resolve();
-      if (skip) { vis.textContent = text; return resolve(); }
-      const n = Math.min(text.length, Math.floor((now - start) / 1000 * CHARS_PER_SECOND));
-      vis.textContent = text.slice(0, n);
-      if (n >= text.length) return resolve();
-      requestAnimationFrame(step);
-    };
-    requestAnimationFrame(step);
-  });
-  vis.classList.remove('typing');
+function date(value) {
+  if (!value) return '';
+  const d = new Date(`${String(value).slice(0, 10)}T12:00:00Z`);
+  if (Number.isNaN(d.getTime())) return String(value);
+  return d.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric', timeZone: 'UTC' });
 }
 
-const wait = ms => new Promise(r => setTimeout(r, ms));
+function coord(lat, lon) {
+  const ns = lat >= 0 ? 'N' : 'S';
+  const lonE = ((lon % 360) + 360) % 360;
+  return `${Math.abs(lat).toFixed(2)}° ${ns}, ${lonE.toFixed(2)}° E`;
+}
+
+function sourceLink(url) {
+  if (!url) return null;
+  const a = el('a', 'md-src', '↗');
+  a.href = url; a.target = '_blank'; a.rel = 'noopener';
+  a.setAttribute('aria-label', 'Source');
+  a.title = 'Source';
+  return a;
+}
+
+// Moves the static parts of the screen into the "mission file" order (done once)
+function layout() {
+  const screen = $('screen-story');
+  if (screen.dataset.layout) return;
+  screen.dataset.layout = '1';
+  const fig = $('story-proof');
+  const greeting = screen.querySelector('.belu-line');
+  greeting.before(fig);                                // the photo comes first, under the title
+  const panel = el('section', 'mission-data');
+  panel.id = 'mission-data';
+  panel.setAttribute('aria-label', 'Mission data');
+  greeting.after(panel);
+  $('btn-skip').hidden = true;
+}
+
+function missionData(robot) {
+  const panel = $('mission-data');
+  panel.innerHTML = '';
+  panel.append(el('h3', 'md-title', 'Mission data'));
+  const dl = el('dl', 'md-grid');
+  const md = robot.mission_data || {};
+  const add = (label, value, { note, src } = {}) => {
+    if (value == null || value === '') return;
+    const dt = el('dt', null, label);
+    const dd = el('dd');
+    dd.append(el('span', 'md-value', String(value)));
+    const link = sourceLink(src);
+    if (link) dd.append(' ', link);
+    if (note) dd.append(el('span', 'md-note', note));
+    dl.append(dt, dd);
+  };
+  add('Type', robot.type ? robot.type.charAt(0).toUpperCase() + robot.type.slice(1) : '');
+  add('Where', `${WORLD[robot.body] || 'Deep space'} · ${robot.site || ''}`);
+  add('Launched', date(robot.launched));
+  add('Landed', date(robot.landed));
+  add('Last signal', robot.last_signal ? date(robot.last_signal) : (robot.status === 'silent' ? 'No radio after the mission' : 'Still active'),
+    { note: md.last_signal_note, src: md.last_signal_source_url });
+  add('NSSDCA ID', md.nssdca_id || (md.parent_nssdca_id ? `${md.parent_nssdca_id} (carried by)` : ''),
+    { src: md.nssdca_source_url || md.parent_nssdca_source_url });
+  if (md.mass_kg != null) add('Mass', `${md.mass_kg} kg`, { note: md.mass_scope, src: md.mass_source_url });
+  if (md.distance_traveled_km != null) {
+    add('Distance', `${md.distance_approximate ? '≈ ' : ''}${md.distance_traveled_km} km`, { note: md.distance_kind, src: md.distance_source_url });
+  }
+  if (md.flights != null) add('Flights', md.flights, { src: md.flights_source_url });
+  const site = md.site_coordinates;
+  if (site && Number.isFinite(site.latitude_deg)) {
+    add('Landing site', `${site.approximate ? '≈ ' : ''}${coord(site.latitude_deg, site.longitude_deg)}`, { note: site.scope, src: site.source_url });
+  }
+  const light = $('story-light')?.textContent;
+  if (light) add('Signal time', light.replace(/^Light-time from [^:]+:\s*/, ''), { note: 'Light travel time from its world to you, right now' });
+  if (md.verified_on) add('Checked', date(md.verified_on));
+  panel.append(dl);
+  panel.hidden = !dl.children.length;
+}
 
 export async function showStory(robot, { onMinigame, onFriend } = {}) {
   const myRun = ++run;
-  skip = false;
   stopVoice();
+  layout();
 
-  $('story-meta').textContent =
-    `${robot.body.toUpperCase()} · ${robot.site} · last signal: ${robot.last_signal || 'still active'}`;
+  $('story-meta').textContent = `MISSION FILE · ${(WORLD[robot.body] || 'DEEP SPACE').toUpperCase()}`;
   $('story-name').textContent = robot.name;
   $('story-greeting').textContent = robot.greeting || 'Hello Belu… you found me!';
 
@@ -72,11 +124,6 @@ export async function showStory(robot, { onMinigame, onFriend } = {}) {
   setFriendUI();
   fb.onclick = () => { addFriend(robot.id); setFriendUI(); if (onFriend) onFriend(robot); };
 
-  // Everything below the story is hidden until the typing is done (or skipped)
-  const after = $('story-after');
-  after.hidden = true;
-  $('btn-skip').hidden = false;
-
   // Photo
   const fig = $('story-proof');
   if (robot.proof_image?.file) {
@@ -90,11 +137,23 @@ export async function showStory(robot, { onMinigame, onFriend } = {}) {
     fig.hidden = true;
   }
 
-  // Human touch
+  missionData(robot);
+
+  // The story, all at once (faster to read and to compare)
+  const sections = $('story-sections');
+  sections.innerHTML = '';
+  for (const [key, label] of PARTS) {
+    const text = robot.story?.[key];
+    if (!text) continue;
+    const part = el('div', 'story-part');
+    part.append(el('h4', null, label), el('p', null, text));
+    sections.appendChild(part);
+  }
+
+  // Human touch, questions, mini-game, sources
   $('story-human').textContent = robot.human_touch || '';
   $('story-human').hidden = !robot.human_touch;
 
-  // Questions
   const qs = $('story-questions');
   qs.innerHTML = '';
   for (const { q, a } of robot.questions || []) {
@@ -111,13 +170,11 @@ export async function showStory(robot, { onMinigame, onFriend } = {}) {
     qs.appendChild(wrap);
   }
 
-  // Mini-game button
   const mg = $('btn-minigame');
   mg.hidden = !hasMinigame(robot);
   mg.textContent = `▶ Play: ${minigameOf(robot)?.title || `Help ${robot.name}`}`;
   mg.onclick = () => { if (onMinigame) onMinigame(robot); };
 
-  // Sources
   const sl = $('sources-list');
   sl.innerHTML = '';
   for (const s of robot.sources || []) {
@@ -129,6 +186,10 @@ export async function showStory(robot, { onMinigame, onFriend } = {}) {
     li.appendChild(a);
     sl.appendChild(li);
   }
+  const summary = $('story-sources').querySelector('summary');
+  if (summary) summary.textContent = `Sources (${(robot.sources || []).length})`;
+  $('btn-skip').hidden = true;
+  $('story-after').hidden = false;
 
   // Voice + subtitles (if assets/audio/<id>.mp3 exists)
   const subs = $('subtitles');
@@ -143,30 +204,9 @@ export async function showStory(robot, { onMinigame, onFriend } = {}) {
     },
     onEnd: () => { if (myRun === run) subs.hidden = true; },
   });
-
-  // Typed story, part after part
-  const sections = $('story-sections');
-  sections.innerHTML = '';
-  for (const [key, label] of PARTS) {
-    const text = robot.story?.[key];
-    if (!text) continue;
-    const part = el('div', 'story-part');
-    part.append(el('h4', null, label));
-    const p = el('p');
-    part.appendChild(p);
-    sections.appendChild(part);
-    await typeInto(p, text, myRun);
-    if (myRun !== run) return;
-    if (!skip && !reducedMotion()) await wait(350);
-  }
-  if (myRun !== run) return;
-  $('btn-skip').hidden = true;
-  after.hidden = false;
 }
 
-export function skipTyping() {
-  skip = true;
-}
+export function skipTyping() { /* the text is shown at once: nothing to skip */ }
 
 export function stopStory() {
   run++;

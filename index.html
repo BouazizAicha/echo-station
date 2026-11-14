@@ -19,23 +19,26 @@
   <!-- 1. INTRO -->
   <section id="screen-intro" class="screen">
     <h1 class="logo-title"><img class="logo" src="assets/images/logo.png" alt="Echo Station: Belu the beluga with a little antenna, sending echoes" width="607" height="587"></h1>
-    <p class="tagline">Belu the beluga finds his way with echoes: like dolphins, belugas send clicks and listen to what comes back.</p>
-    <p class="tagline">His friends, the robots NASA has sent across the solar system since 1969, went silent one by one. <b>Help Belu find them!</b></p>
+    <p class="tagline">Belu the beluga finds his way with echoes. His friends, the robots NASA sent across the solar system, went silent one by one. <b>Help Belu find them!</b></p>
     <div class="mode-choice" role="group" aria-label="Choose how to explore">
       <button id="btn-story" class="mode-card mode-card-story" type="button">
+        <span class="mode-card-icon" aria-hidden="true"><svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l2.3 4.8 5.2.7-3.8 3.7.9 5.2L12 15l-4.6 2.4.9-5.2L4.5 8.5l5.2-.7L12 3z"/></svg></span>
         <span class="mode-card-kicker mono">ADVENTURE</span>
         <strong>Story with Belu</strong>
         <span>Follow Belu's adventure: animated stories, little games, real robots.</span>
       </button>
       <button id="btn-start" class="mode-card mode-card-science" type="button">
+        <span class="mode-card-icon" aria-hidden="true"><svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3.5 13.5l13-6.5 2 4-13 6.5z"/><path d="M16.5 7l1.5-.7 2 4-1.5.7"/><path d="M10 15.5L7.5 21M11.5 14.8L14 21"/></svg></span>
         <span class="mode-card-kicker mono">EXPLORER</span>
         <strong>Scientist mode</strong>
         <span>The real sky: live positions, coordinates, data and sources.</span>
       </button>
     </div>
-    <p class="hint">You can switch between the two anytime. Need bigger text, an audio guide or calmer screens? Tap ⚙ at the top.</p>
-    <p class="hint">Best on a phone, outside, at night. Go outside with an adult.</p>
-    <p class="hint">Belu is a fictional character. Every fact about the robots is real.</p>
+    <ul class="intro-notes">
+      <li>You can switch between the two anytime. Bigger text, audio guide, calm screens: tap ⚙.</li>
+      <li>Best on a phone, outside at night, with an adult.</li>
+      <li>Belu is a fictional character. Every fact about the robots is real.</li>
+    </ul>
   </section>
 
   <!-- 2. RADIO / ANTENNA (Dev A: sky map, signal, guide, counter) -->
@@ -61,8 +64,8 @@
         <canvas id="skymap" width="900" height="600" tabindex="0" role="img"
           aria-label="Sky map. The green reticle at the centre is your aim. Drag to pan, or use the arrow keys. The Moon is slightly left of centre at start."></canvas>
         <div id="antenna-controls" class="map-toolbar">
-          <button id="btn-antenna"><span aria-hidden="true">📱</span> Phone antenna</button>
-          <button id="btn-map"><span aria-hidden="true">🗺️</span> Sky map</button>
+          <button id="btn-antenna"><svg class="icon" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="7" y="2.5" width="10" height="19" rx="2.5"/><path d="M11 18.5h2"/></svg> Phone antenna</button>
+          <button id="btn-map"><svg class="icon" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 6l6-2 6 2 6-2v14l-6 2-6-2-6 2V6z"/><path d="M9 4v14M15 6v14"/></svg> Sky map</button>
           <button id="btn-calibrate" hidden>Calibrate: point at the Moon, then tap</button>
         </div>
       </div>
@@ -98,7 +101,7 @@
 
   <!-- 3. STORY (Dev B: js/story/story.js) -->
   <section id="screen-story" class="screen" hidden>
-    <button id="btn-back" class="link">← Back to Belu</button>
+    <button id="btn-back" class="link" data-back="Belu">← Back to Belu</button>
     <p class="mono" id="story-meta"></p>
     <h2 id="story-name"></h2>
     <p id="story-light" class="badge mono"></p>
@@ -127,7 +130,7 @@
 
   <!-- FRIENDS (Dev B: js/story/friends.js) -->
   <section id="screen-friends" class="screen" hidden>
-    <button id="btn-friends-back" class="link">← Back to Belu</button>
+    <button id="btn-friends-back" class="link" data-back="Belu">← Back to Belu</button>
     <div class="belu-line">
       <img src="assets/images/belu-happy.svg" alt="Belu the beluga, happy" width="96">
       <h2>Belu's friends</h2>
@@ -139,7 +142,7 @@
 
   <!-- 4. MINI-GAME (Dev B: js/story/minigames/) -->
   <section id="screen-minigame" class="screen" hidden>
-    <button id="btn-mg-back" class="link">← Back to the story</button>
+    <button id="btn-mg-back" class="link" data-back="Story">← Back to the story</button>
     <h2 id="mg-title"></h2>
     <p id="mg-intro"></p>
     <canvas id="mg-canvas" aria-label="Mini-game: drive the rover with the arrow keys or the buttons below."></canvas>

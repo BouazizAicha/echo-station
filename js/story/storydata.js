@@ -130,14 +130,43 @@ const BY_TYPE = {
   'deep space probe': 'You are so far away… I can barely hear you.',
 };
 
+// Years and notes for the missions C lists by name in "successors" (["Curiosity", ...])
+const KNOWN = {
+  'Apollo 12': [1969, 'Second crew on the Moon'], 'Apollo 14': [1971, 'Explored the Fra Mauro highlands'],
+  'Apollo 15': [1971, 'First lunar rover drive'], 'Apollo 16': [1972, 'Explored the lunar highlands'],
+  'Apollo 17': [1972, 'Last crew to walk on the Moon'], Artemis: [2026, 'Artemis II flew astronauts around the Moon'],
+  'Artemis II': [2026, 'Astronauts flew around the Moon'],
+  'Lunar Reconnaissance Orbiter': [2009, 'Photographed me from orbit'],
+  Opportunity: [2004, 'My twin, on the other side of Mars'], Curiosity: [2012, 'A rover as big as a car'],
+  Perseverance: [2021, 'Collects rock samples'], Ingenuity: [2021, 'The first helicopter on Mars'],
+  'Future Mars helicopters': ['next', 'Bigger helicopters being designed'], Dragonfly: [2028, 'A flying lander for Titan (planned launch)'],
+  Lucy: [2021, 'Visits asteroids near Jupiter'], Psyche: [2023, 'On its way to a metal asteroid'],
+  'Pioneer 11': [1973, 'Followed my trail'], 'Voyager 1': [1977, 'Now the farthest robot from Earth'],
+  'Voyager 2': [1977, 'Visited all four giant planets'], 'Voyager 1 & 2': [1977, 'Now the farthest robots'],
+  'New Horizons': [2006, 'Flew past Pluto in 2015'], Galileo: [1989, 'Orbited Jupiter'],
+};
+
+function normaliseSuccessors(list, fallback) {
+  if (!Array.isArray(list) || !list.length) return fallback || [];
+  return list.map(item => {
+    if (item && typeof item === 'object') return { year: item.year ?? '', name: item.name || '', note: item.note || '' };
+    const known = KNOWN[item] || (fallback || []).find(s => s.name === item);
+    if (Array.isArray(known)) return { year: known[0], name: item, note: known[1] };
+    return { year: known?.year ?? '', name: String(item), note: known?.note || '' };
+  });
+}
+
 export function extrasFor(robot) {
   const base = EXTRAS[robot.id] || {};
+  // C may give "beat" as one sentence (the discovery in a nutshell) or as { title, how, result }
+  const own = robot.beat && typeof robot.beat === 'object' ? robot.beat : {};
   const beat = Object.assign({
     title: 'What I discovered',
     how: '',
     result: '',
-  }, base.beat || {}, robot.beat || {});
-  const successors = robot.successors || base.successors || [];
+    headline: typeof robot.beat === 'string' ? robot.beat : '',
+  }, base.beat || {}, own);
+  const successors = normaliseSuccessors(robot.successors, base.successors);
   const where = Object.assign({ mode: 'zoom', label: `${robot.name.toUpperCase()} IS HERE` }, base.where || {});
   if (robot.proof_focus) where.focus = robot.proof_focus;
   const belu = Object.assign({

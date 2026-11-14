@@ -47,7 +47,7 @@ function buildDom() {
   section.innerHTML = `
     <canvas class="cine-scene" aria-hidden="true"></canvas>
     <header class="cine-top">
-      <button class="link cine-back" type="button" aria-label="Back to Belu">← <span class="cine-back-text">Back to Belu</span></button>
+      <button class="link cine-back" type="button" aria-label="Back to Belu" data-back="Belu">← <span class="cine-back-text">Back to Belu</span></button>
       <ol class="cine-dots" aria-hidden="true">${CARDS.map(() => '<li></li>').join('')}</ol>
       <button class="link cine-skip" type="button">Skip ▸</button>
     </header>
@@ -303,13 +303,15 @@ function cardDiscovery(card, state, myToken) {
   card.append(el('p', 'cine-eyebrow mono', 'WHAT I DISCOVERED'), el('h2', 'cine-title', ex.beat.title));
   const result = el('div', 'cine-result');
   result.hidden = true;
-  result.append(el('p', 'cine-result-title mono', 'DISCOVERY!'), el('p', 'cine-result-text', ex.beat.result || ''));
+  result.append(el('p', 'cine-result-title mono', 'DISCOVERY!'));
+  if (ex.beat.headline) result.append(el('p', 'cine-result-headline', ex.beat.headline));
+  result.append(el('p', 'cine-result-text', ex.beat.result || ''));
   const more = el('p', 'cine-text cine-more', robot.story?.discoveries || '');
   more.hidden = true;
   let skip = null;
   const reveal = () => {
     if (!more.hidden) return;
-    result.hidden = !ex.beat.result;
+    result.hidden = !(ex.beat.result || ex.beat.headline);
     more.hidden = false;
     skip?.remove();
     // Robots shown with the distance (no orbital photo): their archive photo appears here
@@ -428,7 +430,7 @@ function cardLegacy(card, { robot, ex }, myToken) {
     ex.successors.forEach((s, i) => {
       const li = el('li', 'tl-item');
       li.style.setProperty('--i', i + 1);
-      li.append(el('span', 'tl-year mono', String(s.year)), el('b', null, s.name), el('span', 'tl-note', s.note || ''));
+      li.append(el('span', 'tl-year mono', s.year === 'next' ? 'next' : String(s.year || '')), el('b', null, s.name), el('span', 'tl-note', s.note || ''));
       list.appendChild(li);
     });
     const now = el('li', 'tl-item tl-now');

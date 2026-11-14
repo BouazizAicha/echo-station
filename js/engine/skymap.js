@@ -44,6 +44,7 @@ export function initSkyMap({
   isHidden = () => false,      // Story mode: hidden targets (Belu's sonar reveals them)
   showGuide = () => true,      // Story mode: no arrow, the sonar is the guide
   overlay = null,              // extra drawing on top of the sky (sonar rings and echoes)
+  simple = () => false,        // Story mode: no degrees, big N/E/S/W only (easier for young players)
 }) {
   const context = canvas.getContext('2d');
   // Live check, so the app's "Calm mode" setting applies without reloading
@@ -172,6 +173,8 @@ export function initSkyMap({
     context.font = '10px ui-monospace, SFMono-Regular, Menlo, monospace';
     context.textAlign = 'left';
 
+    const easy = simple();
+    if (easy) context.strokeStyle = 'rgba(120, 160, 220, 0.06)';
     // Altitude lines every 15°.
     for (let altitude = -90; altitude <= 90; altitude += 15) {
       const y = height / 2 - (altitude - view.alt) * scale;
@@ -180,7 +183,7 @@ export function initSkyMap({
       context.moveTo(0, y);
       context.lineTo(width, y);
       context.stroke();
-      if (y > 14 && y < height - 6) {
+      if (!easy && y > 14 && y < height - 6) {
         context.fillText(`${altitude}°`, 8, y - 4);
       }
     }
@@ -210,12 +213,12 @@ export function initSkyMap({
       context.fillText('HORIZON', 10, horizonY - 6);
     }
 
-    // Cardinal points.
+    // Cardinal points (Story mode: only N, E, S, W, bigger).
     context.textAlign = 'center';
-    context.fillStyle = 'rgba(200, 220, 255, 0.75)';
-    context.font = 'bold 11px ui-monospace, SFMono-Regular, Menlo, monospace';
-    for (let azimuth = 0; azimuth < 360; azimuth += 45) {
-      const label = compassPoint(azimuth);
+    context.fillStyle = easy ? 'rgba(230, 240, 255, 0.9)' : 'rgba(200, 220, 255, 0.75)';
+    context.font = easy ? 'bold 14px "Space Grotesk", Inter, sans-serif' : 'bold 11px ui-monospace, SFMono-Regular, Menlo, monospace';
+    for (let azimuth = 0; azimuth < 360; azimuth += easy ? 90 : 45) {
+      const label = easy ? ['NORTH', 'EAST', 'SOUTH', 'WEST'][azimuth / 90] : compassPoint(azimuth);
       const point = project(azimuth, 1);
       if (point.x < 12 || point.x > width - 12) continue;
       const y = clamp(height / 2 + view.alt * scale - 10, 14, height - 8);
@@ -368,6 +371,7 @@ export function initSkyMap({
   }
 
   function drawHud(width, height) {
+    if (simple()) return;              // Story mode: no numbers
     context.textAlign = 'left';
     context.fillStyle = 'rgba(150, 175, 210, 0.85)';
     context.font = '10px ui-monospace, SFMono-Regular, Menlo, monospace';

@@ -49,13 +49,34 @@ export function onModeChange(fn) {
 
 // Top-right toolbar shared by the sound button and the mode switch
 export function topTools() {
-  let bar = document.getElementById('top-tools');
-  if (!bar) {
-    bar = document.createElement('div');
-    bar.id = 'top-tools';
-    document.body.appendChild(bar);
+  let tools = document.getElementById('top-tools');
+  if (!tools) {
+    const bar = document.createElement('header');
+    bar.id = 'app-bar';
+    bar.innerHTML = `
+      <button id="app-back" type="button" aria-label="Back" hidden><svg class="icon" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg><span class="app-back-label">Back</span></button>
+      <span id="app-brand" aria-hidden="true"><img src="assets/images/favicon-32.png" alt="" width="24" height="24"> ECHO STATION</span>
+      <div id="top-tools"></div>`;
+    document.body.prepend(bar);
+    // The back arrow presses the current screen's own back button (each screen keeps its logic)
+    bar.querySelector('#app-back').addEventListener('click', () => {
+      document.querySelector('.screen:not([hidden]) [data-back]')?.click();
+    });
+    tools = bar.querySelector('#top-tools');
   }
-  return bar;
+  return tools;
+}
+
+/** Called when the screen changes: show ← Back where the screen has a way back. */
+export function updateAppBar() {
+  const back = document.getElementById('app-back');
+  if (!back) return;
+  const target = document.querySelector('.screen:not([hidden]) [data-back]');
+  back.hidden = !target;
+  const label = target?.dataset.back || 'Back';
+  back.querySelector('.app-back-label').textContent = label;
+  back.setAttribute('aria-label', label);
+  document.getElementById('app-brand').hidden = Boolean(target);
 }
 
 // The floating switch (hidden on the first screen by CSS, where the choice is made)

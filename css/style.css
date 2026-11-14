@@ -826,3 +826,221 @@ html[style*="125%"] .cine-title, html[style*="112.5%"] .cine-title { overflow-wr
 #screen-intro h1.logo-title { margin: .25rem 0 1rem; letter-spacing: 0; font-size: 1rem; }
 .logo { display: block; width: min(62vw, 300px); height: auto; margin: 0 auto; }
 @media (max-height: 700px) { .logo { width: min(56vw, 240px); } }
+
+/* =====================================================================
+   CLEAR SKY SCREEN (Dev B): the same signs everywhere
+   pink arrow = last echo (Story) · blue arrow = nearest target (Scientist) · filling ring = hold still
+   ===================================================================== */
+/* Aim switch: one control, the active way is highlighted */
+.map-toolbar { gap: .4rem; }
+.map-toolbar #btn-antenna, .map-toolbar #btn-map { border-radius: 12px; }
+.map-toolbar button.active { background: var(--signal); color: var(--bg); border-color: var(--signal); font-weight: 700; }
+.map-help { flex: none !important; width: 44px; padding: 0 !important; font-weight: 800; font-size: 1.1rem; border-radius: 50% !important; }
+#btn-calibrate { flex-basis: 100%; }
+
+/* The arrow never fades away or turns grey: below the horizon it still points (down) */
+.guide-arrow[data-below-horizon="true"] { opacity: 1; text-shadow: 0 0 18px rgba(93, 228, 255, .55); }
+
+/* Sonar compass: shows "?" before the first click, then the pink arrow stays until the friend is found */
+.sonar-arrow { opacity: .55; color: var(--muted); font-size: 2rem; font-weight: 800; transition: transform .15s linear; }
+.sonar-compass.show .sonar-arrow { animation: none; opacity: 1; color: var(--accent); }
+.sonar-compass.show { border-style: solid; border-color: rgba(255, 155, 213, .6); }
+.sonar-compass[data-near="true"] { box-shadow: 0 0 0 4px rgba(255, 155, 213, .18); }
+
+/* "How to play" card over the map */
+#skymap-wrap { position: relative; }
+dialog.coach {
+  width: min(92vw, 420px); max-height: 88svh; margin: auto; overflow: auto; flex-direction: column; gap: .55rem;
+  padding: 1.1rem; color: var(--fg); background: #141236; border: 1px solid rgba(93, 228, 255, .35); border-radius: 20px;
+  box-shadow: 0 24px 60px rgba(0, 0, 0, .6);
+}
+dialog.coach[open] { display: flex; }
+dialog.coach::backdrop { background: rgba(5, 4, 20, .6); }
+.coach-eyebrow { margin: 0; font-size: .7rem; letter-spacing: .16em; }
+.coach-goal { margin: 0 0 .25rem; font-size: 1.2rem; line-height: 1.25; color: var(--fg); text-transform: none; letter-spacing: 0; outline: none; }
+.coach-steps { list-style: none; margin: 0; padding: 0; display: grid; gap: .5rem; }
+.coach-steps li { display: flex; align-items: center; gap: .65rem; font-size: .98rem; line-height: 1.3; }
+.coach-icon { flex: none; width: 40px; height: 36px; display: grid; place-items: center; border-radius: 10px;
+  background: var(--panel); border: 1px solid var(--line); color: var(--signal); font-weight: 800; }
+.coach-go { margin-top: auto; width: 100%; }
+
+/* =====================================================================
+   DESIGN PASS (Dev B): one app bar, consistent spacing, better proportions on phones
+   ===================================================================== */
+:root { --bar-h: 56px; }
+
+/* ---- App bar: ← Back (or the wordmark) on the left, tools on the right, on every screen ---- */
+#app-bar {
+  position: fixed; top: 0; left: 0; right: 0; z-index: 60;
+  height: calc(var(--bar-h) + env(safe-area-inset-top)); padding: env(safe-area-inset-top) .75rem 0;
+  display: flex; align-items: center; gap: .5rem;
+  background: rgba(11, 10, 31, .86); border-bottom: 1px solid rgba(93, 228, 255, .12);
+  -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px);
+}
+#app-bar #top-tools { position: static; margin-left: auto; }
+#app-back { margin: 0; min-height: 40px; padding: .3rem .9rem; border-radius: 999px; font-weight: 600; font-size: .92rem; }
+#app-back[hidden] { display: none; }
+#app-brand { display: inline-flex; align-items: center; gap: .5rem; font-family: "Space Grotesk", "Inter", sans-serif;
+  font-size: .78rem; font-weight: 700; letter-spacing: .2em; color: var(--fg); white-space: nowrap; }
+#app-brand img { border-radius: 6px; }
+#app-brand[hidden] { display: none; }
+body[data-screen="intro"] #app-brand, body:not([data-screen]) #app-brand { visibility: hidden; }
+@media (max-width: 360px) { #app-brand { font-size: 0; gap: 0; } }
+
+/* The old per-screen back links are replaced by the app bar (they stay in the page for its logic) */
+#btn-back, #btn-friends-back, #btn-mg-back, .cine-back { display: none !important; }
+
+/* Every screen starts under the bar, with the same side margins */
+body .screen:not(.cinema):not(.why), body #screen-radio, body #screen-intro {
+  padding-top: calc(var(--bar-h) + env(safe-area-inset-top) + 1.1rem);
+}
+@media (max-width: 640px) { .screen { padding-left: 1rem; padding-right: 1rem; } }
+.screen h2 { font-size: clamp(1.3rem, 5vw, 1.6rem); }
+
+/* Story cards: the dots + Skip row sits just under the bar */
+.screen.cinema { padding-top: calc(var(--bar-h) + env(safe-area-inset-top)); }
+.cine-top { top: calc(var(--bar-h) + env(safe-area-inset-top)); padding: .35rem 1rem !important; min-height: 44px; background: none; }
+.cine-dots { position: static !important; justify-content: flex-start; }
+.cine-skip { margin-left: auto; }
+.cine-belu { top: 3.4rem; }
+
+/* Prologue: Skip under the bar */
+.pro-skip { top: calc(var(--bar-h) + env(safe-area-inset-top) + .75rem); }
+
+/* ---- First screen: logo, one sentence, two big choices ---- */
+#screen-intro .tagline { font-size: 1.05rem; line-height: 1.5; margin: .25rem 0 1rem; }
+.intro-notes { list-style: none; padding: 0; margin: 1rem 0 0; display: grid; gap: .35rem; color: var(--muted); font-size: .85rem; line-height: 1.4; }
+@media (max-width: 640px) { .logo { width: min(54vw, 250px); } #screen-intro h1.logo-title { margin: 0 0 .5rem; } }
+
+/* ---- Sky screen on a phone: a bigger, square sky; the sonar in one row ---- */
+@media (max-width: 640px) {
+  .map-panel #skymap { aspect-ratio: 1 / 1; }
+  #screen-radio .radio-top { margin-bottom: .4rem; }
+}
+.sonar-row { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; align-items: center; gap: .8rem; }
+.sonar-click { width: 5.75rem; height: 5.75rem; }
+.sonar-click strong { font-size: 1.2rem; }
+.sonar-click-sub { display: none; }
+.sonar-compass { width: 3.75rem; height: 3.75rem; }
+.sonar-arrow { font-size: 1.7rem; }
+.sonar-text { margin: 0 0 .2rem; min-height: 0; font-size: .95rem; line-height: 1.35; }
+.sonar-words { min-width: 0; }
+.cine-result-headline { margin: 0 0 .35rem; font-family: "Space Grotesk", "Inter", sans-serif; font-size: 1.15rem; font-weight: 700; color: var(--fg); }
+
+/* =====================================================================
+   SCIENTIST MODE (Dev B): live sky data table + robot "mission file"
+   ===================================================================== */
+#sky-data { display: none; }
+body.mode-science #sky-data { display: block; }
+.sky-data { margin: 0; padding: .6rem .75rem .75rem; border: 1px solid var(--line); border-radius: var(--radius, 14px); background: rgba(255, 255, 255, .015); }
+.sky-data summary { cursor: pointer; color: var(--fg); font-weight: 600; }
+.sky-table-wrap { overflow-x: auto; margin-top: .5rem; }
+.sky-table { width: 100%; border-collapse: collapse; font-family: "JetBrains Mono", ui-monospace, monospace; font-size: .74rem; white-space: nowrap; }
+.sky-table th, .sky-table td { padding: .4rem .45rem; text-align: left; border-top: 1px solid rgba(140, 175, 225, .1); }
+.sky-table thead th { color: var(--muted); font-weight: 600; border-top: 0; font-family: Inter, sans-serif; font-size: .7rem; text-transform: uppercase; letter-spacing: .06em; }
+.sky-table tbody th { color: var(--signal); font-weight: 700; font-family: Inter, sans-serif; }
+.sky-table tr.below td, .sky-table tr.below th { color: var(--muted); }
+
+/* Mission file */
+#screen-story #story-meta { margin: 0 0 .2rem; letter-spacing: .14em; font-size: .75rem; }
+#screen-story #story-name { margin: 0 0 .4rem; font-size: clamp(1.6rem, 6vw, 2.1rem); }
+#screen-story #story-proof { margin: .75rem 0 1rem; }
+#screen-story #story-proof img { max-height: 46vh; object-fit: cover; border-radius: 14px; border: 1px solid var(--line); }
+.mission-data { margin: 1rem 0 1.25rem; padding: .9rem 1rem; border: 1px solid rgba(93, 228, 255, .3); border-radius: 14px; background: rgba(15, 47, 58, .25); }
+.md-title { margin: 0 0 .6rem !important; color: var(--signal) !important; }
+.md-grid { display: grid; grid-template-columns: max-content minmax(0, 1fr); gap: .45rem 1rem; margin: 0; }
+.md-grid dt { color: var(--muted); font-size: .85rem; padding-top: .05rem; }
+.md-grid dd { margin: 0; font-size: .95rem; line-height: 1.35; }
+.md-value { font-weight: 600; }
+.md-note { display: block; color: var(--muted); font-size: .76rem; line-height: 1.35; margin-top: .1rem; }
+.md-src { color: var(--signal); text-decoration: none; font-size: .85rem; padding: 0 .2rem; }
+#screen-story .story-part h4 { color: var(--signal); }
+#screen-story .story-part p { line-height: 1.6; }
+@media (max-width: 480px) { .md-grid { grid-template-columns: 1fr; gap: .1rem; } .md-grid dd { margin-bottom: .45rem; } }
+/* Grid children must be allowed to shrink, or a wide table pushes the page sideways on phones */
+.radio-layout > *, .hud, .map-panel { min-width: 0; }
+
+/* =====================================================================
+   FINAL POLISH (Dev B): one look everywhere
+   Cards: 18px corners, soft border, soft shadow · Buttons: 14px corners, primary = aqua
+   Icons: one line-icon set · A quiet, still starfield behind every screen
+   ===================================================================== */
+:root {
+  --r-card: 18px;
+  --r-btn: 14px;
+  --card-bg: rgba(23, 21, 58, .62);
+  --card-border: rgba(255, 255, 255, .08);
+  --card-shadow: 0 10px 30px rgba(0, 0, 0, .28);
+}
+
+/* A still starfield (no movement) behind all screens */
+body::before {
+  content: ""; position: fixed; inset: 0; z-index: -1; pointer-events: none; opacity: .55;
+  background-image:
+    radial-gradient(1.2px 1.2px at 12% 18%, #fff 50%, transparent 51%),
+    radial-gradient(1px 1px at 72% 12%, #c9d3e6 50%, transparent 51%),
+    radial-gradient(1.4px 1.4px at 38% 62%, #fff 50%, transparent 51%),
+    radial-gradient(1px 1px at 86% 48%, #c9d3e6 50%, transparent 51%),
+    radial-gradient(1px 1px at 22% 84%, #c9d3e6 50%, transparent 51%),
+    radial-gradient(1.2px 1.2px at 58% 34%, #fff 50%, transparent 51%),
+    radial-gradient(1px 1px at 92% 82%, #fff 50%, transparent 51%),
+    radial-gradient(1px 1px at 4% 46%, #c9d3e6 50%, transparent 51%);
+  background-size: 340px 340px, 280px 280px, 420px 420px, 300px 300px, 360px 360px, 460px 460px, 380px 380px, 320px 320px;
+}
+body { isolation: isolate; }
+
+/* Icons */
+.icon { display: inline-block; vertical-align: -0.2em; flex: none; }
+#sound-switch .sound-icon, #settings-button .settings-icon { display: inline-flex; }
+#sound-switch .icon, #settings-button .icon { width: 20px; height: 20px; }
+#app-back { display: inline-flex; align-items: center; gap: .3rem; }
+.map-toolbar button { display: inline-flex; align-items: center; justify-content: center; gap: .4rem; }
+
+/* Buttons */
+button { border-radius: var(--r-btn); transition: transform .12s ease, background-color .2s, border-color .2s; }
+button:active:not(:disabled) { transform: scale(.98); }
+button.big { box-shadow: 0 8px 22px rgba(93, 228, 255, .22); }
+button.big:hover { filter: brightness(1.06); }
+button:not(.big):not(.link):not(.mode-card):not(.disc-target):not(.disc-cover) { border-color: rgba(255, 255, 255, .12); }
+
+/* Cards */
+.sonar, .guide, .mission-data, .sky-data, #mg-result, .friend-card, .distance, .cine-secret, .mode-card {
+  border-radius: var(--r-card);
+}
+.sonar, .guide, .sky-data, #mg-result, .friend-card, .distance {
+  background-color: var(--card-bg); border: 1px solid var(--card-border); box-shadow: var(--card-shadow);
+}
+.map-panel { border-radius: var(--r-card); border-color: var(--card-border); box-shadow: var(--card-shadow); }
+
+/* First screen: choices with an icon */
+.mode-card { position: relative; padding: 1.1rem 1.2rem 1.1rem 4.4rem; min-height: 6.5rem; justify-content: center; }
+.mode-card-icon {
+  position: absolute; left: 1rem; top: 50%; transform: translateY(-50%);
+  width: 2.6rem; height: 2.6rem; display: grid; place-items: center; border-radius: 12px;
+  background: rgba(93, 228, 255, .14); color: var(--signal);
+}
+.mode-card-science .mode-card-icon { background: rgba(180, 155, 255, .14); color: var(--far); }
+.mode-card-science .mode-card-kicker { color: var(--far) !important; }
+
+/* Belu's friends: a sticker album */
+.album-progress { height: 10px; border-radius: 5px; background: var(--panel); overflow: hidden; margin: .25rem 0 1rem; }
+.album-progress span { display: block; height: 100%; background: linear-gradient(90deg, var(--signal), var(--accent)); border-radius: 5px; transition: width .6s ease; }
+#friends-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .8rem; }
+@media (min-width: 640px) { #friends-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+.friend-card { padding: .7rem .7rem .85rem; gap: .15rem; cursor: pointer; text-align: left; }
+.friend-card strong { font-family: "Space Grotesk", "Inter", sans-serif; font-size: 1.05rem; }
+.friend-pic { position: relative; aspect-ratio: 4 / 3; border-radius: 12px; display: grid; place-items: center; padding: .5rem; margin-bottom: .45rem; }
+.friend-pic .robot-pic { width: 82%; }
+.friend-pic .robot-pic img, .friend-pic .robot-pic svg { filter: drop-shadow(0 4px 8px rgba(0, 0, 0, .45)); }
+.world-moon .friend-pic { background: radial-gradient(circle at 50% 120%, #4b5166, #161a2c 70%); }
+.world-mars .friend-pic { background: radial-gradient(circle at 50% 120%, #8a3a26, #2a1426 70%); }
+.world-far .friend-pic { background: radial-gradient(circle at 50% 120%, #4a3a7a, #120f30 70%); }
+.friend-card.unknown { opacity: 1; cursor: default; }
+.friend-card.unknown .robot-pic { filter: brightness(0); opacity: .55; }
+.friend-card.unknown strong { color: var(--muted); }
+.friend-q { position: absolute; display: grid; place-items: center; width: 2.2rem; height: 2.2rem; border-radius: 50%;
+  background: rgba(11, 10, 31, .8); border: 1px solid var(--line); color: var(--fg); font-weight: 800; font-size: 1.1rem; }
+.friend-card:not(.unknown):hover { border-color: rgba(93, 228, 255, .5); }
+/* Anything marked hidden stays hidden, whatever display style it has elsewhere */
+[hidden] { display: none !important; }
+.map-toolbar #btn-antenna, .map-toolbar #btn-map { white-space: nowrap; padding: .55rem .5rem; font-size: .88rem; }

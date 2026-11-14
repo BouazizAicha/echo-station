@@ -6,6 +6,7 @@
 //   Calm mode     – no animations, no moving backgrounds (also follows the system "reduce motion")
 // Saved on this device. Other modules read `settings` and listen with onSettingsChange().
 import { topTools } from './mode.js';
+import { ICONS } from './icons.js';
 
 const KEY = 'echo-station-settings';
 export const settings = { audioGuide: false, textSize: 'normal', contrast: false, vibration: true, calm: false };
@@ -112,7 +113,7 @@ document.body.appendChild(dialog);
 const button = el('button');
 button.id = 'settings-button';
 button.type = 'button';
-button.innerHTML = '<span aria-hidden="true">⚙</span><span class="settings-label">Settings</span>';
+button.innerHTML = `<span class="settings-icon" aria-hidden="true">${ICONS.settings}</span><span class="settings-label">Settings</span>`;
 button.setAttribute('aria-label', 'Settings and accessibility');
 button.setAttribute('aria-haspopup', 'dialog');
 button.addEventListener('click', () => {

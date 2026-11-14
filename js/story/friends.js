@@ -2,6 +2,8 @@
 // Saved in the browser (localStorage) so the collection survives a page reload.
 // Add ?reset to the URL to start over.
 
+import { robotPicture } from './silhouettes.js';
+
 const KEY = 'echo-station-friends';
 let friends = new Set();
 try {
@@ -28,27 +30,40 @@ function el(tag, cls, text) {
   return e;
 }
 
-// Draws the friend cards. Robots not found yet are shown as silhouettes with a hint.
+// Draws the album: found friends as stickers (tap to read their story again),
+// the others as dark shadows with a hint of where to look.
 export function renderFriends(grid, robots, { onOpen } = {}) {
   grid.innerHTML = '';
+  const found = robots.filter(r => friends.has(r.id)).length;
+  const bar = el('div', 'album-progress');
+  bar.setAttribute('role', 'progressbar');
+  bar.setAttribute('aria-valuemin', '0');
+  bar.setAttribute('aria-valuemax', String(robots.length));
+  bar.setAttribute('aria-valuenow', String(found));
+  bar.setAttribute('aria-label', `${found} of ${robots.length} friends found`);
+  const fill = el('span');
+  fill.style.width = `${robots.length ? (found / robots.length) * 100 : 0}%`;
+  bar.appendChild(fill);
+  grid.parentElement?.querySelectorAll('.album-progress').forEach(b => b.remove());
+  grid.before(bar);
   for (const r of robots) {
+    const world = r.body === 'moon' ? 'moon' : r.body === 'mars' ? 'mars' : 'far';
     if (friends.has(r.id)) {
-      const card = el('button', 'friend-card');
+      const card = el('button', `friend-card world-${world}`);
+      card.type = 'button';
       const pic = el('div', 'friend-pic');
-      if (r.proof_image?.file) {
-        const img = el('img');
-        img.src = r.proof_image.file;
-        img.alt = '';
-        img.onerror = () => img.remove();
-        pic.appendChild(img);
-      }
+      pic.appendChild(robotPicture(r));
       card.append(pic, el('strong', null, r.name), el('span', 'friend-place', place(r)),
-        el('span', 'friend-date mono', r.last_signal ? `last signal ${r.last_signal}` : 'still answering'));
+        el('span', 'friend-date mono', r.last_signal ? `quiet since ${String(r.last_signal).slice(0, 4)}` : 'still standing there'));
+      card.setAttribute('aria-label', `${r.name}, ${place(r)}. Read the story again.`);
       card.addEventListener('click', () => onOpen && onOpen(r));
       grid.appendChild(card);
     } else {
-      const card = el('div', 'friend-card unknown');
-      card.append(el('div', 'friend-pic', '?'), el('strong', null, 'Not found yet'), el('span', 'friend-place', `Somewhere ${place(r)}`));
+      const card = el('div', `friend-card unknown world-${world}`);
+      const pic = el('div', 'friend-pic');
+      pic.appendChild(robotPicture(r));
+      pic.appendChild(el('span', 'friend-q', '?'));
+      card.append(pic, el('strong', null, 'Not found yet'), el('span', 'friend-place', `Somewhere ${place(r)}`));
       grid.appendChild(card);
     }
   }

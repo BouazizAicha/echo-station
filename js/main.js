@@ -7,7 +7,7 @@ import { startMinigame, hasMinigame, minigameOf } from './story/minigames/index.
 import { openFinale } from './story/finale.js';
 import { renderFriends, countFriends } from './story/friends.js';
 // Story mode (Dev B): mode choice, prologue, cinematic stories, "Why it matters"
-import { isStory, setMode, onModeChange } from './story/mode.js';
+import { isStory, setMode, onModeChange, updateAppBar } from './story/mode.js';
 import { playPrologue } from './story/prologue.js';
 import { showCinema, stopCinema, resumeCinema } from './story/cinema.js';
 import { showWhy } from './story/why.js';
@@ -86,6 +86,7 @@ function show(id) {
   }
   state.screen = id.replace('screen-', '');
   document.body.dataset.screen = state.screen;
+  updateAppBar();
   window.scrollTo(0, 0);
 }
 
@@ -130,6 +131,7 @@ async function loadRobots() {
 function refreshSky() {
   state.targets = getSkyTargets();
   renderRobotList();
+  renderSkyTable();
   renderCounter();
   map?.refresh();
   updateDataSource();
@@ -222,6 +224,59 @@ function renderRobotList() {
   }
 }
 
+// Scientist mode: a live table of the four targets (refreshed every 10 s)
+const AU_KM = 149597870.7;
+function raText(hours) {
+  const h = Math.floor(hours), m = Math.round((hours - h) * 60);
+  return `${h}h ${String(m === 60 ? 59 : m).padStart(2, '0')}m`;
+}
+function decText(deg) {
+  const sign = deg < 0 ? '−' : '+';
+  const a = Math.abs(deg), d = Math.floor(a), m = Math.round((a - d) * 60);
+  return `${sign}${d}° ${String(m === 60 ? 59 : m).padStart(2, '0')}′`;
+}
+function distanceText(au) {
+  if (!Number.isFinite(au)) return '—';
+  if (au < 0.01) return `${Math.round(au * AU_KM).toLocaleString('en-US')} km`;
+  return `${au < 10 ? au.toFixed(2) : au.toFixed(1)} AU`;
+}
+function renderSkyTable() {
+  const hud = document.querySelector('#screen-radio .hud');
+  if (!hud) return;
+  let box = $('sky-data');
+  if (!box) {
+    box = document.createElement('details');
+    box.id = 'sky-data';
+    box.className = 'panel sky-data';
+    box.open = true;
+    box.innerHTML = `<summary>Live sky data <span class="summary-note">updates every 10 s</span></summary>
+      <div class="sky-table-wrap"><table class="sky-table">
+        <thead><tr><th scope="col">Target</th><th scope="col">Az / Alt</th><th scope="col">RA / Dec</th><th scope="col">Distance</th><th scope="col">Light</th></tr></thead>
+        <tbody></tbody></table></div>`;
+    ($('list-view') || hud.lastElementChild).before(box);
+  }
+  const body = box.querySelector('tbody');
+  body.innerHTML = '';
+  for (const t of state.targets) {
+    const tr = document.createElement('tr');
+    if (t.alt < 0) tr.className = 'below';
+    const cells = [
+      t.label,
+      `${t.az.toFixed(1)}° ${compassPoint(t.az)} / ${t.alt >= 0 ? '+' : '−'}${Math.abs(t.alt).toFixed(1)}°${t.alt < 0 ? ' ↓' : ''}`,
+      `${raText(t.ra)} / ${decText(t.dec)}`,
+      distanceText(t.dist_au),
+      formatLightTime(t.dist_au * 499.004783836),
+    ];
+    cells.forEach((text, i) => {
+      const cell = document.createElement(i === 0 ? 'th' : 'td');
+      if (i === 0) cell.scope = 'row';
+      cell.textContent = text;
+      tr.appendChild(cell);
+    });
+    body.appendChild(tr);
+  }
+}
+
 /* ------------------------------------------------------------------ */
 /* Signal, guide, lock                                                 */
 /* ------------------------------------------------------------------ */
@@ -271,6 +326,7 @@ function onAim(direction, source = 'map') {
     state.lastUiAt = now;
     updateSignalUi();
     updateGuide();
+    if (isStory()) sonar.update();
     if (DEBUG) showDebug(direction, source);
   }
 }
@@ -312,6 +368,12 @@ function updateSignalUi() {
 
   if (state.lockProgress > 0) {
     setRadioStatus("You're on it! Hold still…");
+  } else if (isStory()) {
+    // Story mode: words instead of percentages (warm / warmer / very close)
+    setRadioStatus(level >= 0.5 ? 'Very close! Look around this spot…'
+      : level >= 0.25 ? 'Getting closer!'
+        : level > 0 ? 'Belu hears something far away…'
+          : 'Only static… press Click! to listen for echoes.');
   } else if (level > 0) {
     setRadioStatus(`Belu hears something… signal ${Math.round(level * 100)}%`);
   } else {
@@ -590,7 +652,7 @@ async function startAntenna() {
     if (canvas) canvas.hidden = true;
     $('skymap-wrap')?.classList.add('is-antenna');
     map?.stop();
-    $('btn-antenna').hidden = true;
+    setAimButtons('antenna');
     $('btn-calibrate').hidden = false;
     setRadioStatus('Antenna live — point the back camera at the Moon, then calibrate.', 'ok');
   } catch (error) {
@@ -601,14 +663,24 @@ async function startAntenna() {
   }
 }
 
+// The two ways to aim, shown as one switch: the active one is highlighted
+function setAimButtons(active) {
+  for (const [id, name] of [['btn-antenna', 'antenna'], ['btn-map', 'map']]) {
+    const button = $(id);
+    if (!button) continue;
+    button.classList.toggle('active', active === name);
+    button.setAttribute('aria-pressed', String(active === name));
+  }
+}
+
 function useSkyMap() {
+  setAimButtons('map');
   disableAntenna();
   state.antennaActive = false;
   state.gotOrientation = false;
   const canvas = $('skymap');
   if (canvas) canvas.hidden = false;
   $('skymap-wrap')?.classList.remove('is-antenna');
-  $('btn-antenna').hidden = false;
   $('btn-calibrate').hidden = true;
   map?.start();
   setRadioStatus('Sky map live — drag it, or use the arrow keys.', 'ok');
@@ -682,12 +754,66 @@ function locateUser() {
 /* Boot                                                                */
 /* ------------------------------------------------------------------ */
 
+// "How to find Belu's friends": shown the first time in each mode, and with the ? button
+const COACH = {
+  story: {
+    goal: 'Find Belu\'s friends hidden in the sky!',
+    steps: [
+      ['👆', 'Drag the sky, or use your phone as an antenna'],
+      ['🔊', 'Press Click! A friend answers with an echo'],
+      ['➜', 'Follow the pink arrow'],
+      ['◎', 'Hold still on the spot until Belu smiles'],
+    ],
+    start: 'Let\'s go!',
+  },
+  science: {
+    goal: 'Point at the real sky to tune in to NASA\'s robots.',
+    steps: [
+      ['👆', 'Drag the sky map, or use your phone (calibrate on the Moon)'],
+      ['➜', 'Follow the blue arrow to the nearest target'],
+      ['◎', 'Keep the crosshair on it for 1.5 seconds'],
+      ['📋', 'Open the list for every target and its coordinates'],
+    ],
+    start: 'Start',
+  },
+};
+
+function showCoach(force = false) {
+  const mode = isStory() ? 'story' : 'science';
+  const key = `echo-station-coach-${mode}`;
+  try { if (!force && localStorage.getItem(key)) return; localStorage.setItem(key, '1'); } catch { /* ignore */ }
+  document.querySelector('dialog.coach')?.remove();
+  const c = COACH[mode];
+  const card = document.createElement('dialog');
+  card.className = 'coach';
+  card.setAttribute('aria-label', 'How to play');
+  card.innerHTML = '<p class="mono coach-eyebrow">HOW TO PLAY</p><h3 class="coach-goal" tabindex="-1"></h3><ol class="coach-steps"></ol><button type="button" class="big coach-go"></button>';
+  card.querySelector('.coach-goal').textContent = c.goal;
+  for (const [icon, text] of c.steps) {
+    const li = document.createElement('li');
+    const i = document.createElement('span'); i.className = 'coach-icon'; i.setAttribute('aria-hidden', 'true'); i.textContent = icon;
+    const t = document.createElement('span'); t.textContent = text;
+    li.append(i, t);
+    card.querySelector('.coach-steps').appendChild(li);
+  }
+  const go = card.querySelector('.coach-go');
+  go.textContent = c.start;
+  const close = () => { card.close(); card.remove(); $(isStory() ? 'btn-click' : 'skymap')?.focus({ preventScroll: true }); };
+  go.addEventListener('click', close);
+  card.addEventListener('cancel', (event) => { event.preventDefault(); close(); });
+  document.body.appendChild(card);
+  if (typeof card.showModal === 'function') card.showModal(); else card.setAttribute('open', '');
+  card.querySelector('.coach-goal').focus({ preventScroll: true });
+  speak(`How to play. ${c.goal} ${c.steps.map((s) => s[1]).join('. ')}.`, { interrupt: true });
+}
+
 function startListening() {
   startRadio();
   applySound();
   setSignal(0);
   locateUser();
   show('screen-radio');
+  setTimeout(() => showCoach(), 300);
   refreshSky();
   map?.start();
   if (params.has('finale')) goFinale();   // shortcut for filming the video
@@ -726,9 +852,20 @@ $('btn-story')?.addEventListener('click', () => {
 // Switching mode in the middle of a story re-opens it in the other style
 onModeChange(() => {
   if ((state.screen === 'story' || state.screen === 'cinema') && state.lastRobot) openStory(state.lastRobot);
+  if (state.screen === 'radio') { map?.refresh(); showCoach(); }
 });
 
 $('btn-antenna')?.addEventListener('click', startAntenna);
+{
+  const help = document.createElement('button');
+  help.type = 'button';
+  help.className = 'map-help';
+  help.textContent = '?';
+  help.setAttribute('aria-label', 'How to play');
+  help.addEventListener('click', () => showCoach(true));
+  $('antenna-controls')?.appendChild(help);
+}
+setAimButtons('map');
 $('btn-map')?.addEventListener('click', useSkyMap);
 $('btn-calibrate')?.addEventListener('click', calibrateMoon);
 $('btn-back')?.addEventListener('click', backToRadio);
@@ -765,6 +902,35 @@ Promise.all([loadRobots(), loadSkyTables()])
     if (list) list.textContent = 'Could not load the sky data.';
   });
 
+// Drawn on top of the sky map, in both modes: the same signs everywhere
+//   pink arrow  = the last echo (Story mode)       ring filling up = "hold still, locking on"
+//   hint at the bottom until the player has moved the map once
+function drawMapOverlay(context, info) {
+  const { width, height } = info;
+  if (isStory()) sonar.draw(context, info);
+  const cx = width / 2, cy = height / 2;
+  if (state.lockProgress > 0) {
+    context.strokeStyle = 'rgba(93, 228, 255, 0.25)';
+    context.lineWidth = 5;
+    context.beginPath(); context.arc(cx, cy, 30, 0, Math.PI * 2); context.stroke();
+    context.strokeStyle = '#5de4ff';
+    context.beginPath(); context.arc(cx, cy, 30, -Math.PI / 2, -Math.PI / 2 + state.lockProgress * Math.PI * 2); context.stroke();
+    if (isStory()) {
+      context.fillStyle = '#eef0ff'; context.font = '700 13px Inter, sans-serif'; context.textAlign = 'center';
+      context.fillText('Hold still…', cx, cy + 52);
+    }
+  }
+  if (!state.dragged && !state.antennaActive) {
+    const text = '👆 Drag the sky to look around';
+    context.font = '600 13px Inter, sans-serif';
+    const w = context.measureText(text).width + 24;
+    context.fillStyle = 'rgba(11, 10, 31, 0.8)';
+    context.beginPath(); context.roundRect(cx - w / 2, height - 44, w, 28, 14); context.fill();
+    context.fillStyle = '#eef0ff'; context.textAlign = 'center';
+    context.fillText(text, cx, height - 25);
+  }
+}
+
 // A target whose robots are all found stays visible in Story mode
 function targetDone(target) {
   const robots = state.robots.filter((robot) => robot.sky_target === target.id);
@@ -782,8 +948,11 @@ function initMap() {
     isFound: (robot) => state.found.has(robot.id),
     isHidden: (target) => isStory() && !targetDone(target),
     showGuide: () => !isStory(),
-    overlay: (context, info) => { if (isStory()) sonar.draw(context, info); },
+    simple: () => isStory(),
+    overlay: drawMapOverlay,
   });
+  canvas.addEventListener('pointerdown', () => { state.dragged = true; });
+  canvas.addEventListener('keydown', () => { state.dragged = true; });
 
   // Handy for the phone debug session and for tests.
   window.EchoStation = { state, get pointing() { return pointing; }, map };

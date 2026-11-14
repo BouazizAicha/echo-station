@@ -33,6 +33,7 @@ function words(guide, target) {
 export function createSonar({ getAim, getTargets, mount }) {
   const pings = [];        // { t0, echoes: [{ target, tHit, tBack, guide, strength }] }
   let clicks = 0, lastPing = 0, longFlash = false;
+  let heard = null;        // id of the friend heard last: the pink arrow keeps pointing to it
 
   // ---- panel (shown only in Story mode, by CSS) ----
   const panel = el('section', 'sonar');
@@ -44,16 +45,18 @@ export function createSonar({ getAim, getTargets, mount }) {
   button.innerHTML = '<span class="sonar-click-ring" aria-hidden="true"></span><strong>Click!</strong><span class="sonar-click-sub">Belu sends a sound</span>';
   const compass = el('div', 'sonar-compass');
   compass.setAttribute('aria-hidden', 'true');
-  const arrow = el('span', 'sonar-arrow', '➜');
+  const arrow = el('span', 'sonar-arrow', '?');
   compass.appendChild(arrow);
-  const text = el('p', 'sonar-text', 'Press Click! Belu sends a sound and listens for the echoes of his friends.');
+  const text = el('p', 'sonar-text', 'Press Click! to hear your friends answer.');
   text.id = 'sonar-text';
   text.setAttribute('aria-live', 'polite');
   button.setAttribute('aria-describedby', 'sonar-text');
   const count = el('p', 'sonar-count mono', 'Clicks: 0');
   const row = el('div', 'sonar-row');
-  row.append(button, compass);
-  panel.append(row, text, count);
+  const wordsBox = el('div', 'sonar-words');
+  wordsBox.append(text, count);
+  row.append(button, wordsBox, compass);
+  panel.append(row);
   if (mount) mount.prepend(panel);
 
   function ping() {
@@ -87,11 +90,11 @@ export function createSonar({ getAim, getTargets, mount }) {
     if (best) {
       setTimeout(() => {
         vibrate(Math.round(30 + 120 * best.strength));
-        text.textContent = words(best.guide, best.target);
+        text.textContent = `${words(best.guide, best.target)} Follow the pink arrow!`;
         speak(text.textContent, { interrupt: true });
-        arrow.style.transform = `rotate(${best.guide.rotateDeg.toFixed(0)}deg)`;
-        compass.classList.remove('show'); void compass.offsetWidth; compass.classList.add('show');
-        compass.style.setProperty('--strength', best.strength.toFixed(2));
+        heard = best.target.id;
+        compass.classList.add('show');
+        update(getAim());
       }, best.tBack * 1000);
     } else {
       text.textContent = 'Silence… every friend has been found!';
@@ -153,17 +156,53 @@ export function createSonar({ getAim, getTargets, mount }) {
     }
   }
 
+  // The pink arrow: from where you aim to the friend heard last (map and sonar panel)
+  function pointer() {
+    if (!heard) return null;
+    const target = getTargets().find(t => t.id === heard);
+    if (!target) { heard = null; compass.classList.remove('show'); arrow.textContent = '?'; return null; }
+    return { target, guide: computeGuide(getAim(), target) };
+  }
+
+  let shownDeg = null;
+  function update() {
+    const p = pointer();
+    if (!p) return;
+    const onIt = p.guide.dist <= 6;
+    shownDeg = shownDeg == null ? p.guide.rotateDeg : shownDeg + (((p.guide.rotateDeg - shownDeg + 540) % 360) - 180) * 0.35;
+    arrow.textContent = onIt ? '◎' : '➜';
+    arrow.style.transform = onIt ? 'none' : `rotate(${shownDeg.toFixed(0)}deg)`;
+    compass.dataset.near = p.guide.dist < 20 ? 'true' : 'false';
+  }
+
+  function drawPointer(context, { width, height }) {
+    const p = pointer();
+    if (!p || p.guide.dist <= 6) return;
+    const cx = width / 2, cy = height / 2;
+    context.save();
+    context.translate(cx, cy);
+    context.rotate((shownDeg ?? p.guide.rotateDeg) * Math.PI / 180);
+    context.fillStyle = '#ff9bd5';
+    context.shadowColor = '#ff9bd5'; context.shadowBlur = 10;
+    context.beginPath(); context.moveTo(58, 0); context.lineTo(36, -11); context.lineTo(40, 0); context.lineTo(36, 11); context.closePath(); context.fill();
+    context.restore();
+  }
+
   button.addEventListener('click', ping);
 
   return {
     ping,
-    draw,
+    draw(context, info) { draw(context, info); drawPointer(context, info); },
+    update,
+    get hasHeard() { return Boolean(heard); },
     get clicks() { return clicks; },
     reset() {
-      clicks = 0; longFlash = false;
+      clicks = 0; longFlash = false; heard = null; shownDeg = null;
       count.textContent = 'Clicks: 0';
       text.textContent = 'Press Click! Who else is out there?';
       compass.classList.remove('show');
+      arrow.textContent = '?';
+      arrow.style.transform = 'none';
     },
   };
 }
