@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Echo Station</title>
+  <link rel="stylesheet" href="css/style.css">
+  <!-- astronomy-engine (MIT) – computes real sky positions of the Moon, Mars... -->
+  <script src="js/lib/astronomy.browser.min.js"></script>
+</head>
+<body>
+
+  <!-- 1. INTRO -->
+  <section id="screen-intro" class="screen">
+    <h1>ECHO STATION</h1>
+    <p class="tagline">Since 1969, NASA has left robots all over the solar system.<br>Most of them went silent. Can you find them?</p>
+    <button id="btn-start" class="big">Start listening</button>
+    <p class="hint">Best on a phone, outside, at night. Go outside with an adult.</p>
+  </section>
+
+  <!-- 2. RADIO / ANTENNA -->
+  <section id="screen-radio" class="screen" hidden>
+    <h2>Searching for signals…</h2>
+    <div class="meter"><div id="signal-bar"></div></div>
+    <p id="radio-status" class="status">Static only.</p>
+    <p id="pointing" class="mono"></p>
+
+    <div id="antenna-controls">
+      <button id="btn-antenna">Use my phone as an antenna</button>
+      <button id="btn-calibrate" hidden>Calibrate: point at the Moon, then tap</button>
+    </div>
+
+    <!-- Desktop / no-sensor fallback. Dev 1 replaces this list with the sky map. -->
+    <div id="manual-tuning">
+      <h3>Manual tuning</h3>
+      <div id="robot-list"></div>
+    </div>
+  </section>
+
+  <!-- 3. STORY -->
+  <section id="screen-story" class="screen" hidden>
+    <button id="btn-back" class="link">← Back to the radio</button>
+    <p class="mono" id="story-meta"></p>
+    <h2 id="story-name"></h2>
+    <div id="story-sections"></div>
+    <figure id="story-proof" hidden>
+      <img id="proof-img" alt="">
+      <figcaption id="proof-caption"></figcaption>
+    </figure>
+    <p id="story-human" class="human"></p>
+    <h3>Ask me something</h3>
+    <div id="story-questions"></div>
+    <button id="btn-minigame" class="big" hidden>Live my mission</button>
+    <details id="story-sources">
+      <summary>Sources</summary>
+      <ul id="sources-list"></ul>
+    </details>
+  </section>
+
+  <!-- 4. FINALE (laser) – Dev 2 -->
+  <section id="screen-finale" class="screen" hidden>
+    <h2>Some still answer.</h2>
+    <p>TODO Dev 2: laser to the Moon, ~2.5 s round trip, echo.</p>
+  </section>
+
+  <script type="module" src="js/main.js"></script>
+</body>
+</html>

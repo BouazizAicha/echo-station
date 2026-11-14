@@ -1,0 +1,33 @@
+{
+  "id": "apollo11-eagle",
+  "name": "Eagle (Apollo 11 descent stage)",
+  "type": "lander",
+  "body": "moon",
+  "site": "Tranquility Base, Sea of Tranquility",
+  "launched": "1969-07-16",
+  "landed": "1969-07-20",
+  "last_signal": null,
+  "status": "silent",
+  "sky_target": "moon",
+  "story": {
+    "who_i_am": "I'm the bottom half of Eagle, the Lunar Module that landed the first humans on the Moon.",
+    "why_sent": "My job was to land Neil Armstrong and Buzz Aldrin safely, then serve as a launch pad for their trip home.",
+    "discoveries": "TODO content (samples brought back, seismometer, laser mirror left next to me)",
+    "where_now": "I'm still standing at Tranquility Base. The LRO orbiter has photographed me from above.",
+    "legacy": "TODO content"
+  },
+  "human_touch": "TODO content",
+  "questions": [
+    { "q": "TODO", "a": "TODO" }
+  ],
+  "proof_image": {
+    "file": "assets/images/apollo11-lroc.jpg",
+    "caption": "Apollo 11 landing site seen by the Lunar Reconnaissance Orbiter",
+    "credit": "NASA/GSFC/Arizona State University",
+    "source_url": "TODO"
+  },
+  "minigame": null,
+  "sources": [
+    { "title": "NSSDCA – Apollo 11 Lunar Module (1969-059C)", "url": "https://nssdc.gsfc.nasa.gov/nmc/spacecraft/display.action?id=1969-059C" }
+  ]
+}

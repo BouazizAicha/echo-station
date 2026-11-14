@@ -1,0 +1,28 @@
+{
+  "id": "pioneer10",
+  "name": "Pioneer 10",
+  "type": "probe",
+  "body": "deep space",
+  "site": "Beyond the planets, heading toward Aldebaran (Taurus)",
+  "launched": "1972-03-03",
+  "landed": null,
+  "last_signal": "2003-01-23",
+  "status": "silent",
+  "sky_target": "pioneer10",
+  "story": {
+    "who_i_am": "I'm Pioneer 10, the first spacecraft to cross the asteroid belt and fly past Jupiter.",
+    "why_sent": "TODO content",
+    "discoveries": "TODO content",
+    "where_now": "TODO content (distance, light-time)",
+    "legacy": "TODO content"
+  },
+  "human_touch": "TODO content (the Pioneer plaque)",
+  "questions": [
+    { "q": "TODO", "a": "TODO" }
+  ],
+  "proof_image": null,
+  "minigame": null,
+  "sources": [
+    { "title": "NASA – Pioneer 10", "url": "https://science.nasa.gov/mission/pioneer-10/" }
+  ]
+}

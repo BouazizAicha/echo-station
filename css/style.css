@@ -1,0 +1,67 @@
+:root {
+  --bg: #05070d;
+  --fg: #e8ecf4;
+  --muted: #8a94a8;
+  --signal: #5dffb0;
+  --accent: #ffb347;
+  --panel: #111827;
+  font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--fg);
+  line-height: 1.5;
+}
+
+.screen {
+  max-width: 640px;
+  margin: 0 auto;
+  padding: 2rem 1.25rem 4rem;
+}
+
+h1 { font-size: 2.5rem; letter-spacing: .2em; margin-top: 3rem; }
+h2 { font-size: 1.5rem; }
+h3 { color: var(--muted); font-size: 1rem; text-transform: uppercase; letter-spacing: .1em; margin-top: 2rem; }
+
+.tagline { font-size: 1.15rem; }
+.hint, .status { color: var(--muted); }
+.mono { font-family: ui-monospace, Menlo, Consolas, monospace; color: var(--signal); font-size: .9rem; }
+
+button {
+  font: inherit;
+  color: var(--fg);
+  background: var(--panel);
+  border: 1px solid #2a3550;
+  border-radius: 10px;
+  padding: .75rem 1rem;
+  margin: .25rem 0;
+  cursor: pointer;
+  min-height: 44px; /* touch target */
+}
+button:hover, button:focus-visible { border-color: var(--signal); outline: none; }
+button.big { background: var(--signal); color: #04110a; font-weight: 700; border: none; padding: 1rem 1.5rem; }
+button.link { background: none; border: none; color: var(--muted); padding: 0; }
+
+.meter { height: 14px; background: var(--panel); border-radius: 7px; overflow: hidden; margin: 1rem 0; }
+#signal-bar { height: 100%; width: 0%; background: var(--signal); transition: width .15s; }
+
+#robot-list { display: flex; flex-wrap: wrap; gap: .5rem; }
+
+.story-part h4 { margin: 1.25rem 0 .25rem; color: var(--accent); font-size: .85rem; text-transform: uppercase; letter-spacing: .08em; }
+.story-part p { margin: 0; font-size: 1.1rem; }
+
+.human { border-left: 3px solid var(--accent); padding-left: 1rem; color: var(--muted); font-style: italic; }
+
+figure { margin: 1.5rem 0; }
+figure img { width: 100%; border-radius: 8px; }
+figcaption { color: var(--muted); font-size: .85rem; }
+
+.qa { margin: .5rem 0; }
+.qa .answer { margin: .25rem 0 0 .5rem; }
+
+details { margin-top: 2rem; color: var(--muted); }
+details a { color: var(--signal); }

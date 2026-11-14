@@ -1,0 +1,35 @@
+{
+  "id": "spirit",
+  "name": "Spirit",
+  "type": "rover",
+  "body": "mars",
+  "site": "Gusev Crater",
+  "launched": "2003-06-10",
+  "landed": "2004-01-04",
+  "last_signal": "2010-03-22",
+  "status": "silent",
+  "sky_target": "mars",
+  "story": {
+    "who_i_am": "I'm Spirit, a six-wheeled robot geologist, about the size of a golf cart.",
+    "why_sent": "NASA sent me to find out if water once flowed on Mars. They planned 90 days for me.",
+    "discoveries": "When my front wheel broke, I drove backwards and dragged it. It scraped the ground and uncovered almost pure silica: a sign of ancient hot springs.",
+    "where_now": "In 2009 I got stuck in soft sand. I kept working without moving until I went silent in 2010.",
+    "legacy": "My twin Opportunity, then Curiosity and Perseverance, continued the search for water and life."
+  },
+  "human_touch": "For months, my team tried everything to free me. They called it the 'Free Spirit' campaign.",
+  "questions": [
+    { "q": "Why did you drive backwards?", "a": "TODO content" },
+    { "q": "Are you still there?", "a": "TODO content" }
+  ],
+  "proof_image": {
+    "file": "assets/images/spirit-hirise.jpg",
+    "caption": "Spirit seen from orbit by the HiRISE camera",
+    "credit": "NASA/JPL-Caltech/University of Arizona",
+    "source_url": "TODO"
+  },
+  "minigame": { "type": "drive", "settings": { "stuck_wheel": "front_right", "reverse": true } },
+  "sources": [
+    { "title": "NASA – Mars Exploration Rovers Spirit and Opportunity", "url": "https://science.nasa.gov/mission/mars-exploration-rovers-spirit-and-opportunity/" },
+    { "title": "NSSDCA – MER-A Spirit (2003-027A)", "url": "https://nssdc.gsfc.nasa.gov/nmc/spacecraft/display.action?id=2003-027A" }
+  ]
+}
