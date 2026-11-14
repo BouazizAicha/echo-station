@@ -90,6 +90,37 @@
     {
       "title": "The Planetary Society – Spirit’s specular reflection (mirror of the HiRISE image)",
       "url": "https://www.planetary.org/space-images/spirit-s-specular-reflection"
+    },
+    {
+      "title": "Mission data reference: PDS Orbital Data Explorer",
+      "url": "https://ode.rsl.wustl.edu/mars/pagehelp/Content/Missions_Instruments/Landing_Sites.htm"
     }
-  ]
+  ],
+  "beat": "A broken wheel reveals white silica!",
+  "successors": [
+    "Opportunity",
+    "Curiosity",
+    "Perseverance"
+  ],
+  "mission_data": {
+    "nssdca_id": "2003-027A",
+    "mass_kg": 185,
+    "mass_scope": "Rover only; excludes cruise stage, aeroshell and lander.",
+    "mass_source_url": "https://nssdc.gsfc.nasa.gov/nmc/spacecraft/display.action?id=2003-027A",
+    "site_coordinates": {
+      "latitude_deg": -14.5692,
+      "longitude_deg": 175.4729,
+      "body": "mars",
+      "scope": "Original landing site, not the final Troy resting place.",
+      "convention": "North-positive latitude; east-positive longitude in degrees.",
+      "method": "Cartographic triangulation",
+      "source_url": "https://ode.rsl.wustl.edu/mars/pagehelp/Content/Missions_Instruments/Landing_Sites.htm"
+    },
+    "distance_traveled_km": 7.7,
+    "distance_approximate": true,
+    "distance_source_url": "https://science.nasa.gov/mission/mars-exploration-rovers-spirit-and-opportunity/",
+    "flights": null,
+    "nssdca_source_url": "https://nssdc.gsfc.nasa.gov/nmc/spacecraft/display.action?id=2003-027A",
+    "verified_on": "2026-11-14"
+  }
 }

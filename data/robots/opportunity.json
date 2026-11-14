@@ -80,6 +80,36 @@
     {
       "title": "NASA Space Place – The Mars Rovers: Spirit and Opportunity",
       "url": "https://spaceplace.nasa.gov/mars-spirit-opportunity/en/"
+    },
+    {
+      "title": "Mission data reference: PDS Orbital Data Explorer",
+      "url": "https://ode.rsl.wustl.edu/mars/pagehelp/Content/Missions_Instruments/Landing_Sites.htm"
     }
-  ]
+  ],
+  "beat": "Mineral blueberries reveal a watery Martian past!",
+  "successors": [
+    "Curiosity",
+    "Perseverance"
+  ],
+  "mission_data": {
+    "nssdca_id": "2003-032A",
+    "mass_kg": 185,
+    "mass_scope": "Rover only; excludes cruise stage, aeroshell and lander.",
+    "mass_source_url": "https://nssdc.gsfc.nasa.gov/nmc/spacecraft/display.action?id=2003-032A",
+    "site_coordinates": {
+      "latitude_deg": -1.9462,
+      "longitude_deg": 354.4734,
+      "body": "mars",
+      "scope": "Original Eagle Crater landing site, not the final Perseverance Valley resting place.",
+      "convention": "North-positive latitude; east-positive longitude in degrees (0 to 360).",
+      "method": "Cartographic triangulation",
+      "source_url": "https://ode.rsl.wustl.edu/mars/pagehelp/Content/Missions_Instruments/Landing_Sites.htm"
+    },
+    "distance_traveled_km": 45.16,
+    "distance_approximate": false,
+    "distance_source_url": "https://science.nasa.gov/photojournal/opportunitys-final-traverse-map/",
+    "flights": null,
+    "nssdca_source_url": "https://nssdc.gsfc.nasa.gov/nmc/spacecraft/display.action?id=2003-032A",
+    "verified_on": "2026-11-14"
+  }
 }

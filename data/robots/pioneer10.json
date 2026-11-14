@@ -14,7 +14,7 @@
     "who_i_am": "I'm Pioneer 10, a robotic explorer with a large, dish-shaped antenna. I carry instruments instead of passengers.",
     "why_sent": "NASA sent me to test a safe route through the asteroid belt. My next task was to study Jupiter up close.",
     "discoveries": "I crossed the belt safely and sent back close-up views of Jupiter. I measured powerful radiation: tiny, fast particles that can damage spacecraft. Those measurements helped engineers prepare later missions.",
-    "where_now": "I travel silently beyond Neptune's orbit, heading roughly toward the star Aldebaran. Earth last heard my faint signal in 2003, before you were born, Belu.",
+    "where_now": "I travel silently beyond Neptune's orbit, heading roughly toward the star Aldebaran. Earth last heard my faint signal in 2003, before many of you were born.",
     "legacy": "Pioneer 11 followed my trail, then the Voyager probes explored farther. My measurements helped engineers design Voyager and Galileo for Jupiter's harsh surroundings."
   },
   "human_touch": "Carl Sagan, Frank Drake, and Linda Salzman Sagan created my plaque: a picture-message from Earth.",
@@ -69,5 +69,25 @@
       "title": "NASA – Radioisotope Power Systems Missions",
       "url": "https://science.nasa.gov/planetary-science/programs/radioisotope-power-systems/missions/"
     }
-  ]
+  ],
+  "beat": "Jupiter's radiation belts come into focus!",
+  "successors": [
+    "Pioneer 11",
+    "Voyager 1",
+    "Voyager 2",
+    "New Horizons"
+  ],
+  "mission_data": {
+    "nssdca_id": "1972-012A",
+    "mass_kg": 258,
+    "mass_scope": "Catalog spacecraft mass; not a measurement of present-day mass.",
+    "mass_source_url": "https://nssdc.gsfc.nasa.gov/nmc/spacecraft/display.action?id=1972-012A",
+    "site_coordinates": null,
+    "site_coordinates_note": "A moving deep-space probe has no planetary surface landing site.",
+    "distance_traveled_km": null,
+    "flights": null,
+    "not_applicable_note": "No surface traverse or helicopter flight count. Earth distance is not cumulative distance traveled and is not supplied as a timeless value.",
+    "nssdca_source_url": "https://nssdc.gsfc.nasa.gov/nmc/spacecraft/display.action?id=1972-012A",
+    "verified_on": "2026-11-14"
+  }
 }

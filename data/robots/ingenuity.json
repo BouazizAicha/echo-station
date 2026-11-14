@@ -84,6 +84,43 @@
     {
       "title": "NASA – Dragonfly",
       "url": "https://science.nasa.gov/mission/dragonfly/"
+    },
+    {
+      "title": "Mission data reference: NASA NSSDCA",
+      "url": "https://nssdc.gsfc.nasa.gov/nmc/spacecraft/display.action?id=2020-052A"
     }
-  ]
+  ],
+  "beat": "A little helicopter proves flight works on Mars!",
+  "successors": [
+    "Future Mars helicopters",
+    "Dragonfly"
+  ],
+  "mission_data": {
+    "nssdca_id": null,
+    "nssdca_id_note": "No separate Ingenuity NSSDCA record was verified. The parent Mars 2020 record explicitly lists the carried helicopter.",
+    "parent_nssdca_id": "2020-052A",
+    "parent_nssdca_source_url": "https://nssdc.gsfc.nasa.gov/nmc/spacecraft/display.action?id=2020-052A",
+    "mass_kg": 1.8,
+    "mass_scope": "Helicopter mass, approximate; not the mass of the Mars 2020 rover.",
+    "mass_source_url": "https://www.jpl.nasa.gov/news/press_kits/mars_2020/ingenuity/landing/quick_facts/",
+    "site_coordinates": {
+      "latitude_deg": 18,
+      "longitude_deg": 77,
+      "body": "mars",
+      "scope": "Approximate Jezero landing region from the mission press kit; not final Valinor Hills coordinates.",
+      "approximate": true,
+      "convention": "North-positive latitude; east-positive longitude in degrees.",
+      "source_url": "https://www.jpl.nasa.gov/news/press_kits/mars_2020/ingenuity/landing/quick_facts/"
+    },
+    "distance_traveled_km": 17,
+    "distance_approximate": true,
+    "distance_kind": "Cumulative flight path, not surface driving.",
+    "distance_source_url": "https://science.nasa.gov/mission/mars-2020-perseverance/ingenuity-mars-helicopter/",
+    "flights": 72,
+    "flights_source_url": "https://science.nasa.gov/mission/mars-2020-perseverance/ingenuity-mars-helicopter/",
+    "last_signal_source_url": "https://science.nasa.gov/mars/the-mars-report/2025-february/",
+    "last_signal_note": "Last communication with Perseverance reported by NASA in February 2025. April 16, 2024 was the final regular team operations gathering, not the last radio contact.",
+    "nssdca_source_url": null,
+    "verified_on": "2026-11-14"
+  }
 }
