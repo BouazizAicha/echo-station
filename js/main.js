@@ -301,13 +301,15 @@ function updateGuide() {
   const guide = computeGuide(state.aiming, state.nearest.target);
   const below = state.nearest.target.alt < 0;
 
-  // No arrow toward a target under the horizon: dim it and stop spinning.
-  arrow.style.transform = `rotate(${below ? 0 : guide.rotateDeg.toFixed(1)}deg)`;
+  // Below the horizon (Dev A): arrow dimmed but still rotatable, and a message
+  arrow.style.transform = `rotate(${guide.rotateDeg.toFixed(1)}deg)`;
   arrow.dataset.belowHorizon = below ? 'true' : 'false';
 
   const message = state.lockProgress > 0
     ? "You're on it! Hold still."
-    : guideMessage(guide, state.nearest.target);
+    : below
+      ? "Below the horizon: Belu hears it through the Earth!"
+      : guideMessage(guide, state.nearest.target);
 
   // Only touch the DOM when the sentence changes: a screen reader would
   // otherwise re-read it 12 times a second.

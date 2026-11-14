@@ -10,11 +10,12 @@
 import { angularDistance } from './sky.js';
 
 /**
- * A target under the horizon cannot be aimed at. The penalty is larger than
- * the sky's half-sphere, so any visible target wins; a buried target is only
- * picked when it is the only one left.
+ * Penalty added to angular distance for targets under the horizon.
+ * With ~15 any visible target wins; a buried target is only picked when
+ * it is the only one left. (≈15 means: if you really aim at Mars, you can
+ * still catch Mars.)
  */
-export const BELOW_HORIZON_PENALTY = 90;
+export const BELOW_HORIZON_PENALTY = 15;
 
 /** Targets that still have at least one unfound robot. */
 export function activeTargets(targets, robots, found) {
