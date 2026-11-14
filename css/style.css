@@ -821,3 +821,8 @@ html[style*="125%"] .cine-title, html[style*="112.5%"] .cine-title { overflow-wr
   .cine-skip { margin-left: auto; }
   .cine-top { padding-right: 13.75rem; }
 }
+
+/* ---- Logo (D) ---- */
+#screen-intro h1.logo-title { margin: .25rem 0 1rem; letter-spacing: 0; font-size: 1rem; }
+.logo { display: block; width: min(62vw, 300px); height: auto; margin: 0 auto; }
+@media (max-height: 700px) { .logo { width: min(56vw, 240px); } }
