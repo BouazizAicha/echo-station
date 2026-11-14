@@ -188,11 +188,12 @@ function renderRobotList() {
     count.className = 'target-count';
     count.textContent = `${found}/${robots.length}`;
 
+    // Look: centre the sky map on it (works under the horizon too)
     const button = document.createElement('button');
     button.type = 'button';
     button.className = 'link-button';
     button.textContent = 'Look';
-    button.disabled = target.alt < 0;
+    button.setAttribute('aria-label', `Look at ${target.label} on the sky map`);
     button.addEventListener('click', () => {
       if (!map) return;
       if (state.antennaActive) useSkyMap();
@@ -201,7 +202,15 @@ function renderRobotList() {
       setRadioStatus(`Sky map centred on ${target.label}.`, 'ok');
     });
 
-    item.append(info, count, button);
+    // Tune in: go straight to the next robot there (cloudy sky, no sensors, accessibility)
+    const tune = document.createElement('button');
+    tune.type = 'button';
+    tune.className = 'link-button tune-button';
+    tune.textContent = 'Tune in';
+    tune.setAttribute('aria-label', `Tune in to ${target.label}`);
+    tune.addEventListener('click', () => lockTarget(target));
+
+    item.append(info, count, button, tune);
     container.append(item);
   }
 }
@@ -305,10 +314,13 @@ function updateGuide() {
   arrow.style.transform = `rotate(${guide.rotateDeg.toFixed(1)}deg)`;
   arrow.dataset.belowHorizon = below ? 'true' : 'false';
 
+  const label = state.nearest.target.label;
   const message = state.lockProgress > 0
     ? "You're on it! Hold still."
     : below
-      ? "Below the horizon: Belu hears it through the Earth!"
+      ? guide.dist <= 6
+        ? `${label} is under the horizon, and Belu hears it through the Earth! Hold still.`
+        : `${label} is below the horizon. Follow the arrow down: Belu hears it through the Earth!`
       : guideMessage(guide, state.nearest.target);
 
   // Only touch the DOM when the sentence changes: a screen reader would

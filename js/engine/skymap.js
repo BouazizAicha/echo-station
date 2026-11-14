@@ -12,7 +12,7 @@ import { computeGuide } from './guide.js';
 const RADIANS = Math.PI / 180;
 const FOV_WIDTH_DEG = 90;
 const AIM_INTERVAL_MS = 100;
-const MIN_ALT = 3;
+const MIN_ALT = -85;   // the map can look under the horizon: Belu hears through the Earth
 const MAX_ALT = 87;
 
 function seededRandom(seed) {
@@ -107,7 +107,7 @@ export function initSkyMap({ canvas, onAim, getTargets, getRobots, isFound }) {
     let best = null;
     for (const target of pool) {
       const distance = angularDistance(view, target);
-      const score = target.alt < 0 ? distance + 40 : distance;
+      const score = target.alt < 0 ? distance + 15 : distance;   // same rule as targeting.js
       if (!best || score < best.score) best = { target, distance, score };
     }
     return best;
@@ -143,6 +143,23 @@ export function initSkyMap({ canvas, onAim, getTargets, getRobots, isFound }) {
     context.globalAlpha = 1;
   }
 
+  // Under the horizon: Belu's ocean, translucent, so buried targets still show through.
+  function drawGround(width, height) {
+    const horizonY = height / 2 + view.alt * scale;
+    if (horizonY >= height) return;
+    const top = Math.max(0, horizonY);
+    const gradient = context.createLinearGradient(0, horizonY, 0, horizonY + 90 * scale);
+    gradient.addColorStop(0, 'rgba(20, 90, 114, 0.55)');
+    gradient.addColorStop(1, 'rgba(11, 10, 31, 0.9)');
+    context.fillStyle = gradient;
+    context.fillRect(0, top, width, height - top);
+    context.fillStyle = 'rgba(160, 225, 255, 0.75)';
+    context.font = '10px ui-monospace, SFMono-Regular, Menlo, monospace';
+    context.textAlign = 'left';
+    const labelY = Math.max(horizonY + 20, 20);
+    if (labelY < height - 24) context.fillText('BELOW THE HORIZON · BELU HEARS THROUGH THE EARTH', 10, labelY);
+  }
+
   function drawGrid(width, height) {
     context.strokeStyle = 'rgba(120, 160, 220, 0.13)';
     context.fillStyle = 'rgba(150, 180, 220, 0.55)';
@@ -151,7 +168,7 @@ export function initSkyMap({ canvas, onAim, getTargets, getRobots, isFound }) {
     context.textAlign = 'left';
 
     // Altitude lines every 15°.
-    for (let altitude = 0; altitude <= 90; altitude += 15) {
+    for (let altitude = -90; altitude <= 90; altitude += 15) {
       const y = height / 2 - (altitude - view.alt) * scale;
       if (y < -20 || y > height + 20) continue;
       context.beginPath();
@@ -238,7 +255,10 @@ export function initSkyMap({ canvas, onAim, getTargets, getRobots, isFound }) {
     const point = project(target.az, target.alt);
     const rect = canvas.getBoundingClientRect();
     if (point.x < -40 || point.x > rect.width + 40 || point.y < -40 || point.y > rect.height + 40) return;
-    if (target.alt < -2) return;
+    // Under the horizon: drawn faded, "through the Earth"
+    const below = target.alt < 0;
+    context.save();
+    if (below) context.globalAlpha = 0.6;
 
     const color = target.color || '#9ad7ff';
     const foundAll = target.total > 0 && target.found >= target.total;
@@ -282,7 +302,8 @@ export function initSkyMap({ canvas, onAim, getTargets, getRobots, isFound }) {
     context.font = '11px ui-monospace, SFMono-Regular, Menlo, monospace';
     context.textAlign = 'center';
     const suffix = target.total > 0 ? ` ${target.found}/${target.total}` : '';
-    context.fillText(`${target.label}${suffix}`, point.x, point.y + radius + 17);
+    context.fillText(`${target.label}${suffix}${below ? ' ↓' : ''}`, point.x, point.y + radius + 17);
+    context.restore();
   }
 
   function drawGuide(time) {
@@ -361,6 +382,7 @@ export function initSkyMap({ canvas, onAim, getTargets, getRobots, isFound }) {
 
     drawBackground(width, height);
     drawStars(width, height);
+    drawGround(width, height);
     drawGrid(width, height);
     for (const target of targetsWithRobots()) drawTarget(target, time);
     drawGuide(time);
