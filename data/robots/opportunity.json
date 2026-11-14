@@ -1,0 +1,85 @@
+{
+  "id": "opportunity",
+  "name": "Opportunity",
+  "type": "rover",
+  "body": "mars",
+  "site": "Perseverance Valley, Endeavour Crater, Meridiani Planum",
+  "launched": "2003-07-08",
+  "landed": "2004-01-25",
+  "last_signal": "2018-06-10",
+  "status": "silent",
+  "sky_target": "mars",
+  "greeting": "Hello Belu… I'm Opportunity. You can call me Oppy! Ready to follow some very long tracks?",
+  "story": {
+    "who_i_am": "I'm Opportunity, Spirit's twin: a solar-powered explorer about the size of a golf cart. I studied Mars by driving from rock to rock.",
+    "why_sent": "NASA sent me to find evidence of ancient water in Martian rocks. I explored Meridiani Planum, far from Spirit's landing site.",
+    "discoveries": "I found mineral balls nicknamed blueberries: clues that water once soaked the ground. Later, clay minerals revealed a less acidic ancient environment. Those rocks preserved places that could once have supported tiny living things.",
+    "where_now": "I rest in Perseverance Valley, on the rim of Endeavour Crater. A dust storm blocked sunlight, and my solar power fell until I went silent.",
+    "legacy": "I drove more than 45 kilometers, farther than a marathon. Curiosity and Perseverance continue investigating Mars' history and whether it could have supported life."
+  },
+  "human_touch": "My team sent over a thousand commands, trying to hear from me again after the storm.",
+  "questions": [
+    {
+      "q": "Were your blueberries really fruit?",
+      "a": "No! They were tiny mineral balls rich in hematite, an iron mineral. Their shape and chemistry helped scientists understand how water had changed the rocks. They were clues, not snacks."
+    },
+    {
+      "q": "Did you find life on Mars?",
+      "a": "No. I found evidence of ancient water and places that could have supported microbes. Some ancient water was harshly acidic; other environments were gentler. Possible habitats are not proof of living things."
+    },
+    {
+      "q": "Do you still hold the driving record?",
+      "a": "No. I finished with about 45 kilometers of driving, farther than a marathon. Perseverance passed my record in October 2026. My tracks still mark a remarkable journey."
+    }
+  ],
+  "voice_text": "Hello Belu… I'm Opportunity. Call me Oppy! I'm Spirit's twin, a robot that searched Mars for signs of ancient water. Near my landing site, I found tiny mineral balls. My team called them blueberries… but they weren't fruit! They were rocky clues to a watery past. Later, I found clay minerals from a gentler ancient environment. Places like that might once have supported microbes. I never found life itself. I kept driving for more than fourteen years, traveling farther than a marathon. Then a huge dust storm hid the Sun. My solar panels could not make enough power, and I went quiet. My team sent over a thousand commands, hoping I would answer. I still rest in Perseverance Valley. My wheels have stopped… but Curiosity and Perseverance keep exploring. What clues might they find next, Belu?",
+  "proof_image": {
+    "file": "assets/images/opportunity-hirise.jpg",
+    "caption": "Opportunity appears as a small dot in Perseverance Valley, photographed from Mars orbit by MRO's HiRISE camera on September 20, 2018, after the rover went silent.",
+    "credit": "NASA/JPL-Caltech/Univ. of Arizona",
+    "source_url": "https://www.jpl.nasa.gov/images/pia22549-opportunity-after-the-dust-storm/"
+  },
+  "minigame": null,
+  "sources": [
+    {
+      "title": "NASA – Mars Exploration Rovers: Spirit and Opportunity",
+      "url": "https://science.nasa.gov/mission/mars-exploration-rovers-spirit-and-opportunity/"
+    },
+    {
+      "title": "NASA – Mars Exploration Rover Science Objectives",
+      "url": "https://science.nasa.gov/mission/mars-exploration-rovers-spirit-and-opportunity/science-objectives/"
+    },
+    {
+      "title": "NASA – Mars Exploration Rover Science Highlights",
+      "url": "https://science.nasa.gov/mission/mars-exploration-rovers-spirit-and-opportunity/science-highlights/"
+    },
+    {
+      "title": "NASA – Opportunity mission history",
+      "url": "https://science.nasa.gov/mission/mer-opportunity/"
+    },
+    {
+      "title": "NASA NSSDCA – Opportunity (2003-032A)",
+      "url": "https://nssdc.gsfc.nasa.gov/nmc/spacecraft/display.action?id=2003-032A"
+    },
+    {
+      "title": "NASA JPL – Opportunity Rover Mission on Mars Comes to End",
+      "url": "https://www.jpl.nasa.gov/news/nasas-opportunity-rover-mission-on-mars-comes-to-end/"
+    },
+    {
+      "title": "NASA – Opportunity's Final Traverse Map",
+      "url": "https://science.nasa.gov/photojournal/opportunitys-final-traverse-map/"
+    },
+    {
+      "title": "NASA JPL – Opportunity After the Dust Storm (PIA22549)",
+      "url": "https://www.jpl.nasa.gov/images/pia22549-opportunity-after-the-dust-storm/"
+    },
+    {
+      "title": "NASA – Perseverance Sets Off-World Record for Total Distance Driven (October 2026)",
+      "url": "https://science.nasa.gov/blogs/perseverance-mars-rover/2026/10/12/nasas-perseverance-sets-off-world-record-for-total-distance-driven/"
+    },
+    {
+      "title": "NASA Space Place – The Mars Rovers: Spirit and Opportunity",
+      "url": "https://spaceplace.nasa.gov/mars-spirit-opportunity/en/"
+    }
+  ]
+}

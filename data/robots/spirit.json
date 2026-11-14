@@ -3,33 +3,93 @@
   "name": "Spirit",
   "type": "rover",
   "body": "mars",
-  "site": "Gusev Crater",
+  "site": "Troy, near Home Plate, Gusev Crater",
   "launched": "2003-06-10",
   "landed": "2004-01-04",
   "last_signal": "2010-03-22",
   "status": "silent",
   "sky_target": "mars",
+  "greeting": "Hello Belu… I'm Spirit. Sometimes, a broken wheel can uncover a wonderful clue.",
   "story": {
-    "who_i_am": "I'm Spirit, a six-wheeled robot geologist, about the size of a golf cart.",
-    "why_sent": "NASA sent me to find out if water once flowed on Mars. They planned 90 days for me.",
-    "discoveries": "When my front wheel broke, I drove backwards and dragged it. It scraped the ground and uncovered almost pure silica: a sign of ancient hot springs.",
-    "where_now": "In 2009 I got stuck in soft sand. I kept working without moving until I went silent in 2010.",
-    "legacy": "My twin Opportunity, then Curiosity and Perseverance, continued the search for water and life."
+    "who_i_am": "I'm Spirit, a solar-powered robot that studied Martian rocks. I'm about the size of a golf cart, with wheels instead of feet.",
+    "why_sent": "NASA sent me to search rocks for signs of ancient water. My mission was planned for about three months, like one school term.",
+    "discoveries": "My broken front wheel scraped away soil as I drove backward. Underneath lay silica, a mineral linked to ancient hot springs or steam vents. That was a clue to Mars' watery past.",
+    "where_now": "I remain stuck in soft soil at Troy, inside Gusev Crater. I went silent as winter approached and my solar power dwindled.",
+    "legacy": "My twin Opportunity kept exploring after I went quiet. Curiosity and Perseverance carried on investigating Mars' past and its potential for life."
   },
-  "human_touch": "For months, my team tried everything to free me. They called it the 'Free Spirit' campaign.",
+  "human_touch": "My team tested escape maneuvers in an Earth sandbox during their Free Spirit campaign.",
   "questions": [
-    { "q": "Why did you drive backwards?", "a": "TODO content" },
-    { "q": "Are you still there?", "a": "TODO content" }
+    {
+      "q": "Why did you drive backward?",
+      "a": "My right-front wheel stopped turning. Driving backward while dragging it helped me keep exploring. That wheel exposed the bright soil where scientists identified silica."
+    },
+    {
+      "q": "Did you find living things?",
+      "a": "No. My discoveries showed that parts of ancient Mars had water and possible habitats. A habitat is a place where life could survive. That does not prove anything lived there."
+    },
+    {
+      "q": "Did getting stuck end your science?",
+      "a": "Not immediately! I kept studying my surroundings without driving. But I could not reach a good winter position for sunlight. My team last heard from me on March 22, 2010."
+    }
   ],
+  "voice_text": "Hello Belu… I'm Spirit. I explored Mars on wheels, hunting for clues in rocks. NASA planned about three months for me. I kept working for more than six years! Along the way, a broken wheel became an unexpected helper. I drove backward, dragging my right-front wheel. It scraped away soil and uncovered silica. On Earth, this kind of mineral can form near hot springs or steam vents. Could ancient Mars have had places like that? My discoveries helped scientists say yes. Later, I became stuck in soft soil. My team tested escape ideas in a sandbox on Earth. I kept doing science without moving… until winter approached and my solar power dwindled. My radio went quiet. But Opportunity, Curiosity, and Perseverance carried the exploration forward. Keep looking closely, Belu… surprising clues can hide beneath the dust.",
   "proof_image": {
     "file": "assets/images/spirit-hirise.jpg",
-    "caption": "Spirit seen from orbit by the HiRISE camera",
-    "credit": "NASA/JPL-Caltech/University of Arizona",
-    "source_url": "TODO"
+    "caption": "Spirit glints in sunlight beside Home Plate in Gusev Crater, photographed from Mars orbit by MRO's HiRISE camera on March 31, 2011, after the rover's last communication.",
+    "credit": "NASA/JPL-Caltech/UArizona",
+    "source_url": "https://hirise.lpl.arizona.edu/ESP_021925_1650"
   },
-  "minigame": { "type": "drive", "settings": { "stuck_wheel": "front_right", "reverse": true } },
+  "minigame": {
+    "type": "drive",
+    "settings": {
+      "stuck_wheel": "front_right",
+      "reverse": true
+    }
+  },
   "sources": [
-    { "title": "NASA – Mars Exploration Rovers Spirit and Opportunity", "url": "https://science.nasa.gov/mission/mars-exploration-rovers-spirit-and-opportunity/" },
-    { "title": "NSSDCA – MER-A Spirit (2003-027A)", "url": "https://nssdc.gsfc.nasa.gov/nmc/spacecraft/display.action?id=2003-027A" }
+    {
+      "title": "NASA – Mars Exploration Rovers: Spirit and Opportunity",
+      "url": "https://science.nasa.gov/mission/mars-exploration-rovers-spirit-and-opportunity/"
+    },
+    {
+      "title": "NASA – Mars Exploration Rover Science Objectives",
+      "url": "https://science.nasa.gov/mission/mars-exploration-rovers-spirit-and-opportunity/science-objectives/"
+    },
+    {
+      "title": "NASA – Mars Exploration Rover Science Highlights",
+      "url": "https://science.nasa.gov/mission/mars-exploration-rovers-spirit-and-opportunity/science-highlights/"
+    },
+    {
+      "title": "NASA – Spirit mission history",
+      "url": "https://science.nasa.gov/mission/mer-spirit/"
+    },
+    {
+      "title": "NASA NSSDCA – Spirit (2003-027A)",
+      "url": "https://nssdc.gsfc.nasa.gov/nmc/spacecraft/display.action?id=2003-027A"
+    },
+    {
+      "title": "NASA JPL – Spirit Rover Completes Mission on Mars",
+      "url": "https://www.jpl.nasa.gov/news/nasas-spirit-rover-completes-mission-on-mars/"
+    },
+    {
+      "title": "NASA – Spirit Embedded in Soft Soil as Engineers Devise Methods to Free Spirit",
+      "url": "https://www.nasa.gov/image-article/spirit-embedded-soft-soil-mars-as-engineers-devise-methods-free-spirit/"
+    },
+    {
+      "title": "NASA JPL – Free Spirit: Into the Sandbox (transcript)",
+      "url": "https://www.jpl.nasa.gov/videos/free-spirit-into-the-sandbox/"
+    },
+    {
+      "title": "HiRISE – Spirit, Spirit, Shining Bright (ESP_021925_1650)",
+      "url": "https://hirise.lpl.arizona.edu/ESP_021925_1650"
+    },
+    {
+      "title": "NASA Space Place – The Mars Rovers: Spirit and Opportunity",
+      "url": "https://spaceplace.nasa.gov/mars-spirit-opportunity/en/"
+    },
+    {
+      "title": "The Planetary Society – Spirit’s specular reflection (mirror of the HiRISE image)",
+      "url": "https://www.planetary.org/space-images/spirit-s-specular-reflection"
+    }
   ]
 }
