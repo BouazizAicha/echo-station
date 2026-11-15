@@ -221,11 +221,10 @@ function stageOf(ui) {
  * Resolves when the player presses Start. The game is paused while the card is open.
  */
 export function howTo(ui, how) {
-  const stage = stageOf(ui);
-  stage.querySelector('.mg-howto')?.remove();
-  const card = document.createElement('div');
+  document.querySelector('dialog.mg-howto')?.remove();
+  // A real dialog over the game (same look as the sky screen's "How to play"): never squeezed into the game area
+  const card = document.createElement('dialog');
   card.className = 'mg-howto';
-  card.setAttribute('role', 'dialog');
   card.setAttribute('aria-label', 'How to play');
   card.innerHTML = `
     <p class="mono mg-howto-eyebrow">HOW TO PLAY</p>
@@ -251,17 +250,21 @@ export function howTo(ui, how) {
   warn.hidden = !how.warn;
   const start = card.querySelector('.mg-howto-start');
   start.textContent = how.startLabel || 'Start';
-  stage.appendChild(card);
+  document.body.appendChild(card);
+  if (typeof card.showModal === 'function') card.showModal(); else card.setAttribute('open', '');
   speak(`How to play. ${how.goal} ${(how.steps || []).map(s => s.text).join('. ')}. ${how.warn || ''}`, { interrupt: true });
   paused = true;
   ui.controls.style.visibility = 'hidden';            // one thing at a time: first the rules
   card.querySelector('.mg-howto-goal').focus({ preventScroll: true });
-  stage.scrollIntoView?.({ block: 'nearest' });
   return new Promise(resolve => {
-    start.addEventListener('click', () => {
-      card.remove(); paused = false; ui.controls.style.visibility = '';
+    const go = () => {
+      if (!card.isConnected) return;
+      card.close?.(); card.remove();
+      paused = false; ui.controls.style.visibility = '';
       resolve();
-    }, { once: true });
+    };
+    start.addEventListener('click', go, { once: true });
+    card.addEventListener('cancel', e => { e.preventDefault(); go(); });   // Esc = start / continue
   });
 }
 
@@ -279,7 +282,8 @@ export function helpButton(ui, how) {
 }
 
 export function closeHowTo(ui) {
-  ui.canvas.parentElement?.querySelector('.mg-howto')?.remove();
+  const card = document.querySelector('dialog.mg-howto');
+  if (card) { card.close?.(); card.remove(); }
   ui.controls.style.visibility = '';
   paused = false;
 }

@@ -56,7 +56,9 @@ export function stopVoice() {
 // proportional to its length. Good enough for a 45-60 s voice.
 export function buildCues(text, duration) {
   const parts = [];
-  for (const sentence of text.match(/[^.!?…]+[.!?…]*["”’)]*/g) || []) {
+  // A new sentence starts after . ! ? or … only when the next word starts with a capital
+  // ("Hello Belu… you found me!" stays together).
+  for (const sentence of text.split(/(?<=[.!?…]["”’)]?)\s+(?=["“‘(]?[A-Z0-9])/)) {
     const s = sentence.trim();
     if (!s) continue;
     if (s.length <= 90) { parts.push(s); continue; }

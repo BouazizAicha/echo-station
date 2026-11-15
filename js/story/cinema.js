@@ -175,12 +175,18 @@ function chip(text) {
 
 let speaking = null;
 
-function subtitles(text) {
-  const subs = document.getElementById('subtitles');
-  if (!subs) return;
-  subs.hidden = !text;
-  if (text && subs.textContent !== text) subs.textContent = text;
+// The robot talks in a speech bubble (like Belu), one sentence at a time, in sync with the voice
+function robotSays(text) {
+  const b = dom.robot.querySelector('.robot-bubble');
+  if (!b) return;
+  if (!text) { b.hidden = true; dom.section.classList.remove('robot-talking'); return; }
+  b.textContent = text;
+  b.hidden = false;
+  b.classList.remove('pop'); void b.offsetWidth; b.classList.add('pop');
+  dom.section.classList.add('robot-talking');
 }
+
+const sentences = text => buildCues(text, 1).map(c => c.text);   // short sentences (≤ 90 characters)
 
 function stopListening() {
   if (!speaking) return;
@@ -188,8 +194,8 @@ function stopListening() {
   speaking = null;
   stopVoice();
   try { window.speechSynthesis?.cancel(); } catch (e) { /* ignore */ }
-  clearInterval(s.timer);
-  subtitles('');
+  clearTimeout(s.timer);
+  robotSays('');
   if (s.button?.isConnected) s.button.innerHTML = s.label;
 }
 
@@ -199,41 +205,34 @@ function pickVoice() {
   return en.find(v => /Google US English|Samantha|Karen|Daniel|Microsoft (Aria|Jenny|Guy)/i.test(v.name)) || en[0] || null;
 }
 
+// Browser voice: one sentence at a time, so the bubble changes exactly when the voice does.
+// Sound off (or no voice on this device): the sentences appear one by one, at reading speed.
 function speakWithBrowser(robot, session) {
-  if (!('speechSynthesis' in window) || !robot.voice_text) return false;
-  const text = robot.voice_text;
-  const u = new SpeechSynthesisUtterance(text);
-  u.lang = 'en-US';
-  u.rate = 0.95;
-  u.pitch = 1.1;
-  const voice = pickVoice();
-  if (voice) u.voice = voice;
-  // Subtitles: follow the voice word by word if the browser tells us where it is, else estimate
-  const estimate = text.split(/\s+/).length / 2.5;
-  const cues = buildCues(text, estimate);
-  let offset = 0;
-  const offsets = cues.map(c => { const at = text.indexOf(c.text, offset); offset = at + c.text.length; return { at, text: c.text }; });
-  let usedBoundary = false;
-  u.onboundary = e => {
-    usedBoundary = true;
-    const cue = [...offsets].reverse().find(c => c.at <= e.charIndex);
-    if (cue && speaking === session) subtitles(cue.text);
+  const lines = sentences(robot.voice_text || '');
+  if (!lines.length) return false;
+  const silent = isMuted() || !('speechSynthesis' in window);
+  const voice = silent ? null : pickVoice();
+  let i = 0;
+  const next = () => {
+    if (speaking !== session) return;
+    if (i >= lines.length) { stopListening(); return; }
+    const line = lines[i++];
+    robotSays(line);
+    if (silent) {
+      session.timer = setTimeout(next, Math.max(1800, line.split(/\s+/).length * 380));
+      return;
+    }
+    const u = new SpeechSynthesisUtterance(line);
+    u.lang = 'en-US';
+    u.rate = 0.95;
+    u.pitch = 1.1;
+    if (voice) u.voice = voice;
+    u.onend = () => { session.timer = setTimeout(next, 150); };
+    u.onerror = e => { if (e.error !== 'interrupted' && e.error !== 'canceled') session.timer = setTimeout(next, 150); };
+    window.speechSynthesis.speak(u);
   };
-  const started = performance.now();
-  session.timer = setInterval(() => {
-    if (usedBoundary || speaking !== session) return;
-    const t = (performance.now() - started) / 1000;
-    const cue = cues.find(c => t >= c.start && t < c.end);
-    subtitles(cue ? cue.text : '');
-  }, 200);
-  u.onend = u.onerror = () => { if (speaking === session) stopListening(); };
-  window.speechSynthesis.cancel();
-  if (isMuted()) {
-    // Sound off: read-along subtitles only
-    setTimeout(() => { if (speaking === session) stopListening(); }, estimate * 1000 + 500);
-    return true;
-  }
-  window.speechSynthesis.speak(u);
+  if (!silent) window.speechSynthesis.cancel();
+  session.timer = setTimeout(next, 60);
   return true;
 }
 
@@ -248,7 +247,7 @@ async function listen(robot, button) {
       if (speaking !== session || !robot.voice_text) return;
       cues ??= buildCues(robot.voice_text, duration);
       const cue = cues.find(c => t >= c.start && t < c.end);
-      subtitles(cue ? cue.text : '');
+      if (cue && cue.text !== session.line) { session.line = cue.text; robotSays(cue.text); }
     },
     onEnd: () => { if (speaking === session) stopListening(); },
   });
@@ -427,14 +426,15 @@ function cardLegacy(card, { robot, ex }, myToken) {
     const me = el('li', 'tl-item tl-me');
     me.append(el('span', 'tl-year mono', yearOf(robot.landed || robot.launched)), el('b', null, robot.name), el('span', 'tl-note', robot.last_signal ? `quiet since ${yearOf(robot.last_signal)}` : 'still standing there'));
     list.appendChild(me);
-    ex.successors.forEach((s, i) => {
+    const shown = ex.successors.length > 4 ? [...ex.successors.slice(0, 2), ...ex.successors.slice(-2)] : ex.successors;
+    shown.forEach((s, i) => {
       const li = el('li', 'tl-item');
       li.style.setProperty('--i', i + 1);
       li.append(el('span', 'tl-year mono', s.year === 'next' ? 'next' : String(s.year || '')), el('b', null, s.name), el('span', 'tl-note', s.note || ''));
       list.appendChild(li);
     });
     const now = el('li', 'tl-item tl-now');
-    now.style.setProperty('--i', ex.successors.length + 1);
+    now.style.setProperty('--i', shown.length + 1);
     now.append(el('span', 'tl-year mono', String(new Date().getFullYear())), el('b', null, 'You!'), el('span', 'tl-note', 'listening with Belu'));
     list.appendChild(now);
     card.appendChild(list);
@@ -616,6 +616,10 @@ export function showCinema(robot, opts = {}) {
   dom.robot.className = 'cine-robot arrive';
   dom.robot.appendChild(robotPicture(robot));
   for (const r of ['', 'r2']) dom.robot.appendChild(el('span', `ping ${r}`));
+  const talk = el('p', 'robot-bubble');
+  talk.hidden = true;
+  talk.setAttribute('aria-live', 'polite');
+  dom.robot.appendChild(talk);
 
   scene.set(worldOf(robot).scene);
   scene.start();
