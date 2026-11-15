@@ -1191,19 +1191,17 @@ button:not(.big):not(.link):not(.mode-card):not(.disc-target):not(.disc-cover) {
 @media (prefers-reduced-motion: reduce) { body::after { filter: blur(42px); } }
 
 
-/* Intro animation: bubbles rise, then Belu appears */
-#screen-intro .intro-logo-motion {
-  display: block; width: min(42vw, 150px); height: auto; margin: 0 auto;
-  border: 1px solid rgba(93, 228, 255, .2); border-radius: 14px;
-  background: #070c1d; box-shadow: 0 10px 28px rgba(0, 0, 0, .24);
-}
-#screen-intro .intro-logo-still { display: none; }
-@media (max-height: 700px) { #screen-intro .intro-logo-motion { width: 126px; } }
-@media (prefers-reduced-motion: reduce) {
-  #screen-intro .intro-logo-motion { display: none; }
-  #screen-intro .intro-logo-still { display: block; }
-}
-
+/* Full-page animated intro, followed by the welcome screen */
+#intro-splash { position: fixed; inset: 0; z-index: 10000; display: grid; place-items: center; overflow: hidden;
+  background: #070c1d; opacity: 1; transition: opacity .45s ease; }
+#intro-splash.is-fading { opacity: 0; pointer-events: none; }
+#intro-splash[hidden] { display: none; }
+#intro-splash-art { display: block; width: 100%; height: 100%; object-fit: contain; }
+#intro-splash-skip { position: absolute; right: max(1rem, env(safe-area-inset-right)); bottom: max(1rem, env(safe-area-inset-bottom));
+  margin: 0; padding: .55rem .9rem; color: var(--fg); background: rgba(17, 24, 39, .76); border: 1px solid rgba(232, 236, 244, .28);
+  border-radius: 999px; font-size: .9rem; backdrop-filter: blur(8px); }
+#intro-splash-skip:hover { background: rgba(23, 31, 58, .94); }
+@media (prefers-reduced-motion: reduce) { #intro-splash { transition: none; } }
 /* ---- Games use the whole screen; no text selection while tapping the buttons ---- */
 #screen-minigame { max-width: 760px; }
 .mg-stage { width: min(100%, calc((100svh - 265px) * 3 / 4)); }

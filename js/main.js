@@ -75,6 +75,34 @@ let map = null;
 
 const $ = (id) => document.getElementById(id);
 
+// Let Belu's full-screen animation finish once, then reveal the welcome screen.
+const introSplash = $('intro-splash');
+if (introSplash) {
+  let introTimer;
+  let fadingTimer;
+  const finishIntro = () => {
+    if (introSplash.hidden || introSplash.classList.contains('is-fading')) return;
+    window.clearTimeout(introTimer);
+    introSplash.classList.add('is-fading');
+    fadingTimer = window.setTimeout(() => {
+      introSplash.hidden = true;
+      introSplash.setAttribute('aria-hidden', 'true');
+    }, 450);
+  };
+  const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const introArt = $('intro-splash-art');
+  if (reducedMotion) {
+    introSplash.hidden = true;
+    introSplash.setAttribute('aria-hidden', 'true');
+  } else {
+    const startIntroTimer = () => { introTimer = window.setTimeout(finishIntro, 7000); };
+    if (introArt.complete && introArt.naturalWidth) startIntroTimer();
+    else introArt.addEventListener('load', startIntroTimer, { once: true });
+    introArt.addEventListener('error', finishIntro, { once: true });
+    $('intro-splash-skip')?.addEventListener('click', finishIntro);
+  }
+}
+
 function clamp(value, min, max) {
   return Math.max(min, Math.min(max, value));
 }
