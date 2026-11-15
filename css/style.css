@@ -1246,3 +1246,11 @@ body.a11y-calm .celebrate-belu, body.a11y-calm .celebrate-friend .robot-pic, bod
 #prologue { cursor: pointer; }
 .pro-tap { display: block; margin-top: .4rem; font-size: .78rem; color: var(--muted); letter-spacing: .04em; }
 #prologue .pro-next:not([hidden]) ~ .pro-tap, .pro-caption:has(.pro-next:not([hidden])) .pro-tap { display: none; }
+
+/* AI-generated recorded voices: said on screen while they play */
+#subtitles[data-ai]::before { content: "AI-generated voice"; display: block; margin-bottom: .2rem; font-family: "JetBrains Mono", ui-monospace, monospace; font-size: .68rem; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); }
+
+/* AI-generated robot illustrations: a visible label wherever they appear */
+.robot-pic { position: relative; }
+.robot-pic:has(img)::after { content: "AI-generated"; position: absolute; right: 2px; bottom: 2px; padding: 1px 6px; border-radius: 999px;
+  font: 600 9px/1.4 Inter, system-ui, sans-serif; letter-spacing: .04em; color: #fff; background: rgba(11, 10, 31, .72); pointer-events: none; white-space: nowrap; }

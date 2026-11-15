@@ -60,5 +60,7 @@ AI tools helped us build Echo Station. Every AI-assisted part was reviewed, test
 
 - **Code (AI-assisted):** most of the JavaScript, HTML and CSS was written with Claude (Anthropic), then reviewed, tested and changed by the team. The canvas scenes and game graphics are drawn by this code.
 - **Texts and data (AI-assisted):** the robot stories, questions and mission data were drafted and structured with OpenAI Codex from NASA sources, then reviewed by the team. Every fact has a NASA source in `data/robots/*.json`.
-- **Not AI:** the drawings of Belu and of the six robots were made by our team (Figma, Adobe Illustrator). The mission photographs are NASA/JPL images with their credits. The robots' voices in the app are the browser's built-in speech synthesis.
+- **Images (AI-generated):** the six robot illustrations (`assets/images/robots/`) were generated with AI, then vectorized and edited by our team. Each one carries a visible "AI-GENERATED" watermark.
+- **Audio (AI-generated):** the recorded robot voices (`assets/audio/*.mp3`, played in Scientist mode and used in our video) were generated with AI. This is written in each file's metadata and shown on screen ("AI-generated voice") while they play. In Story mode the voices come from the browser's built-in speech synthesis.
+- **Not AI:** the drawings of Belu were made by our team (Figma, Adobe Illustrator). The mission photographs are NASA/JPL images with their credits.
 - The sky positions are computed with astronomy-engine and NASA JPL Horizons tables, and checked against Astropy (see `docs/accuracy.md`).

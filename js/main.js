@@ -297,9 +297,11 @@ function onAim(direction, source = 'map') {
   let nearest = pickTarget(state.aiming, state.targets, state.robots, state.found);
   if (!nearest) return;
   // Click! (optional) chose a friend: the arrow keeps guiding to that one until it is found
+  // (but if you are already pointing close to another friend, that one wins and becomes the guided one)
   const pinned = state.pinned && activeTargets(state.targets.filter((t) => t.id === state.pinned), state.robots, state.found)[0];
-  if (pinned) nearest = { target: pinned, distance: angularDistance(state.aiming, pinned) };
-  else state.pinned = null;
+  if (!pinned) state.pinned = null;
+  else if (pinned.id !== nearest.target.id && nearest.distance <= 10) state.pinned = nearest.target.id;
+  else if (pinned.id !== nearest.target.id) nearest = { target: pinned, distance: angularDistance(state.aiming, pinned) };
   // Stay on the current target unless another one is clearly closer: otherwise, with the Moon and
   // Mars close together in the sky, the arrow flips from one to the other and goes crazy.
   const current = state.nearest && state.targets.find((target) => target.id === state.nearest.target.id);
