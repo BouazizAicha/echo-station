@@ -98,7 +98,7 @@ function buildDom() {
     <div class="pro-labels" aria-hidden="true"></div>
     <div class="pro-bar" aria-hidden="true"><span></span></div>
     <button class="pro-skip link" type="button">Skip ▸</button>
-    <div class="pro-caption"><p aria-live="polite"></p><button class="pro-next" type="button" hidden>Next ▸</button></div>
+    <div class="pro-caption"><p aria-live="polite"></p><span class="pro-tap" aria-hidden="true">Tap to continue ▸</span><button class="pro-next" type="button" hidden>Next ▸</button></div>
     <div class="pro-end" hidden>
       <p class="mono pro-eyebrow">YOUR MISSION</p>
       <h2 tabindex="-1">Help Belu find his friends</h2>
@@ -479,6 +479,21 @@ export function playPrologue({ robots = [], onDone } = {}) {
 
   const onResize = () => { resize(); if (done) drawFrame(47.5); else if (reduced) drawFrame(Math.min(t, END - 0.01)); };
   const onKey = e => { if (e.key === 'Escape' && !done) showEnd(); };
+
+  // Tap anywhere (like the robots' bubbles): go on to the next part of the story
+  function nextPart() {
+    if (done) return;
+    if (reduced) { nextButton.click(); return; }
+    const next = PHASES.findIndex(p => p.at > t + 0.05);
+    if (next < 0) { showEnd(); return; }
+    const to = PHASES[next].at;
+    startAt = performance.now() - to * 1000;
+    t = to;
+    // the sounds of the skipped part are not all played at once
+    lastClick = Math.floor((to - 3) / 1.6);
+    for (const f of friends) { if (f.appear < to) lastPing.add(f.i); if (f.fade < to) lastFade.add(f.i); }
+  }
+  root.onclick = e => { if (!e.target.closest('button, a, .pro-end')) nextPart(); };
 
   // reset
   root.querySelector('.pro-caption').hidden = false;

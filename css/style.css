@@ -1241,3 +1241,8 @@ body.a11y-calm .celebrate-belu, body.a11y-calm .celebrate-friend .robot-pic, bod
 
 #screen-minigame #mg-canvas { width: min(100%, calc((100svh - 265px) * 3 / 4)); max-width: none; margin: .25rem auto; }
 @media (max-width: 480px) { #screen-minigame #mg-canvas { width: min(100%, calc((100svh - 205px) * 3 / 4)); } }
+
+/* ---- Prologue: tap to go on ---- */
+#prologue { cursor: pointer; }
+.pro-tap { display: block; margin-top: .4rem; font-size: .78rem; color: var(--muted); letter-spacing: .04em; }
+#prologue .pro-next:not([hidden]) ~ .pro-tap, .pro-caption:has(.pro-next:not([hidden])) .pro-tap { display: none; }
