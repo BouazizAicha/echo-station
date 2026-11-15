@@ -366,7 +366,7 @@ export function goalBanner(ctx, W, y, text, color = '#eef0ff') {
   ctx.fillText(text, W / 2, y + 17.5, W - 30);
 }
 
-// A big orange warning next to something (e.g. "TOO FAST!")
+// A big pink warning next to something (e.g. "TOO FAST!")
 export function warning(ctx, x, y, text) {
   ctx.font = '800 14px Inter, system-ui, sans-serif';
   ctx.textAlign = 'center';

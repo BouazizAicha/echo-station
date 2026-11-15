@@ -763,7 +763,7 @@ const COACH = {
     steps: [
       ['👆', 'Drag the sky, or use your phone as an antenna'],
       ['🔊', 'Press Click! A friend answers with an echo'],
-      ['➜', 'Follow the orange arrow'],
+      ['➜', 'Follow the pink arrow'],
       ['◎', 'Hold still on the spot until Belu smiles'],
     ],
     start: 'Let\'s go!',
@@ -772,7 +772,7 @@ const COACH = {
     goal: 'Point at the real sky to tune in to NASA\'s robots.',
     steps: [
       ['👆', 'Drag the sky map, or use your phone (calibrate on the Moon)'],
-      ['➜', 'Follow the green arrow to the nearest target'],
+      ['➜', 'Follow the blue arrow to the nearest target'],
       ['◎', 'Keep the crosshair on it for 1.5 seconds'],
       ['📋', 'Open the list for every target and its coordinates'],
     ],
@@ -905,7 +905,7 @@ Promise.all([loadRobots(), loadSkyTables()])
   });
 
 // Drawn on top of the sky map, in both modes: the same signs everywhere
-//   orange arrow = the last echo (Story mode)       ring filling up = "hold still, locking on"
+//   pink arrow  = the last echo (Story mode)       ring filling up = "hold still, locking on"
 //   hint at the bottom until the player has moved the map once
 function drawMapOverlay(context, info) {
   const { width, height } = info;
