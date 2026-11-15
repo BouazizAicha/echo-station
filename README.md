@@ -54,6 +54,11 @@ Story template (each robot answers all five):
 - **Sun 16:00** – feature freeze
 - **Sun ~22:30** – submit
 
-## AI use (to declare in the submission)
+## AI use (disclosure)
 
-The starter skeleton of this repository was generated with Claude (Anthropic) and then edited by the team.
+AI tools helped us build Echo Station. Every AI-assisted part was reviewed, tested and edited by the team.
+
+- **Code (AI-assisted):** most of the JavaScript, HTML and CSS was written with Claude (Anthropic), then reviewed, tested and changed by the team. The canvas scenes and game graphics are drawn by this code.
+- **Texts and data (AI-assisted):** the robot stories, questions and mission data were drafted and structured with OpenAI Codex from NASA sources, then reviewed by the team. Every fact has a NASA source in `data/robots/*.json`.
+- **Not AI:** the drawings of Belu and of the six robots were made by our team (Figma, Adobe Illustrator). The mission photographs are NASA/JPL images with their credits. The robots' voices in the app are the browser's built-in speech synthesis.
+- The sky positions are computed with astronomy-engine and NASA JPL Horizons tables, and checked against Astropy (see `docs/accuracy.md`).
