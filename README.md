@@ -33,7 +33,7 @@ More detail: [ARCHITECTURE.md](ARCHITECTURE.md).
 
 HTML, CSS and JavaScript (ES modules, no build step), Canvas 2D, Web Audio, Web Speech and DeviceOrientation APIs,
 astronomy-engine, NASA JPL Horizons, Python and Astropy (accuracy check), Playwright and Node tests, GitHub Pages.
-Drawings: Figma and Adobe Illustrator.
+Drawings: Figma.
 
 ## Run it locally
 
