@@ -1189,3 +1189,16 @@ button.big:hover { filter: brightness(1.06); box-shadow: 0 8px 22px rgba(93, 228
 button:not(.big):not(.link):not(.mode-card):not(.disc-target):not(.disc-cover) { border-radius: 12px; }
 #finale-moon { object-fit: contain; background: transparent; border-radius: 50%; box-shadow: 0 0 28px rgba(201, 211, 230, .24); }
 @media (prefers-reduced-motion: reduce) { body::after { filter: blur(42px); } }
+
+/* Intro animation: bubbles rise, then Belu appears */
+#screen-intro .intro-logo-motion {
+  display: block; width: min(42vw, 150px); height: auto; margin: 0 auto;
+  border: 1px solid rgba(93, 228, 255, .2); border-radius: 14px;
+  background: #070c1d; box-shadow: 0 10px 28px rgba(0, 0, 0, .24);
+}
+#screen-intro .intro-logo-still { display: none; }
+@media (max-height: 700px) { #screen-intro .intro-logo-motion { width: 126px; } }
+@media (prefers-reduced-motion: reduce) {
+  #screen-intro .intro-logo-motion { display: none; }
+  #screen-intro .intro-logo-still { display: block; }
+}
