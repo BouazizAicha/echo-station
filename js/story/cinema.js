@@ -1,5 +1,8 @@
 // Story mode: a robot's story told as 7 animated cards over its world (Dev B).
-//   1 Arrival      the robot answers Belu · Listen button (voice + subtitles)
+//   1 Arrival      the robot answers Belu
+// On every card the robot and Belu take turns: the robot says the card's text (speech bubble above
+// the robot, browser voice, the sentence lights up in the card), then Belu answers in his bubble.
+// Next moves the whole conversation on.
 //   2 Who I am     drawing of the robot + key dates
 //   3 Why sent     the mission · Belu reacts
 //   4 Discovery    a hands-on moment (discoveries.js)
@@ -7,8 +10,10 @@
 //   6 Who took over  timeline of the missions that came after
 //   7 Friends      add as a friend (bubble party) · secret fact · questions · mini-game · sources
 // Same robot JSON as Scientist mode; story-only extras come from storydata.js.
-import { playVoice, stopVoice, buildCues } from './voice.js';
+import { buildCues } from './voice.js';
 import { getAudioContext, isMuted } from './radio.js';
+import { setSoundMode } from './sound.js';
+import { ICONS } from './icons.js';
 import { isFriend, addFriend } from './friends.js';
 import { createScene } from './scenes.js';
 import { extrasFor, worldOf, yearOf } from './storydata.js';
@@ -18,7 +23,6 @@ import { minigameOf } from './minigames/index.js';
 import { speak, guideOn, stopSpeaking } from './speak.js';
 
 const CARDS = ['arrival', 'who', 'why', 'discovery', 'where', 'legacy', 'friend'];
-const CHARS_PER_SECOND = 45;
 const reducedMotion = () => (window.matchMedia('(prefers-reduced-motion: reduce)').matches || document.body.classList.contains('a11y-calm'));
 const BELU = mood => `assets/images/belu-${mood}.svg`;
 
@@ -58,7 +62,7 @@ function buildDom() {
           <div class="cine-window"><img alt="" src="${BELU('happy')}"></div>
           <span class="ring"></span><span class="ring r2"></span><span class="ring r3"></span>
         </div>
-        <p class="cine-bubble"></p>
+        <p class="cine-bubble" aria-live="polite"></p>
       </div>
     </div>
     <article class="cine-card" aria-live="off"></article>
@@ -95,37 +99,33 @@ buildDom();
 /* Small helpers                                                       */
 /* ------------------------------------------------------------------ */
 
-// Typewriter text; screen readers get the full sentence at once. Tap the text to finish it.
-function typed(text, myToken) {
+// The robot's words in the card, cut into the same sentences as its speech bubble,
+// so the sentence being said can light up while the voice reads it.
+function spokenText(text) {
   const p = el('p', 'cine-text');
-  const sr = el('span', 'sr-only', text);
-  const vis = el('span', 'typed');
-  vis.setAttribute('aria-hidden', 'true');
-  p.append(sr, vis);
-  if (reducedMotion()) { vis.textContent = text; return p; }
-  let finished = false;
-  const start = performance.now();
-  vis.classList.add('typing');
-  const finish = () => { finished = true; vis.textContent = text; vis.classList.remove('typing'); };
-  p.addEventListener('click', finish);
-  const step = now => {
-    if (finished || myToken !== token) return;
-    const n = Math.min(text.length, Math.floor((now - start) / 1000 * CHARS_PER_SECOND));
-    vis.textContent = text.slice(0, n);
-    if (n >= text.length) return finish();
-    requestAnimationFrame(step);
-  };
-  requestAnimationFrame(step);
-  return p;
+  const spans = [];
+  sentences(text || '').forEach((line, i) => {
+    if (i) p.append(' ');
+    const span = el('span', 'sent', line);
+    spans.push(span);
+    p.appendChild(span);
+  });
+  return { p, spans, text: text || '' };
 }
 
-function say(text, mood = 'happy') {
-  dom.bubble.textContent = text;
+function setMood(mood = 'happy') {
+  dom.beluImg.src = BELU(mood);
+  dom.porthole.style.setProperty('--echo-dur', mood === 'sad' ? '3s' : mood === 'happy' ? '1.2s' : '1.8s');
+}
+
+// Belu's speech bubble (empty = hidden)
+function say(text, mood) {
+  if (mood) setMood(mood);
+  dom.bubble.textContent = text || '';
+  if (!text) return;
   dom.bubble.classList.remove('pop');
   void dom.bubble.offsetWidth;
   dom.bubble.classList.add('pop');
-  dom.beluImg.src = BELU(mood);
-  dom.porthole.style.setProperty('--echo-dur', mood === 'sad' ? '3s' : mood === 'happy' ? '1.2s' : '1.8s');
 }
 
 function chime(notes = [660, 880, 1320]) {
@@ -150,7 +150,14 @@ function nav(index, robot, opts) {
   prev.setAttribute('aria-label', 'Previous');
   prev.disabled = index === 0;
   prev.addEventListener('click', () => go(index - 1));
-  n.appendChild(prev);
+  const again = el('button', 'cine-again');
+  again.type = 'button';
+  again.addEventListener('click', () => {
+    if (isMuted()) { setSoundMode('quiet'); converse(current?.talk || []); return; }   // voices on, no radio static
+    if (talk) { hush(); updateAgain(); return; }
+    converse(current?.talk || []);
+  });
+  n.append(prev, again);
   if (index < CARDS.length - 1) {
     const next = el('button', 'big cine-next', 'Next ▸');
     next.type = 'button';
@@ -170,10 +177,13 @@ function chip(text) {
 }
 
 /* ------------------------------------------------------------------ */
-/* Voice: the recorded mp3 if it exists, otherwise the browser voice   */
+/* Conversation: the robot speaks, then Belu answers (voices + bubbles) */
 /* ------------------------------------------------------------------ */
 
-let speaking = null;
+let talk = null;        // the conversation playing now
+let voices = null;
+
+const sentences = text => buildCues(text, 1).map(c => c.text);   // short sentences (≤ 90 characters)
 
 // The robot talks in a speech bubble (like Belu), one sentence at a time, in sync with the voice
 function robotSays(text) {
@@ -186,74 +196,136 @@ function robotSays(text) {
   dom.section.classList.add('robot-talking');
 }
 
-const sentences = text => buildCues(text, 1).map(c => c.text);   // short sentences (≤ 90 characters)
+// Two different voices when the device has them: one for the robot, one for Belu
+function pickVoices() {
+  if (voices) return voices;
+  const all = window.speechSynthesis?.getVoices() || [];
+  if (!all.length) return { robot: null, belu: null };
+  const en = all.filter(v => /^en(-|_|$)/i.test(v.lang));
+  const find = re => en.find(v => re.test(v.name));
+  const robot = find(/Google US English|Microsoft (Guy|Andrew|Christopher|Eric|David|Mark)|Daniel|Alex|Fred/i) || en[0] || null;
+  const belu = find(/Google UK English Female|Microsoft (Ana|Aria|Jenny|Emma|Libby|Sonia|Zira)|Samantha|Karen|Moira|Tessa/i)
+    || en.find(v => v !== robot) || robot;
+  voices = { robot, belu };
+  return voices;
+}
+if ('speechSynthesis' in window) window.speechSynthesis.addEventListener?.('voiceschanged', () => { voices = null; });
 
-function stopListening() {
-  if (!speaking) return;
-  const s = speaking;
-  speaking = null;
-  stopVoice();
+// iPhone: the browser voice only works after it has been used once inside a tap
+document.addEventListener('pointerdown', () => {
+  try { const u = new SpeechSynthesisUtterance(' '); u.volume = 0; window.speechSynthesis.speak(u); } catch (e) { /* no voice */ }
+}, { once: true, capture: true });
+
+const voiceOn = () => !isMuted() && 'speechSynthesis' in window;
+
+// Says one line (or, with the sound off, waits the time it takes to read it), then calls done
+function utter(session, text, who, done) {
+  const readMs = Math.max(1700, text.split(/\s+/).length * 340 + 500);
+  let over = false;
+  const end = () => {
+    if (over || talk !== session) return;
+    over = true;
+    clearTimeout(session.watchStart); clearTimeout(session.watchEnd);
+    done();
+  };
+  if (session.silent || !voiceOn()) { session.timer = setTimeout(end, readMs); return; }
+  const v = pickVoices();
+  const u = new SpeechSynthesisUtterance(text.replace(/…/g, '...'));
+  u.lang = 'en-US';
+  const voice = who === 'belu' ? v.belu : v.robot;
+  if (voice) u.voice = voice;
+  if (who === 'belu') { u.pitch = 1.45; u.rate = 1.02; } else if (who === 'robot') { u.pitch = 0.95; u.rate = 0.95; }
+  let started = false;
+  const t0 = performance.now();
+  u.onstart = () => { started = true; };
+  // a voice that ends far too early (it failed quietly) must not make the bubbles flash by
+  u.onend = () => { session.timer = setTimeout(end, Math.max(120, readMs * 0.45 - (performance.now() - t0))); };
+  u.onerror = e => {
+    if (talk !== session) return;                 // we stopped it ourselves
+    if (e.error !== 'interrupted' && e.error !== 'canceled') session.silent = true;
+    session.timer = setTimeout(end, session.silent ? readMs : 300);
+  };
+  session.keep.push(u);                           // Chrome forgets onend if the utterance is garbage-collected
+  // Safety nets: a voice that never starts → read silently; a voice that never ends → go on anyway
+  session.watchStart = setTimeout(() => {
+    if (started || over) return;
+    session.silent = true;
+    try { window.speechSynthesis.cancel(); } catch (e) { /* ignore */ }
+    session.timer = setTimeout(end, Math.max(0, readMs - 3000));
+  }, 3000);
+  session.watchEnd = setTimeout(end, readMs * 2 + 4000);
+  try { window.speechSynthesis.resume?.(); window.speechSynthesis.speak(u); } catch (e) { session.silent = true; session.timer = setTimeout(end, readMs); }
+}
+
+function hush() {
+  const s = talk;
+  talk = null;
+  if (s) {
+    clearTimeout(s.timer); clearTimeout(s.watchStart); clearTimeout(s.watchEnd);
+    s.spans.forEach(x => x.classList.remove('now'));
+  }
   try { window.speechSynthesis?.cancel(); } catch (e) { /* ignore */ }
-  clearTimeout(s.timer);
-  robotSays('');
-  if (s.button?.isConnected) s.button.innerHTML = s.label;
+  if (dom) robotSays('');
 }
 
-function pickVoice() {
-  const voices = window.speechSynthesis?.getVoices() || [];
-  const en = voices.filter(v => /^en(-|_|$)/i.test(v.lang));
-  return en.find(v => /Google US English|Samantha|Karen|Daniel|Microsoft (Aria|Jenny|Guy)/i.test(v.name)) || en[0] || null;
-}
-
-// Browser voice: one sentence at a time, so the bubble changes exactly when the voice does.
-// Sound off (or no voice on this device): the sentences appear one by one, at reading speed.
-function speakWithBrowser(robot, session) {
-  const lines = sentences(robot.voice_text || '');
-  if (!lines.length) return false;
-  const silent = isMuted() || !('speechSynthesis' in window);
-  const voice = silent ? null : pickVoice();
+/**
+ * Plays a conversation. items: [{ who: 'robot' | 'belu' | 'narrator', text, mood, spans }]
+ * robot: bubble above the robot, one sentence at a time, the sentence lights up in the card
+ * belu: Belu's bubble · narrator: read aloud only when the audio guide is on (titles, instructions)
+ */
+function converse(items) {
+  hush();
+  const list = items.filter(it => it && it.text && (it.who !== 'narrator' || guideOn()));
+  const session = { keep: [], spans: [], timer: 0, silent: false };
+  talk = session;
+  updateAgain();
+  if (list.some(it => it.who === 'robot')) say('');         // Belu waits for his turn
   let i = 0;
-  const next = () => {
-    if (speaking !== session) return;
-    if (i >= lines.length) { stopListening(); return; }
-    const line = lines[i++];
-    robotSays(line);
-    if (silent) {
-      session.timer = setTimeout(next, Math.max(1800, line.split(/\s+/).length * 380));
+  const nextItem = () => {
+    if (talk !== session) return;
+    const it = list[i++];
+    if (!it) { talk = null; updateAgain(); dom.section.querySelector('.cine-next')?.classList.add('ready'); return; }
+    if (it.who === 'narrator') { utter(session, it.text, 'narrator', nextItem); return; }
+    if (it.who === 'belu') {
+      robotSays('');
+      say(it.text, it.mood);
+      utter(session, it.text, 'belu', () => { session.timer = setTimeout(nextItem, 200); });
       return;
     }
-    const u = new SpeechSynthesisUtterance(line);
-    u.lang = 'en-US';
-    u.rate = 0.95;
-    u.pitch = 1.1;
-    if (voice) u.voice = voice;
-    u.onend = () => { session.timer = setTimeout(next, 150); };
-    u.onerror = e => { if (e.error !== 'interrupted' && e.error !== 'canceled') session.timer = setTimeout(next, 150); };
-    window.speechSynthesis.speak(u);
+    say('');
+    const parts = sentences(it.text);
+    const spans = it.spans || [];
+    session.spans = spans;
+    let k = 0;
+    const nextPart = () => {
+      if (talk !== session) return;
+      spans.forEach((x, n) => x.classList.toggle('now', n === k));
+      if (k >= parts.length) { robotSays(''); session.timer = setTimeout(nextItem, 250); return; }
+      const line = parts[k++];
+      robotSays(line);
+      utter(session, line, 'robot', () => { session.timer = setTimeout(nextPart, 120); });
+    };
+    nextPart();
   };
-  if (!silent) window.speechSynthesis.cancel();
-  session.timer = setTimeout(next, 60);
-  return true;
+  session.timer = setTimeout(nextItem, 200);       // Chrome: let cancel() finish before speaking again
 }
 
-async function listen(robot, button) {
-  if (speaking) { stopListening(); return; }
-  const session = { button, label: button.innerHTML, timer: 0 };
-  speaking = session;
-  button.innerHTML = '<span aria-hidden="true">■</span> Stop';
-  let cues = null;
-  const me = isMuted() ? null : await playVoice(`assets/audio/${robot.id}.mp3`, {
-    onTime: (t, duration) => {
-      if (speaking !== session || !robot.voice_text) return;
-      cues ??= buildCues(robot.voice_text, duration);
-      const cue = cues.find(c => t >= c.start && t < c.end);
-      if (cue && cue.text !== session.line) { session.line = cue.text; robotSays(cue.text); }
-    },
-    onEnd: () => { if (speaking === session) stopListening(); },
-  });
-  if (speaking !== session) { stopVoice(); return; }
-  if (!me && !speakWithBrowser(robot, session)) stopListening();
+// The small voice button next to Next: hear it again · stop · (sound off) turn voices on
+function updateAgain() {
+  const b = dom?.card.querySelector('.cine-again');
+  if (!b) return;
+  const has = (current?.talk || []).some(it => it.who !== 'narrator');
+  b.hidden = !has;
+  let icon, label;
+  if (isMuted()) { icon = ICONS.soundOff; label = 'Sound is off. Tap to hear the voices'; }
+  else if (talk) { icon = ICONS.stop; label = 'Stop the voices'; }
+  else { icon = ICONS.soundOn; label = 'Hear it again'; }
+  b.innerHTML = icon;
+  b.setAttribute('aria-label', label);
+  b.title = label;
+  b.classList.toggle('muted', isMuted());
 }
+window.addEventListener('soundchange', updateAgain);
 
 /* ------------------------------------------------------------------ */
 /* Cards                                                               */
@@ -261,40 +333,42 @@ async function listen(robot, button) {
 
 function cardArrival(card, { robot, ex, opts }, myToken) {
   const world = worldOf(robot);
+  const words = spokenText(robot.greeting || 'Hello Belu… you found me!');
   card.append(
     el('p', 'cine-eyebrow mono', `ECHO RECEIVED · ${world.label.toUpperCase()}`),
     el('h2', 'cine-title', robot.name),
-    typed(robot.greeting || 'Hello Belu… you found me!', myToken),
+    words.p,
   );
   const row = el('div', 'cine-row');
-  if (robot.voice_text) {
-    const b = el('button', 'cine-listen');
-    b.type = 'button';
-    b.innerHTML = `<span aria-hidden="true">🔊</span> Listen to ${robot.name}`;
-    b.addEventListener('click', () => listen(robot, b));
-    row.appendChild(b);
-  }
   if (opts.found) row.appendChild(chip(`Found in ${opts.found.clicks} click${opts.found.clicks === 1 ? '' : 's'} ${'★'.repeat(opts.found.stars)}${'☆'.repeat(3 - opts.found.stars)}`));
   if (opts.light) row.appendChild(chip(`Signal time to Earth: ${opts.light}`));
-  card.appendChild(row);
-  say(ex.belu.arrival, 'happy');
+  if (row.children.length) card.appendChild(row);
+  setMood('happy');
+  void myToken;
+  return [{ who: 'robot', ...words }, { who: 'belu', text: ex.belu.arrival, mood: 'happy' }];
 }
 
 function cardWho(card, { robot, ex }, myToken) {
   card.append(el('p', 'cine-eyebrow mono', 'WHO I AM'), el('h2', 'cine-title', `I'm ${robot.name}`));
-  card.appendChild(typed(robot.story?.who_i_am || '', myToken));
+  const words = spokenText(robot.story?.who_i_am);
+  card.appendChild(words.p);
   const row = el('div', 'cine-row');
   if (robot.launched) row.appendChild(chip(`Launched ${yearOf(robot.launched)}`));
   if (robot.landed) row.appendChild(chip(`Landed ${yearOf(robot.landed)}`));
   row.appendChild(chip(robot.last_signal ? `Last signal ${yearOf(robot.last_signal)}` : 'No radio since 1969'));
   card.appendChild(row);
-  say(ex.belu.who, 'neutral');
+  setMood('neutral');
+  void myToken;
+  return [{ who: 'robot', ...words }, { who: 'belu', text: ex.belu.who, mood: 'neutral' }];
 }
 
 function cardWhy(card, { robot, ex }, myToken) {
   card.append(el('p', 'cine-eyebrow mono', 'WHY I WAS SENT'), el('h2', 'cine-title', 'My mission'));
-  card.appendChild(typed(robot.story?.why_sent || '', myToken));
-  say(ex.belu.why, 'happy');
+  const words = spokenText(robot.story?.why_sent);
+  card.appendChild(words.p);
+  setMood('happy');
+  void myToken;
+  return [{ who: 'robot', ...words }, { who: 'belu', text: ex.belu.why, mood: 'happy' }];
 }
 
 function cardDiscovery(card, state, myToken) {
@@ -305,8 +379,15 @@ function cardDiscovery(card, state, myToken) {
   result.append(el('p', 'cine-result-title mono', 'DISCOVERY!'));
   if (ex.beat.headline) result.append(el('p', 'cine-result-headline', ex.beat.headline));
   result.append(el('p', 'cine-result-text', ex.beat.result || ''));
-  const more = el('p', 'cine-text cine-more', robot.story?.discoveries || '');
+  const words = spokenText(robot.story?.discoveries);
+  const more = words.p;
+  more.classList.add('cine-more');
   more.hidden = true;
+  const talkAfter = [
+    { who: 'narrator', text: `Discovery! ${ex.beat.headline || ''} ${ex.beat.result || ''}` },
+    { who: 'robot', ...words },
+    { who: 'belu', text: ex.belu.discovery, mood: 'happy' },
+  ];
   let skip = null;
   const reveal = () => {
     if (!more.hidden) return;
@@ -323,10 +404,9 @@ function cardDiscovery(card, state, myToken) {
       fig.append(img, el('figcaption', null, `${robot.proof_image.caption || ''} Credit: ${robot.proof_image.credit || ''}`));
       result.after(fig);
     }
-    say(ex.belu.discovery, 'happy');
-    speak(`Discovery! ${ex.beat.result || ''} ${robot.story?.discoveries || ''}`, { interrupt: true });
     chime();
-    dom.section.querySelector('.cine-next')?.classList.add('ready');
+    current.talk = talkAfter;
+    converse(talkAfter);
   };
   if (hasDiscovery(robot)) {
     if (ex.beat.how) card.appendChild(el('p', 'cine-how', ex.beat.how));
@@ -344,13 +424,14 @@ function cardDiscovery(card, state, myToken) {
     skip.type = 'button';
     skip.addEventListener('click', reveal);
     card.appendChild(skip);
-    say('Can you help me look?', 'neutral');
-  } else {
-    more.hidden = false;
-    say(ex.belu.discovery, 'happy');
+    card.append(result, more);
+    setMood('neutral');
+    return [{ who: 'belu', text: 'Can you help me look?', mood: 'neutral' }];
   }
+  more.hidden = false;
   card.append(result, more);
   void myToken;
+  return talkAfter.slice(1);
 }
 
 function orbitZoom(robot, ex) {
@@ -414,9 +495,12 @@ function cardWhere(card, { robot, ex, opts }, myToken) {
   } else {
     visual.appendChild(distanceView(robot, opts));
   }
-  card.append(visual, typed(robot.story?.where_now || '', myToken));
+  const words = spokenText(robot.story?.where_now);
+  card.append(visual, words.p);
   dom.robot.classList.add('silent');
-  say(ex.belu.where, 'sad');
+  setMood('sad');
+  void myToken;
+  return [{ who: 'robot', ...words }, { who: 'belu', text: ex.belu.where, mood: 'sad' }];
 }
 
 function cardLegacy(card, { robot, ex }, myToken) {
@@ -439,9 +523,12 @@ function cardLegacy(card, { robot, ex }, myToken) {
     list.appendChild(now);
     card.appendChild(list);
   }
-  card.appendChild(typed(robot.story?.legacy || '', myToken));
+  const words = spokenText(robot.story?.legacy);
+  card.appendChild(words.p);
   dom.robot.classList.remove('silent');
-  say(ex.belu.legacy, 'happy');
+  setMood('happy');
+  void myToken;
+  return [{ who: 'robot', ...words }, { who: 'belu', text: ex.belu.legacy, mood: 'happy' }];
 }
 
 function cardFriend(card, { robot, ex, opts }) {
@@ -461,8 +548,8 @@ function cardFriend(card, { robot, ex, opts }) {
     refresh();
     party();
     chime([523, 659, 784, 1047]);
-    say(ex.belu.friendYes, 'happy');
-    speak(`${robot.name} is Belu's friend! ${ex.belu.friendYes}`, { interrupt: true });
+    current.talk = [{ who: 'narrator', text: `${robot.name} is Belu's friend!` }, { who: 'belu', text: ex.belu.friendYes, mood: 'happy' }];
+    converse(current.talk);
     if (opts.onFriend) opts.onFriend(robot);
   });
   refresh();
@@ -511,8 +598,8 @@ function cardFriend(card, { robot, ex, opts }) {
     d.appendChild(ul);
     card.appendChild(d);
   }
-  if (!isFriend(robot.id)) say(ex.belu.friend, 'happy');
-  else say(ex.belu.friendYes, 'happy');
+  setMood('happy');
+  return [{ who: 'belu', text: isFriend(robot.id) ? ex.belu.friendYes : ex.belu.friend, mood: 'happy' }];
 }
 
 const RENDER = { arrival: cardArrival, who: cardWho, why: cardWhy, discovery: cardDiscovery, where: cardWhere, legacy: cardLegacy, friend: cardFriend };
@@ -563,7 +650,7 @@ function go(index) {
   if (!current) return;
   const i = Math.max(0, Math.min(CARDS.length - 1, index));
   if (current.cleanup) { current.cleanup(); current.cleanup = null; }
-  stopListening();
+  hush();
   current.index = i;
   const myToken = ++token;
 
@@ -579,19 +666,15 @@ function go(index) {
   void card.offsetWidth;
   card.classList.add('enter');
   card.appendChild(el('p', 'sr-only', `Part ${i + 1} of ${CARDS.length}`));
-  RENDER[CARDS[i]](card, current, myToken);
+  say('');
+  const lines = RENDER[CARDS[i]](card, current, myToken) || [];
   card.appendChild(nav(i, current.robot, current.opts));
 
-  // Audio guide: read the card (title, text, instructions, what Belu says)
-  if (guideOn()) {
-    const parts = [
-      card.querySelector('.cine-title')?.textContent,
-      card.querySelector('.cine-text .sr-only')?.textContent,
-      card.querySelector('.cine-how')?.textContent,
-      dom.bubble.textContent ? `Belu says: ${dom.bubble.textContent}` : '',
-    ];
-    speak(parts.filter(Boolean).map(t => t.trim().replace(/[.…]+$/, '')).join('. '), { interrupt: true });
-  }
+  // The conversation of this card. With the audio guide on, the title and instructions are read first.
+  const intro = [card.querySelector('.cine-title')?.textContent, card.querySelector('.cine-how')?.textContent]
+    .filter(Boolean).map(t => t.trim().replace(/[.…]+$/, '')).join('. ');
+  current.talk = [{ who: 'narrator', text: intro }, ...lines];
+  converse(current.talk);
 
   // Move focus to the new title (keyboard and screen reader users follow the story)
   const title = card.querySelector('.cine-title');
@@ -616,10 +699,10 @@ export function showCinema(robot, opts = {}) {
   dom.robot.className = 'cine-robot arrive';
   dom.robot.appendChild(robotPicture(robot));
   for (const r of ['', 'r2']) dom.robot.appendChild(el('span', `ping ${r}`));
-  const talk = el('p', 'robot-bubble');
-  talk.hidden = true;
-  talk.setAttribute('aria-live', 'polite');
-  dom.robot.appendChild(talk);
+  const speech = el('p', 'robot-bubble');
+  speech.hidden = true;
+  speech.setAttribute('aria-hidden', 'true');      // the same words are in the card, read there
+  dom.robot.appendChild(speech);
 
   scene.set(worldOf(robot).scene);
   scene.start();
@@ -634,7 +717,7 @@ export function resumeCinema() {
 
 export function stopCinema() {
   token++;
-  stopListening();
+  hush();
   stopSpeaking();
   if (current?.cleanup) current.cleanup();
   if (current) current.cleanup = null;

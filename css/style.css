@@ -1095,3 +1095,48 @@ dialog.mg-howto .mg-howto-start { margin-top: .4rem; }
 .robot-talking .cine-bubble { visibility: hidden; }
 .robot-talking .cine-robot .robot-pic { filter: drop-shadow(0 0 14px rgba(93, 228, 255, .55)); }
 body.a11y-contrast .robot-bubble { background: #fff; color: #000; border: 2px solid #000; }
+
+/* ---- Conversation: the robot speaks, then Belu answers; Next moves both on ---- */
+.cine-text .sent {
+  border-radius: 6px; padding: .05em .12em; margin: 0 -.12em;
+  -webkit-box-decoration-break: clone; box-decoration-break: clone; transition: background-color .25s, color .25s;
+}
+.cine-text .sent.now { background: rgba(93, 228, 255, .16); color: #fff; }
+.cine-again {
+  width: 52px; flex: none; margin: 0; padding: 0; display: inline-flex; align-items: center; justify-content: center;
+}
+.cine-again .icon { width: 22px; height: 22px; }
+.cine-again.muted { color: var(--muted); border-style: dashed; }
+body.a11y-contrast .cine-text .sent.now { background: #fff; color: #000; }
+/* the robot's bubble never covers Belu; the one who is not talking steps back a little */
+.robot-bubble { width: min(calc(100vw - 150px), 340px); }
+.cine-porthole { transition: opacity .3s, transform .3s; }
+.robot-talking .cine-porthole { opacity: .5; transform: scale(.9); }
+/* the quiet robot turns grey, its speech bubble stays white */
+.cine-robot.silent { filter: none; }
+.cine-robot.silent .robot-pic { filter: grayscale(.75) brightness(.7); }
+/* short stage (later cards): spacecraft sit lower so their bubble fits under the progress dots */
+.cinema:is([data-card="discovery"], [data-card="where"], [data-card="legacy"], [data-card="friend"]):is([data-world="ceres"], [data-world="deep"]) .cine-robot { bottom: 5%; }
+@media (max-height: 700px) { .robot-bubble { font-size: .88rem; width: min(calc(100vw - 104px), 340px); } }
+
+/* ---- Prologue sky: one tidy tag per world, listing its robots ---- */
+html.prologue-open, html.prologue-open body { overflow: hidden; }
+.pro-tag {
+  position: absolute; left: 0; top: 0; opacity: 0; pointer-events: none; white-space: nowrap;
+  padding: .45rem .7rem .55rem; border-radius: 12px; background: rgba(11, 10, 31, .62);
+  border: 1px solid rgba(93, 228, 255, .18); box-shadow: 0 6px 18px rgba(0, 0, 0, .3);
+  -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px);
+}
+.pro-tag-world { margin: 0 0 .3rem; font-size: .6rem; letter-spacing: .16em; color: var(--muted); }
+.pro-tag ul { list-style: none; margin: 0; padding: 0; display: grid; gap: .35rem; }
+.pro-bot { display: flex; align-items: center; gap: .5rem; opacity: 0; transition: opacity .5s; }
+.pro-bot.on { opacity: 1; }
+.pro-bot.quiet { opacity: .7; }
+.pro-bot i { flex: none; width: 8px; height: 8px; border-radius: 50%; background: var(--signal); box-shadow: 0 0 8px var(--signal); transition: background .5s, box-shadow .5s; }
+.pro-bot.quiet i { background: #6c6e94; box-shadow: none; }
+.pro-bot span { display: grid; line-height: 1.2; }
+.pro-bot b { font-family: "Space Grotesk", "Inter", sans-serif; font-size: .86rem; color: var(--fg); }
+.pro-bot small { font-size: .66rem; color: var(--signal); }
+.pro-bot.quiet b, .pro-bot.quiet small { color: var(--muted); }
+@media (max-width: 480px) { .pro-tag { padding: .4rem .6rem .45rem; } .pro-bot b { font-size: .8rem; } .pro-bot small { font-size: .62rem; } }
+body.a11y-contrast .pro-tag { background: #000; border-color: #fff; }

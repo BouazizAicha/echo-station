@@ -169,9 +169,10 @@ export function extrasFor(robot) {
   const successors = normaliseSuccessors(robot.successors, base.successors);
   const where = Object.assign({ mode: 'zoom', label: `${robot.name.toUpperCase()} IS HERE` }, base.where || {});
   if (robot.proof_focus) where.focus = robot.proof_focus;
+  const short = robot.name.replace(/\s*\([^)]*\)/g, '').trim();   // "Eagle (Apollo 11)" → "Eagle"
   const belu = Object.assign({
-    arrival: `I found you, ${robot.name}!`,
-    who: BY_TYPE[robot.type] || `Nice to meet you, ${robot.name}!`,
+    arrival: `I found you, ${short}!`,
+    who: BY_TYPE[robot.type] || `Nice to meet you, ${short}!`,
     why: 'Wow… that is a big mission.',
     discovery: 'Amazing!',
     where: 'Oh… you are all alone out there.',

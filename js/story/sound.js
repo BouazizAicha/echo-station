@@ -31,6 +31,7 @@ function apply() {
   button.setAttribute('aria-label', `${m.label}. Tap for: ${m.next}.`);
   button.title = `${m.label} (tap for: ${m.next})`;
   document.body.dataset.sound = mode;
+  window.dispatchEvent(new CustomEvent('soundchange', { detail: mode }));
 }
 
 button.addEventListener('click', () => {
@@ -43,5 +44,12 @@ button.addEventListener('click', () => {
 apply();
 
 export const soundMode = () => mode;
+// Used by the story's voice button: "sound is off → tap to hear the voices"
+export function setSoundMode(id) {
+  if (!MODES.some(m => m.id === id) || id === mode) return;
+  mode = id;
+  try { localStorage.setItem(KEY, mode); } catch (e) { /* ignore */ }
+  apply();
+}
 // Call after the audio starts (the Start tap), so the setting applies to it
 export const applySound = apply;

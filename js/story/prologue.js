@@ -23,13 +23,23 @@ const PHASES = [
 ];
 const END = 54;
 
-// Where each world sits in the sky (fractions of the screen), and Belu's friends around it
-const SPOTS = {
-  pioneer10: { x: 0.16, y: 0.11, color: '#b49bff', world: null },
-  moon: { x: 0.74, y: 0.2, color: '#c9d3e6', world: 'moon' },
-  mars: { x: 0.3, y: 0.36, color: '#ff8a5c', world: 'mars' },
-  ceres: { x: 0.8, y: 0.5, color: '#b49bff', world: 'ceres' },
+// The worlds in the sky. Each world has one tidy name tag beside it that lists its robots,
+// so names never sit on top of a planet or of each other.
+const WORLDS = {
+  deep: { name: 'Deep space', color: '#b49bff' },
+  moon: { name: 'The Moon', color: '#c9d3e6' },
+  mars: { name: 'Mars', color: '#ff8a5c' },
+  ceres: { name: 'Ceres', color: '#b49bff' },
 };
+// Where each world sits (fractions of the screen) and on which side its tag goes
+const LAYOUTS = {
+  wide: { deep: { x: 0.12, y: 0.2, side: 'right' }, moon: { x: 0.7, y: 0.2, side: 'right' }, mars: { x: 0.32, y: 0.32, side: 'right' }, ceres: { x: 0.85, y: 0.47, side: 'left' } },
+  tall: { deep: { x: 0.1, y: 0.22, side: 'right' }, moon: { x: 0.8, y: 0.12, side: 'left' }, mars: { x: 0.2, y: 0.36, side: 'right' }, ceres: { x: 0.8, y: 0.5, side: 'left' } },
+};
+// Robots on a planet: little lights on its face (fractions of the radius)
+const ON_DISK = { 1: [[0.2, -0.15]], 2: [[-0.35, -0.15], [0.3, 0.25]], 3: [[-0.42, -0.3], [0.4, -0.08], [-0.06, 0.45]] };
+const worldOf = robot => (robot.sky_target === 'pioneer10' ? 'deep' : robot.sky_target);
+const shortName = name => String(name || '').replace(/\s*\([^)]*\)/g, '').trim();
 const FALLBACK_ROBOTS = [
   { id: 'apollo11-eagle', name: 'Eagle', sky_target: 'moon', landed: '1969' },
   { id: 'pioneer10', name: 'Pioneer 10', sky_target: 'pioneer10', launched: '1972', last_signal: '2003' },
@@ -118,25 +128,36 @@ export function playPrologue({ robots = [], onDone } = {}) {
   const reduced = (window.matchMedia('(prefers-reduced-motion: reduce)').matches || document.body.classList.contains('a11y-calm'));
 
   const friends = (robots.length ? robots : FALLBACK_ROBOTS)
-    .filter(r => SPOTS[r.sky_target])
-    .map((r, i) => ({ robot: r, i }));
-  // Mars has several friends: spread them around the planet
-  const perWorld = {};
+    .filter(r => WORLDS[worldOf(r)])
+    .map((r, i) => ({ robot: r, i, world: worldOf(r) }));
+  // One tag per world, one row per robot
+  labels.innerHTML = '';
+  const tags = {};
   for (const f of friends) {
-    const n = (perWorld[f.robot.sky_target] = (perWorld[f.robot.sky_target] || 0) + 1) - 1;
-    const angle = -Math.PI / 2 + n * (TAU / 3);
-    const spot = SPOTS[f.robot.sky_target];
-    f.dx = spot.world === 'mars' ? Math.cos(angle) * 0.16 : 0;
-    f.dy = spot.world === 'mars' ? Math.sin(angle) * 0.075 : 0;
+    if (!tags[f.world]) {
+      const tag = document.createElement('div');
+      tag.className = 'pro-tag';
+      tag.dataset.world = f.world;
+      tag.innerHTML = '<p class="pro-tag-world mono"></p><ul></ul>';
+      tag.querySelector('p').textContent = WORLDS[f.world].name.toUpperCase();
+      labels.appendChild(tag);
+      tags[f.world] = { el: tag, list: [], x: 0, y: 0 };
+    }
+    const row = document.createElement('li');
+    row.className = 'pro-bot';
+    row.innerHTML = '<i></i><span><b></b><small class="mono"></small></span>';
+    row.querySelector('b').textContent = shortName(f.robot.name);
+    f.row = row;
+    f.status = row.querySelector('small');
+    f.n = tags[f.world].list.length;
+    tags[f.world].list.push(f);
+    tags[f.world].el.querySelector('ul').appendChild(row);
     f.appear = 25 + f.i * 1.5;
-    const label = document.createElement('div');
-    label.className = 'pro-label';
-    label.innerHTML = `<b></b><span class="mono"></span>`;
-    label.querySelector('b').textContent = f.robot.name;
-    label.querySelector('span').textContent = year(f.robot.landed || f.robot.launched);
-    labels.appendChild(label);
-    f.label = label;
   }
+  const statusOf = (f, quiet) => (quiet
+    ? `quiet since ${year(f.robot.last_signal) || year(f.robot.landed)}`
+    : f.robot.landed ? `landed ${year(f.robot.landed)}` : `launched ${year(f.robot.launched)}`);
+  for (const f of friends) f.status.textContent = statusOf(f, false);
   // They go quiet in the order of their real last signal
   [...friends]
     .sort((a, b) => (year(a.robot.last_signal) || year(a.robot.landed) || '0').localeCompare(year(b.robot.last_signal) || year(b.robot.landed) || '0'))
@@ -147,6 +168,51 @@ export function playPrologue({ robots = [], onDone } = {}) {
   let w = 0, h = 0, raf = 0, t = 0, startAt = 0, phase = -1, done = false;
   let lastClick = -1, lastPing = new Set(), lastFade = new Set();
 
+  // Places the worlds, the robots' lights and the tags (in sky coordinates, camera at the surface)
+  let worlds = {};
+  function layout() {
+    const spots = LAYOUTS[w >= h ? 'wide' : 'tall'];
+    const m = Math.min(w, h);
+    worlds = {};
+    for (const [id, spot] of Object.entries(spots)) {
+      const r = id === 'moon' ? Math.max(28, m * 0.055) : id === 'mars' ? Math.max(24, m * 0.035) : id === 'ceres' ? Math.max(9, m * 0.016) : 0;
+      worlds[id] = { ...spot, cx: spot.x * w, cy: spot.y * h, r, reach: id === 'ceres' ? r * 2.6 + 10 : id === 'deep' ? 14 : r + 4 };
+    }
+    for (const f of friends) {
+      const wd = worlds[f.world];
+      const count = tags[f.world].list.length;
+      if (f.world === 'moon' || f.world === 'mars') {
+        const [dx, dy] = (ON_DISK[count] || ON_DISK[3])[f.n % 3];
+        f.x = wd.cx + dx * wd.r; f.y = wd.cy + dy * wd.r;
+      } else if (f.world === 'ceres') {
+        const a = -0.7 + f.n * 1.2;
+        f.x = wd.cx + Math.cos(a) * wd.r * 2.6; f.y = wd.cy + Math.sin(a) * wd.r * 2.6;
+      } else { f.x = wd.cx; f.y = wd.cy + f.n * 22; }
+    }
+    // Tags beside their world, kept on screen and never on top of each other
+    const boxes = [];
+    for (const [id, tag] of Object.entries(tags)) {
+      const wd = worlds[id];
+      const tw = tag.el.offsetWidth, th = tag.el.offsetHeight;
+      let x = wd.side === 'left' ? wd.cx - wd.reach - 12 - tw : wd.cx + wd.reach + 12;
+      if (x + tw > w - 8) x = wd.cx - wd.reach - 12 - tw;      // no room on that side: the other side
+      if (x < 8) x = Math.min(wd.cx + wd.reach + 12, w - tw - 8);
+      boxes.push({ tag, x, y: wd.cy - th / 2, tw, th });
+    }
+    const top = 64;
+    boxes.sort((a, b) => a.y - b.y);
+    for (let k = 0; k < boxes.length; k++) {
+      const b = boxes[k];
+      b.y = Math.max(b.y, top);
+      for (let j = 0; j < k; j++) {
+        const o = boxes[j];
+        const overlapX = b.x < o.x + o.tw + 10 && o.x < b.x + b.tw + 10;
+        if (overlapX && b.y < o.y + o.th + 10) b.y = o.y + o.th + 10;
+      }
+    }
+    for (const b of boxes) { b.tag.x = Math.round(b.x); b.tag.y = Math.round(b.y); }
+  }
+
   function resize() {
     const dpr = Math.min(2, window.devicePixelRatio || 1);
     w = window.innerWidth; h = window.innerHeight;
@@ -154,6 +220,7 @@ export function playPrologue({ robots = [], onDone } = {}) {
       c.width = Math.round(w * dpr); c.height = Math.round(h * dpr);
       x.setTransform(dpr, 0, 0, dpr, 0, 0);
     }
+    layout();
   }
 
   // Camera: 0 = deep under water, 1 = looking at the sky from the surface
@@ -246,51 +313,63 @@ export function playPrologue({ robots = [], onDone } = {}) {
     }
 
     // Planets and friends in the sky
-    const sky = (sx, sy) => ({ x: sx * w, y: surface - 0.8 * h + sy * h });
+    const lift = surface - 0.8 * h;                      // the sky moves with the camera
     if (cam > 0.6) {
       const a = ease((cam - 0.6) / 0.4);
-      for (const [id, spot] of Object.entries(SPOTS)) {
-        if (!spot.world) continue;
-        const p = sky(spot.x, spot.y);
-        const r = id === 'moon' ? Math.min(w, h) * 0.06 : id === 'mars' ? Math.min(w, h) * 0.035 : Math.min(w, h) * 0.016;
-        bctx.globalAlpha = a;
-        const pg = bctx.createRadialGradient(p.x - r * 0.3, p.y - r * 0.3, r * 0.1, p.x, p.y, r);
-        pg.addColorStop(0, '#ffffff'); pg.addColorStop(0.25, spot.color); pg.addColorStop(1, '#2a2038');
+      bctx.globalAlpha = a;
+      for (const [id, wd] of Object.entries(worlds)) {
+        if (!wd.r) continue;
+        const x = wd.cx, y = wd.cy + lift, r = wd.r;
+        if (id === 'ceres') {                              // Dawn's orbit
+          bctx.strokeStyle = 'rgba(180,155,255,.22)'; bctx.lineWidth = 1; bctx.setLineDash([3, 5]);
+          bctx.beginPath(); bctx.arc(x, y, r * 2.6, 0, TAU); bctx.stroke(); bctx.setLineDash([]);
+        }
+        const pg = bctx.createRadialGradient(x - r * 0.3, y - r * 0.3, r * 0.1, x, y, r);
+        pg.addColorStop(0, '#ffffff'); pg.addColorStop(0.25, WORLDS[id].color); pg.addColorStop(1, '#2a2038');
         bctx.fillStyle = pg;
-        bctx.beginPath(); bctx.arc(p.x, p.y, r, 0, TAU); bctx.fill();
-        bctx.globalAlpha = 1;
+        bctx.beginPath(); bctx.arc(x, y, r, 0, TAU); bctx.fill();
       }
+      bctx.globalAlpha = 1;
     }
-    for (const f of friends) {
-      const spot = SPOTS[f.robot.sky_target];
-      const p = sky(spot.x + f.dx, spot.y + f.dy);
-      const on = ease((time - f.appear) / 0.8);
-      const off = ease((time - f.fade) / 1.2);
-      const visible = on > 0;
-      f.label.style.opacity = visible ? String(on * (1 - off * 0.45)) : '0';
-      if (!visible) continue;
-      f.label.style.transform = `translate(${Math.round(p.x)}px, ${Math.round(p.y + 14)}px) translateX(-50%)`;
-      f.label.classList.toggle('quiet', off > 0.5);
-      const sub = off > 0.5 ? `quiet since ${year(f.robot.last_signal) || year(f.robot.landed)}` : year(f.robot.landed || f.robot.launched);
-      const span = f.label.querySelector('span');
-      if (span.textContent !== sub) span.textContent = sub;
-      const lit = on * (1 - off);
-      const pulse = reduced ? 0.5 : (time * 0.9 + f.i * 0.3) % 1;
-      if (lit > 0.05) {
-        bctx.strokeStyle = `rgba(93,228,255,${0.6 * lit * (1 - pulse)})`; bctx.lineWidth = 2;
-        bctx.beginPath(); bctx.arc(p.x, p.y, 6 + pulse * 22, 0, TAU); bctx.stroke();
+    let relayout = false;
+    for (const [id, tag] of Object.entries(tags)) {
+      let shown = 0;
+      for (const f of tag.list) {
+        const on = ease((time - f.appear) / 0.8);
+        const off = ease((time - f.fade) / 1.2);
+        shown = Math.max(shown, on);
+        const quiet = off > 0.5;
+        f.row.classList.toggle('on', on > 0.5 && !quiet);
+        f.row.classList.toggle('quiet', quiet);
+        const text = statusOf(f, quiet);
+        if (f.status.textContent !== text) { f.status.textContent = text; relayout = true; }
+        if (on <= 0) continue;
+        const x = f.x, y = f.y + lift;
+        if (id === 'deep') {                               // Pioneer 10 heads out of the solar system
+          bctx.strokeStyle = `rgba(180,155,255,${0.35 * on})`; bctx.lineWidth = 1.5; bctx.setLineDash([2, 5]);
+          bctx.beginPath(); bctx.moveTo(x + 46, y + 22); bctx.lineTo(x + 8, y + 4); bctx.stroke(); bctx.setLineDash([]);
+        }
+        const lit = on * (1 - off);
+        const pulse = reduced ? 0.5 : (time * 0.9 + f.i * 0.3) % 1;
+        if (lit > 0.05) {
+          bctx.strokeStyle = `rgba(93,228,255,${0.55 * lit * (1 - pulse)})`; bctx.lineWidth = 1.5;
+          bctx.beginPath(); bctx.arc(x, y, 4 + pulse * 12, 0, TAU); bctx.stroke();
+        }
+        const gl = bctx.createRadialGradient(x, y, 0, x, y, 9);
+        gl.addColorStop(0, lit > 0.05 ? `rgba(93,228,255,${lit})` : 'rgba(154,156,196,.55)');
+        gl.addColorStop(1, 'rgba(93,228,255,0)');
+        bctx.fillStyle = gl;
+        bctx.beginPath(); bctx.arc(x, y, 9, 0, TAU); bctx.fill();
+        bctx.fillStyle = lit > 0.05 ? '#e9fbff' : '#8a8cb0';
+        bctx.beginPath(); bctx.arc(x, y, 2.6, 0, TAU); bctx.fill();
       }
-      const gl = bctx.createRadialGradient(p.x, p.y, 0, p.x, p.y, 14);
-      gl.addColorStop(0, lit > 0.05 ? `rgba(93,228,255,${lit})` : 'rgba(154,156,196,.6)');
-      gl.addColorStop(1, 'rgba(93,228,255,0)');
-      bctx.fillStyle = gl;
-      bctx.beginPath(); bctx.arc(p.x, p.y, 14, 0, TAU); bctx.fill();
-      bctx.fillStyle = lit > 0.05 ? '#e9fbff' : '#6c6e94';
-      bctx.beginPath(); bctx.arc(p.x, p.y, 3, 0, TAU); bctx.fill();
+      tag.el.style.opacity = String(shown);
     }
+    if (relayout) layout();                              // "quiet since…" is longer: place the tags again
+    for (const tag of Object.values(tags)) tag.el.style.transform = `translate(${tag.x}px, ${Math.round(tag.y + lift)}px)`;
 
     // Belu calls into the silent sky (phase 5): rings go up, nothing comes back
-    if (time >= 48 && time < END) {
+    if (time >= 48 && time < END && !done) {
       for (let k = 0; k < 3; k++) {
         const age = (time - 48 - k * 1.8);
         if (age < 0) continue;
@@ -349,7 +428,7 @@ export function playPrologue({ robots = [], onDone } = {}) {
     done = true;
     cancelAnimationFrame(raf);
     t = END;
-    drawFrame(END - 0.01);
+    drawFrame(47.5);                                     // every friend is quiet, Belu waits
     belu.src = BELU('neutral');
     root.querySelector('.pro-caption').hidden = true;
     skipButton.hidden = true;
@@ -385,19 +464,21 @@ export function playPrologue({ robots = [], onDone } = {}) {
     window.removeEventListener('resize', onResize);
     document.removeEventListener('keydown', onKey);
     root.hidden = true;
+    document.documentElement.classList.remove('prologue-open');
     if (onDone) onDone();
   }
 
-  const onResize = () => { resize(); if (done || reduced) drawFrame(Math.min(t, END - 0.01)); };
+  const onResize = () => { resize(); if (done) drawFrame(47.5); else if (reduced) drawFrame(Math.min(t, END - 0.01)); };
   const onKey = e => { if (e.key === 'Escape' && !done) showEnd(); };
 
   // reset
-  labels.querySelectorAll('.pro-label').forEach(l => { if (!friends.some(f => f.label === l)) l.remove(); });
   root.querySelector('.pro-caption').hidden = false;
+  document.documentElement.classList.add('prologue-open');   // the page behind does not scroll
   endCard.hidden = true;
   skipButton.hidden = false;
   root.hidden = false;
   resize();
+  document.fonts?.ready.then(() => { if (!root.hidden) layout(); });
   window.addEventListener('resize', onResize);
   document.addEventListener('keydown', onKey);
   skipButton.onclick = showEnd;
