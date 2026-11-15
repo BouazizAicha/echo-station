@@ -1,58 +1,48 @@
-# Echo Station
+# Echo Station – Help Belu find NASA's silent robots
 
-NASA Space Apps Challenge 2026 – Universal Event.
+**NASA Space Apps Challenge 2026.** A free web app for explorers aged 9 to 15.
 
-Since 1969, NASA has left robots all over the solar system. Most of them went silent.
-Echo Station turns your phone into an antenna: point it at the real sky, find the robots,
-and let them tell their own story.
+**Live app:** https://bouazizaicha.github.io/echo-station/ (best on a phone, outside at night; works on a computer too)
 
-**How it is built:** see [ARCHITECTURE.md](ARCHITECTURE.md) (languages, folders, modules, data model, how the antenna works).
+Belu, a young beluga who "sees" with echoes, has lost his friends: six real NASA robots that went silent across the solar system.
+Point your phone at the real sky: the signal grows when you aim at the true position of a robot. Find it, hear its true story,
+play its mission, and make it Belu's friend.
+
+## What you can do
+
+- **Story with Belu:** a short animated prologue, a moving arrow and Belu's "Click!" sonar to find each robot, a 7-card story per robot
+  (the robot speaks, Belu answers), real NASA images, five mission games, the Apollo 11 laser-mirror finale, and a celebration when all six are found.
+- **Scientist mode:** live azimuth, altitude, RA/Dec, distance and light time for each target, with mission data and sources.
+- **Accessible:** audio guide, captions for every sound, three text sizes, high contrast, calm mode, vibration, keyboard controls,
+  and a sky map that works without phone sensors.
+
+The robots: Eagle (Moon), Spirit, Opportunity and Ingenuity (Mars), Dawn (Ceres) and Pioneer 10 (deep space).
+
+## How it works
+
+- Moon and Mars are computed live with [astronomy-engine](https://github.com/cosinekitty/astronomy) (MIT license).
+- Ceres and Pioneer 10 come from NASA JPL Horizons tables in `data/sky/` (one point per day until 2028).
+- Positions are converted to azimuth and altitude for your location and time. The phone's compass and gyroscope give the direction
+  of the back camera (full 3-D rotation, calibration on the Moon).
+- **Accuracy:** checked against Astropy, less than 0.01° of difference above the horizon. See [docs/accuracy.md](docs/accuracy.md).
+- Every fact about the robots has a NASA source in `data/robots/*.json`.
+
+More detail: [ARCHITECTURE.md](ARCHITECTURE.md).
+
+## Built with
+
+HTML, CSS and JavaScript (ES modules, no build step), Canvas 2D, Web Audio, Web Speech and DeviceOrientation APIs,
+astronomy-engine, NASA JPL Horizons, Python and Astropy (accuracy check), Playwright and Node tests, GitHub Pages.
+Drawings: Figma and Adobe Illustrator.
 
 ## Run it locally
-
-The app loads JSON files, so it needs a local server (opening `index.html` directly won't work):
 
 ```bash
 python3 -m http.server 8000
 # then open http://localhost:8000
 ```
 
-Phone sensors only work over **HTTPS** → test the antenna on the GitHub Pages URL.
-
-## Who works where
-
-| Folder | Owner |
-|---|---|
-| `js/engine/` – sky positions, antenna, sky map | Dev 1 |
-| `js/story/` – radio sound, dialogues, mini-game, laser finale | Dev 2 |
-| `data/robots/` – one JSON file per robot | Content |
-| `assets/`, `css/` – images, audio, visual style | Design |
-
-Pull often, commit often, and stay in your folder to avoid conflicts.
-
-## Add a robot
-
-1. Copy `data/robots/spirit.json` to `data/robots/<id>.json` and fill it in.
-2. Add `<id>` to `data/robots/index.json`.
-3. Every fact needs a source in `sources`. Every image needs a credit.
-
-Story template (each robot answers all five):
-`who_i_am` → `why_sent` → `discoveries` → `where_now` → `legacy`
-
-`sky_target` = where the antenna finds it: `moon`, `mars`, `ceres`, `eros`, `pioneer10`, `pioneer11`, `kepler`.
-
-## Sky positions
-
-- Moon and Mars: computed live with [astronomy-engine](https://github.com/cosinekitty/astronomy) (MIT license).
-- Other targets: run `python3 tools/horizons_to_json.py` once to export positions from
-  NASA JPL Horizons into `data/sky/`.
-
-## Checkpoints
-
-- **Sat ~18:30** – antenna test on the real Moon (go / no-go)
-- **Sat ~02:00** – whole experience works start to finish
-- **Sun 16:00** – feature freeze
-- **Sun ~22:30** – submit
+Phone sensors only work over HTTPS: use the live link above to try the antenna. Tests: `node --test tests/*.test.mjs`.
 
 ## AI use (disclosure)
 
@@ -64,3 +54,9 @@ AI tools helped us build Echo Station. Every AI-assisted part was reviewed, test
 - **Audio (AI-generated):** the recorded robot voices (`assets/audio/*.mp3`, played in Scientist mode and used in our video) were generated with AI. This is written in each file's metadata and shown on screen ("AI-generated voice") while they play. In Story mode the voices come from the browser's built-in speech synthesis.
 - **Not AI:** the drawings of Belu were made by our team (Figma, Adobe Illustrator). The mission photographs are NASA/JPL images with their credits.
 - The sky positions are computed with astronomy-engine and NASA JPL Horizons tables, and checked against Astropy (see `docs/accuracy.md`).
+
+## Team
+
+Aicha (team lead, story and games) · Younes (sky and antenna) · Tesnim (science and content) · Oumayma (design and art).
+
+Belu is a fictional character; every fact about the robots is real. Data and images: NASA/JPL. Not an official NASA product.
