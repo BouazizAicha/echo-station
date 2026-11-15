@@ -304,10 +304,10 @@ details a { color: var(--signal); }
   .live-dot { animation: none; }
 }
 
-/* =====================================================================
+/* ======
    STORY MODE (Dev B): mode choice, switch, prologue, story cards,
    discovery moments, "Why it matters". Uses the palette above.
-   ===================================================================== */
+   ====== */
 
 /* ---- First screen: choose how to explore ---- */
 .mode-choice { display: grid; gap: .75rem; margin: 1.5rem 0 .5rem; }
@@ -650,10 +650,10 @@ body.mode-story #guide { display: none; }
   .sonar-click.pinged .sonar-click-ring, .sonar-compass.show .sonar-arrow { animation: none; opacity: .9; }
 }
 
-/* =====================================================================
+/* ======
    CALM LAYOUT (Dev B): fewer things moving, fewer words, bigger targets.
    For 9–15 year-olds on a phone: one main action per screen, no over-stimulation.
-   ===================================================================== */
+   ====== */
 
 /* ---- Top-right tools: sound + mode ---- */
 #top-tools { position: fixed; top: .6rem; right: .6rem; z-index: 60; display: flex; align-items: center; gap: .4rem; }
@@ -736,9 +736,9 @@ body.mode-story #list-view[open] summary::after { content: "▾ Tune in from the
 #mg-controls button { padding: 0 .85rem; }
 .mg-help { min-width: 48px !important; }
 
-/* =====================================================================
+/* ======
    SETTINGS & ACCESSIBILITY (Dev B)
-   ===================================================================== */
+   ====== */
 #settings-button {
   display: inline-flex; align-items: center; justify-content: center; gap: .35rem; margin: 0;
   min-height: 40px; min-width: 40px; padding: .35rem .75rem; border-radius: 999px;
@@ -827,10 +827,10 @@ html[style*="125%"] .cine-title, html[style*="112.5%"] .cine-title { overflow-wr
 .logo { display: block; width: min(62vw, 300px); height: auto; margin: 0 auto; }
 @media (max-height: 700px) { .logo { width: min(56vw, 240px); } }
 
-/* =====================================================================
+/* ======
    CLEAR SKY SCREEN (Dev B): the same signs everywhere
    pink arrow = last echo (Story) · blue arrow = nearest target (Scientist) · filling ring = hold still
-   ===================================================================== */
+   ====== */
 /* Aim switch: one control, the active way is highlighted */
 .map-toolbar { gap: .4rem; }
 .map-toolbar #btn-antenna, .map-toolbar #btn-map { border-radius: 12px; }
@@ -864,9 +864,9 @@ dialog.coach::backdrop { background: rgba(5, 4, 20, .6); }
   background: var(--panel); border: 1px solid var(--line); color: var(--signal); font-weight: 800; }
 .coach-go { margin-top: auto; width: 100%; }
 
-/* =====================================================================
+/* ======
    DESIGN PASS (Dev B): one app bar, consistent spacing, better proportions on phones
-   ===================================================================== */
+   ====== */
 :root { --bar-h: 56px; }
 
 /* ---- App bar: ← Back (or the wordmark) on the left, tools on the right, on every screen ---- */
@@ -927,9 +927,9 @@ body .screen:not(.cinema):not(.why), body #screen-radio, body #screen-intro {
 .sonar-words { min-width: 0; }
 .cine-result-headline { margin: 0 0 .35rem; font-family: "Space Grotesk", "Inter", sans-serif; font-size: 1.15rem; font-weight: 700; color: var(--fg); }
 
-/* =====================================================================
+/* ======
    SCIENTIST MODE (Dev B): live sky data table + robot "mission file"
-   ===================================================================== */
+   ====== */
 #sky-data { display: none; }
 body.mode-science #sky-data { display: block; }
 .sky-data { margin: 0; padding: .6rem .75rem .75rem; border: 1px solid var(--line); border-radius: var(--radius, 14px); background: rgba(255, 255, 255, .015); }
@@ -960,11 +960,11 @@ body.mode-science #sky-data { display: block; }
 /* Grid children must be allowed to shrink, or a wide table pushes the page sideways on phones */
 .radio-layout > *, .hud, .map-panel { min-width: 0; }
 
-/* =====================================================================
+/* ======
    FINAL POLISH (Dev B): one look everywhere
    Cards: 18px corners, soft border, soft shadow · Buttons: 14px corners, primary = aqua
    Icons: one line-icon set · A quiet, still starfield behind every screen
-   ===================================================================== */
+   ====== */
 :root {
   --r-card: 18px;
   --r-btn: 14px;
@@ -1045,9 +1045,9 @@ button:not(.big):not(.link):not(.mode-card):not(.disc-target):not(.disc-cover) {
 [hidden] { display: none !important; }
 .map-toolbar #btn-antenna, .map-toolbar #btn-map { white-space: nowrap; padding: .55rem .5rem; font-size: .88rem; }
 
-/* =====================================================================
+/* ======
    FIXES FROM TESTING ON WINDOWS (Dev B)
-   ===================================================================== */
+   ====== */
 /* Thin, dark scrollbars everywhere (no white Windows bars) */
 * { scrollbar-width: thin; scrollbar-color: #3a3670 transparent; }
 *::-webkit-scrollbar { width: 8px; height: 8px; }
@@ -1190,6 +1190,7 @@ button:not(.big):not(.link):not(.mode-card):not(.disc-target):not(.disc-cover) {
 #finale-moon { object-fit: contain; background: transparent; border-radius: 50%; box-shadow: 0 0 28px rgba(201, 211, 230, .24); }
 @media (prefers-reduced-motion: reduce) { body::after { filter: blur(42px); } }
 
+
 /* Intro animation: bubbles rise, then Belu appears */
 #screen-intro .intro-logo-motion {
   display: block; width: min(42vw, 150px); height: auto; margin: 0 auto;
@@ -1202,3 +1203,68 @@ button:not(.big):not(.link):not(.mode-card):not(.disc-target):not(.disc-cover) {
   #screen-intro .intro-logo-motion { display: none; }
   #screen-intro .intro-logo-still { display: block; }
 }
+
+/* ---- Games use the whole screen; no text selection while tapping the buttons ---- */
+#screen-minigame { max-width: 760px; }
+.mg-stage { width: min(100%, calc((100svh - 265px) * 3 / 4)); }
+@media (max-width: 480px) {
+  #screen-minigame { padding-left: .5rem; padding-right: .5rem; padding-top: 1rem; }
+  .mg-stage { width: min(100%, calc((100svh - 205px) * 3 / 4)); }
+}
+#screen-minigame, #screen-minigame * { -webkit-user-select: none; user-select: none; -webkit-touch-callout: none; -webkit-tap-highlight-color: transparent; }
+#mg-controls button { touch-action: manipulation; }
+
+/* ---- Speech bubbles: tap to go on ---- */
+.cine-stage { cursor: pointer; }
+.robot-bubble, .cine-bubble { cursor: pointer; }
+.cinema:is([data-world="ceres"], [data-world="deep"]) .cine-robot { bottom: 6%; }
+
+/* ---- Story mode: the moving arrow guides first, Click! is optional ---- */
+body.mode-story #guide { display: grid; }
+body.mode-story .sonar { margin-top: .75rem; }
+
+/* ---- Start over (settings) ---- */
+.set-reset { display: grid !important; grid-template-columns: auto 1fr; align-items: center; }
+.set-reset-button { grid-column: 1 / -1; width: 100%; margin: .6rem 0 0; padding: .55rem .9rem; border-radius: 999px; font-weight: 600; white-space: nowrap; }
+.set-reset-button.armed { border-color: var(--accent); color: var(--accent); }
+
+/* ---- Belu found all his friends ---- */
+.celebrate { position: fixed; inset: 0; z-index: 80; display: grid; place-items: center; padding: 1rem;
+  background: radial-gradient(circle at 50% 35%, #1d1648 0%, var(--bg) 70%); overflow-y: auto; }
+.celebrate-party { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; }
+.celebrate-box { position: relative; z-index: 1; width: min(100%, 560px); text-align: center; animation: softIn .6s ease both; }
+.celebrate-eyebrow { margin: 0 0 .25rem; letter-spacing: .18em; font-size: .75rem; }
+.celebrate-crew { position: relative; width: min(100%, 440px); aspect-ratio: 1.3; margin: .5rem auto 0; }
+.celebrate-belu { position: absolute; left: 50%; bottom: 0; width: 28%; transform: translateX(-50%);
+  filter: drop-shadow(0 10px 20px rgba(0, 0, 0, .45)); animation: celebrateHop 1.6s ease-in-out infinite; }
+.celebrate-friends { list-style: none; margin: 0; padding: 0; position: absolute; inset: 0; }
+.celebrate-friend { position: absolute; width: 21%; transform: translate(-50%, -50%);
+  display: grid; justify-items: center; gap: .1rem; }
+.celebrate-friend .robot-pic { width: 100%; animation: celebrateHop 1.8s ease-in-out infinite; animation-delay: calc(var(--i) * .15s); }
+.celebrate-name { font-size: .72rem; font-weight: 600; color: var(--fg); text-shadow: 0 2px 6px rgba(0, 0, 0, .8); white-space: nowrap; }
+.celebrate-title { margin: .75rem 0 .35rem; font-size: clamp(1.6rem, 6vw, 2.2rem); line-height: 1.1; outline: none; }
+.celebrate-text { margin: 0 auto 1.1rem; max-width: 30em; color: var(--muted); line-height: 1.45; }
+.celebrate-actions { display: grid; gap: .6rem; }
+.celebrate-actions button { width: 100%; margin: 0; }
+.celebrate-again { background: transparent; }
+@keyframes celebrateHop { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-6px); } }
+.celebrate-belu { animation-name: celebrateHopX; }
+@keyframes celebrateHopX { 0%, 100% { transform: translate(-50%, 0); } 50% { transform: translate(-50%, -8px); } }
+@media (prefers-reduced-motion: reduce) { .celebrate-belu, .celebrate-friend .robot-pic, .celebrate-box { animation: none !important; } }
+body.a11y-calm .celebrate-belu, body.a11y-calm .celebrate-friend .robot-pic, body.a11y-calm .celebrate-box { animation: none !important; }
+
+#screen-minigame #mg-canvas { width: min(100%, calc((100svh - 265px) * 3 / 4)); max-width: none; margin: .25rem auto; }
+@media (max-width: 480px) { #screen-minigame #mg-canvas { width: min(100%, calc((100svh - 205px) * 3 / 4)); } }
+
+/* ---- Prologue: tap to go on ---- */
+#prologue { cursor: pointer; }
+.pro-tap { display: block; margin-top: .4rem; font-size: .78rem; color: var(--muted); letter-spacing: .04em; }
+#prologue .pro-next:not([hidden]) ~ .pro-tap, .pro-caption:has(.pro-next:not([hidden])) .pro-tap { display: none; }
+
+/* AI-generated recorded voices: said on screen while they play */
+#subtitles[data-ai]::before { content: "AI-generated voice"; display: block; margin-bottom: .2rem; font-family: "JetBrains Mono", ui-monospace, monospace; font-size: .68rem; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); }
+
+/* AI-generated robot illustrations: a visible label wherever they appear */
+.robot-pic { position: relative; }
+.robot-pic:has(img)::after { content: "AI-generated"; position: absolute; right: 2px; bottom: 2px; padding: 1px 6px; border-radius: 999px;
+  font: 600 9px/1.4 Inter, system-ui, sans-serif; letter-spacing: .04em; color: #fff; background: rgba(11, 10, 31, .72); pointer-events: none; white-space: nowrap; }

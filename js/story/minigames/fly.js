@@ -240,7 +240,7 @@ function run(mg, ui) {
 
     // the goal, in words, and an arrow when it is off screen
     const goal = nextGoal();
-    let words = photos.size < 3 ? `Photo ${photos.size + 1} of 3: fly to the orange CAMERA box` : 'Now land on AIRFIELD B';
+    let words = photos.size < 3 ? `Photo ${photos.size + 1} of 3: fly to the pink CAMERA box` : 'Now land on AIRFIELD B';
     if (!heli.flying && state === 'play') words = battery > 0 ? 'Hold ▲ to take off' : words;
     if (hoverAt != null) words = 'Stay low and still… 📷';
     goalBanner(ctx, W, 52, words, hoverAt != null ? '#5de4ff' : '#eef0ff');

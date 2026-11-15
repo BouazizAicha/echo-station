@@ -191,10 +191,15 @@ export async function enableAntenna() {
     throw new Error('This device has no motion sensor. Use the sky map instead.');
   }
 
+  // iPhone asks here. Recent Chrome versions on Android also have requestPermission() and may
+  // answer "prompt" or "default" even though the sensors work: never give up on the answer alone,
+  // listen for real data and only fail if none arrives.
+  let permission = 'granted';
   if (typeof DeviceOrientationEvent.requestPermission === 'function') {
-    const permission = await DeviceOrientationEvent.requestPermission();
-    if (permission !== 'granted') {
-      throw new Error('Motion access was refused. Use the sky map, or allow it in Settings.');
+    try {
+      permission = await DeviceOrientationEvent.requestPermission();
+    } catch {
+      permission = 'unknown';
     }
   }
 
@@ -216,8 +221,10 @@ export async function enableAntenna() {
       pointing.active = false;
       detachListeners();
       firstEventResolve = null;
-      reject(new Error('No orientation data arrived. Use the sky map instead.'));
-    }, 2500);
+      reject(new Error(permission === 'denied'
+        ? 'Motion access was refused. Allow motion sensors for this site in your browser settings, or use the sky map.'
+        : 'No compass data yet. In Chrome: tap the lock next to the address, then Permissions, then allow Motion sensors. Or use the sky map.'));
+    }, permission === 'granted' ? 3000 : 6000);
   });
 }
 

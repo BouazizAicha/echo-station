@@ -33,7 +33,7 @@ function words(guide, target) {
 export function createSonar({ getAim, getTargets, mount }) {
   const pings = [];        // { t0, echoes: [{ target, tHit, tBack, guide, strength }] }
   let clicks = 0, lastPing = 0, longFlash = false;
-  let heard = null;        // id of the friend heard last: the orange arrow keeps pointing to it
+  let heard = null;        // id of the friend heard last: the pink arrow keeps pointing to it
 
   // ---- panel (shown only in Story mode, by CSS) ----
   const panel = el('section', 'sonar');
@@ -90,7 +90,7 @@ export function createSonar({ getAim, getTargets, mount }) {
     if (best) {
       setTimeout(() => {
         vibrate(Math.round(30 + 120 * best.strength));
-        text.textContent = `${words(best.guide, best.target)} Follow the orange arrow!`;
+        text.textContent = `${words(best.guide, best.target)} Follow the pink arrow!`;
         speak(text.textContent, { interrupt: true });
         heard = best.target.id;
         compass.classList.add('show');
@@ -156,7 +156,7 @@ export function createSonar({ getAim, getTargets, mount }) {
     }
   }
 
-  // The orange arrow: from where you aim to the friend heard last (map and sonar panel)
+  // The pink arrow: from where you aim to the friend heard last (map and sonar panel)
   function pointer() {
     if (!heard) return null;
     const target = getTargets().find(t => t.id === heard);

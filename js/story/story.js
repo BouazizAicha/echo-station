@@ -194,6 +194,7 @@ export async function showStory(robot, { onMinigame, onFriend } = {}) {
   // Voice + subtitles (if assets/audio/<id>.mp3 exists)
   const subs = $('subtitles');
   subs.hidden = true;
+  subs.dataset.ai = 'voice';          // these recorded voices are AI-generated: said on screen
   playVoice(`assets/audio/${robot.id}.mp3`, {
     onTime: (t, duration) => {
       if (myRun !== run || !robot.voice_text) return;

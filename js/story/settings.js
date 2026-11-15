@@ -7,6 +7,7 @@
 // Saved on this device. Other modules read `settings` and listen with onSettingsChange().
 import { topTools } from './mode.js';
 import { ICONS } from './icons.js';
+import { startOver } from './progress.js';
 
 const KEY = 'echo-station-settings';
 export const settings = { audioGuide: false, textSize: 'normal', contrast: false, vibration: true, calm: false };
@@ -82,6 +83,25 @@ function sizeRow() {
   return box;
 }
 
+// Start over: two taps, so nobody erases Belu's friends by accident
+function resetRow() {
+  const row = el('div', 'set-row set-reset');
+  const text = el('span', 'set-text');
+  text.append(el('strong', null, 'Start over'), el('span', 'set-help', 'Erase Belu\'s friends so someone new can live the story from the very beginning.'));
+  const button = el('button', 'set-reset-button', 'Start over');
+  button.type = 'button';
+  let armed = 0;
+  button.addEventListener('click', () => {
+    if (armed) { startOver(); return; }
+    button.textContent = 'Tap again to erase';
+    button.classList.add('armed');
+    armed = setTimeout(() => { armed = 0; button.textContent = 'Start over'; button.classList.remove('armed'); }, 4000);
+  });
+  row.append(el('span', 'set-icon', '↺'), text, button);
+  row.querySelector('.set-icon').setAttribute('aria-hidden', 'true');
+  return row;
+}
+
 const dialog = el('dialog', 'settings');
 dialog.id = 'settings';
 dialog.setAttribute('aria-labelledby', 'settings-title');
@@ -102,6 +122,7 @@ dialog.append(
   toggleRow('vibration', '📳', 'Vibration', 'The phone buzzes when Belu hears a friend (Android phones).'),
   toggleRow('calm', '🐢', 'Calm mode', 'No animations and no moving backgrounds.'),
   el('p', 'set-note', 'Subtitles are always on for the robots\' voices. Keyboard: arrows to move, C for Belu\'s click, Space for engines.'),
+  resetRow(),
 );
 const done = el('button', 'big set-done', 'Done');
 done.type = 'button';

@@ -11,6 +11,7 @@ import { isStory, setMode, onModeChange, updateAppBar } from './story/mode.js';
 import { playPrologue } from './story/prologue.js';
 import { showCinema, stopCinema, resumeCinema } from './story/cinema.js';
 import { showWhy } from './story/why.js';
+import { celebrate } from './story/celebrate.js';
 import { createSonar, starsFor } from './story/sonar.js';
 import { applySound } from './story/sound.js';
 import './story/settings.js';
@@ -52,6 +53,7 @@ const params = new URLSearchParams(location.search);
 const DEBUG = params.has('debug');
 
 const state = {
+  pinned: null,          // Story mode: the friend Belu heard with Click! (the arrow keeps guiding to it)
   screen: 'intro',
   robots: [],
   targets: [],
@@ -294,6 +296,12 @@ function onAim(direction, source = 'map') {
 
   let nearest = pickTarget(state.aiming, state.targets, state.robots, state.found);
   if (!nearest) return;
+  // Click! (optional) chose a friend: the arrow keeps guiding to that one until it is found
+  // (but if you are already pointing close to another friend, that one wins and becomes the guided one)
+  const pinned = state.pinned && activeTargets(state.targets.filter((t) => t.id === state.pinned), state.robots, state.found)[0];
+  if (!pinned) state.pinned = null;
+  else if (pinned.id !== nearest.target.id && nearest.distance <= 10) state.pinned = nearest.target.id;
+  else if (pinned.id !== nearest.target.id) nearest = { target: pinned, distance: angularDistance(state.aiming, pinned) };
   // Stay on the current target unless another one is clearly closer: otherwise, with the Moon and
   // Mars close together in the sky, the arrow flips from one to the other and goes crazy.
   const current = state.nearest && state.targets.find((target) => target.id === state.nearest.target.id);
@@ -447,6 +455,7 @@ function updateDataSource() {
 /* ------------------------------------------------------------------ */
 
 function lockTarget(target) {
+  state.pinned = null;
   const candidates = state.robots.filter((robot) => robot.sky_target === target.id);
   const robot = candidates.find((candidate) => !state.found.has(candidate.id)) || candidates[0];
   if (!robot) {
@@ -498,7 +507,7 @@ function openStory(robot) {
       light,
       found: find ? { clicks: find.clicks, stars: starsFor(find.clicks) } : null,
       onMinigame: openMinigame,
-      onFriend: updateFriendsButton,
+      onFriend: friendAdded,
       onExit: backToRadio,
       canPlay: hasMinigame,
     });
@@ -523,7 +532,7 @@ function openStory(robot) {
   map?.refresh();
   show('screen-story');
   updateFinaleButton();
-  showStory(robot, { onMinigame: openMinigame, onFriend: updateFriendsButton });
+  showStory(robot, { onMinigame: openMinigame, onFriend: friendAdded });
 }
 
 function backToRadio() {
@@ -763,7 +772,7 @@ const COACH = {
     steps: [
       ['👆', 'Drag the sky, or use your phone as an antenna'],
       ['🔊', 'Press Click! A friend answers with an echo'],
-      ['➜', 'Follow the orange arrow'],
+      ['➜', 'Follow the pink arrow'],
       ['◎', 'Hold still on the spot until Belu smiles'],
     ],
     start: 'Let\'s go!',
@@ -772,7 +781,7 @@ const COACH = {
     goal: 'Point at the real sky to tune in to NASA\'s robots.',
     steps: [
       ['👆', 'Drag the sky map, or use your phone (calibrate on the Moon)'],
-      ['➜', 'Follow the green arrow to the nearest target'],
+      ['➜', 'Follow the blue arrow to the nearest target'],
       ['◎', 'Keep the crosshair on it for 1.5 seconds'],
       ['📋', 'Open the list for every target and its coordinates'],
     ],
@@ -832,8 +841,26 @@ const sonar = createSonar({
 });
 document.addEventListener('keydown', (event) => {
   if (state.screen !== 'radio' || !isStory()) return;
-  if ((event.key === 'c' || event.key === 'C') && !event.target.closest('input, textarea')) sonar.ping();
+  if ((event.key === 'c' || event.key === 'C') && !event.target.closest('input, textarea')) { sonar.ping(); pinNearest(); }
 });
+// The last friend: Belu and all his friends celebrate (Start over / Keep exploring)
+function friendAdded() {
+  updateFriendsButton();
+  if (!state.celebrated && state.robots.length && countFriends(state.robots) === state.robots.length) {
+    state.celebrated = true;
+    window.setTimeout(() => celebrate(state.robots), isStory() ? 2600 : 700);
+  }
+}
+
+// Story mode: the moving arrow comes first; Click! is optional and makes the arrow follow the friend heard
+function pinNearest() {
+  if (state.nearest) state.pinned = state.nearest.target.id;
+}
+$('btn-click')?.addEventListener('click', pinNearest);
+{
+  const guidePanel = $('guide'), sonarPanel = $('sonar');
+  if (guidePanel && sonarPanel) guidePanel.after(sonarPanel);
+}
 
 // Scientist mode: straight to the sky
 $('btn-start').addEventListener('click', () => {
@@ -905,7 +932,7 @@ Promise.all([loadRobots(), loadSkyTables()])
   });
 
 // Drawn on top of the sky map, in both modes: the same signs everywhere
-//   orange arrow = the last echo (Story mode)       ring filling up = "hold still, locking on"
+//   pink arrow  = the last echo (Story mode)       ring filling up = "hold still, locking on"
 //   hint at the bottom until the player has moved the map once
 function drawMapOverlay(context, info) {
   const { width, height } = info;

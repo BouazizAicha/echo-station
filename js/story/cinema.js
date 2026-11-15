@@ -86,6 +86,8 @@ function buildDom() {
   };
   scene = createScene(dom.canvas);
   dom.skip.addEventListener('click', () => go(CARDS.length - 1));
+  // Tap the bubbles (the top of the screen) to go on to the next one
+  dom.stage.addEventListener('click', () => { if (talk?.now) talk.now(); });
   section.addEventListener('keydown', e => {
     if (!current || e.target.closest('.disc-stage, .disc-hold, input, textarea')) return;
     if (e.key === 'ArrowRight') { e.preventDefault(); go(current.index + 1); }
@@ -192,7 +194,13 @@ function robotSays(text) {
   if (!text) { b.hidden = true; dom.section.classList.remove('robot-talking'); return; }
   b.textContent = text;
   b.hidden = false;
-  b.classList.remove('pop'); void b.offsetWidth; b.classList.add('pop');
+  b.classList.remove('pop');
+  // never under the top bar (spacecraft float high in their scenes): slide the bubble down if needed
+  b.style.bottom = '';
+  const bar = document.getElementById('app-bar')?.getBoundingClientRect().bottom ?? 0;
+  const top = b.getBoundingClientRect().top;
+  if (top < bar + 8) b.style.bottom = `calc(100% + 12px - ${Math.ceil(bar + 8 - top)}px)`;
+  void b.offsetWidth; b.classList.add('pop');
   dom.section.classList.add('robot-talking');
 }
 
@@ -228,6 +236,8 @@ function utter(session, text, who, done) {
     clearTimeout(session.watchStart); clearTimeout(session.watchEnd);
     done();
   };
+  // a tap on the bubbles skips to the next one
+  session.now = () => { if (over) return; clearTimeout(session.timer); try { window.speechSynthesis?.cancel(); } catch (e) { /* ignore */ } end(); };
   if (session.silent || !voiceOn()) { session.timer = setTimeout(end, readMs); return; }
   const v = pickVoices();
   const u = new SpeechSynthesisUtterance(text.replace(/…/g, '...'));
