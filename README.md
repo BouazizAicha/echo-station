@@ -4,7 +4,7 @@
 
 **Live app:** https://bouazizaicha.github.io/echo-station/ (best on a phone, outside at night; works on a computer too)
 
-**Demo video (30 s):** LINK_TO_THE_VIDEO
+**Demo video (30 s):** https://drive.google.com/drive/folders/1Dmh11r5lNDPEqTPNKBDGHuZ5f8y_iJLD?usp=sharing
 
 ![Echo Station: your phone becomes Belu's antenna](docs/screenshot.jpg)
 
