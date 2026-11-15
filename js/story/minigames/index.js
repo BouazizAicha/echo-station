@@ -2,14 +2,27 @@
 //   "minigame": { "type": "drive", "settings": { ... }, "intro": "...", "hint": "...", "success": "..." }
 // Robots without a "minigame" field get the default below (C can override any text in the JSON).
 // To add a new template: create minigames/<type>.js exporting start(robot, ui) and register it here.
-import * as drive from './drive.js';
-import * as lander from './lander.js';
-import * as fly from './fly.js';
-import * as storm from './storm.js';
-import * as listen from './listen.js';
 import { howTo, helpButton, closeHowTo } from './kit.js';
 
-const TEMPLATES = { drive, lander, fly, storm, listen };
+// The games are downloaded only when a player opens one: the app starts faster, and a game file
+// that fails to download (bad connection, site being updated) cannot stop the rest of the app.
+// (?try=N: the browser remembers a failed download, so a new try needs a new address)
+const TEMPLATES = {
+  drive: q => import(`./drive.js${q}`),
+  lander: q => import(`./lander.js${q}`),
+  fly: q => import(`./fly.js${q}`),
+  storm: q => import(`./storm.js${q}`),
+  listen: q => import(`./listen.js${q}`),
+};
+const loaded = {};
+function loadTemplate(type, attempt = 0) {
+  loaded[type] ??= TEMPLATES[type](attempt ? `?try=${attempt}` : '').catch(err => {
+    delete loaded[type];
+    if (attempt >= 2) throw err;
+    return new Promise(r => setTimeout(r, 900)).then(() => loadTemplate(type, attempt + 1));
+  });
+  return loaded[type];
+}
 
 const DEFAULTS = {
   spirit: { type: 'drive', title: 'Drive with a stuck wheel' },
@@ -96,18 +109,20 @@ export function minigameOf(robot) {
 
 export function startMinigame(robot, ui) {
   const mg = minigameOf(robot);
-  const tpl = TEMPLATES[mg?.type];
-  if (!tpl) { console.warn('Unknown mini-game type', robot.minigame); return null; }
+  if (!TEMPLATES[mg?.type]) { console.warn('Unknown mini-game type', robot.minigame); return null; }
+  const loading = loadTemplate(mg.type);          // downloads while the player reads the rules
   const how = { ...HOW[mg.type], ...(mg.how || {}) };
   let inner = null, cancelled = false, removeHelp = null;
   ui.result.hidden = true;
   ui.hud.textContent = '';
   // 1. the rules, in big and simple words — 2. the game starts when the player presses Start
-  howTo(ui, how).then(() => {
+  howTo(ui, how).then(() => loading).then(tpl => {
     if (cancelled) return;
     // the templates read robot.minigame: give them the merged version
     inner = tpl.start({ ...robot, minigame: mg }, ui);
     if (mg.type !== 'drive') removeHelp = helpButton(ui, how);   // ? = rules again (pauses)
+  }, () => {
+    if (!cancelled) ui.hud.textContent = 'The game could not load. Check your connection, go back and try again.';
   });
   return {
     stop() { cancelled = true; closeHowTo(ui); removeHelp?.(); inner?.stop(); },

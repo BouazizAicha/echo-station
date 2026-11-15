@@ -39,6 +39,8 @@ import { computeGuide, guideMessage } from './engine/guide.js';
 import { initSkyMap } from './engine/skymap.js';
 import { pickTarget, activeTargets } from './engine/targeting.js';
 
+try { sessionStorage.removeItem('echo-reload'); } catch (e) { /* every file arrived */ }
+
 const TOLERANCE_DEG = 20;   // signal reaches 0 at 20° from the target
 const LOCK_LEVEL = 0.7;     // 70% of that = about 6° away
 const LOCK_TIME_MS = 1500;  // hold still this long to lock on

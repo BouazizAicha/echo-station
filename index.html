@@ -202,6 +202,21 @@
     </div>
   </div>
 
-  <script type="module" src="js/main.js"></script>
+  <script>
+    // A file could not be downloaded (bad connection, or the site is being updated): try once more,
+    // then show a clear message instead of a page that does nothing.
+    function echoLoadFailed() {
+      var tried = false;
+      try { tried = sessionStorage.getItem('echo-reload') === '1'; sessionStorage.setItem('echo-reload', '1'); } catch (e) { /* ignore */ }
+      if (!tried) { setTimeout(function () { location.reload(); }, 1500); return; }
+      var box = document.createElement('div');
+      box.className = 'load-error';
+      box.setAttribute('role', 'alert');
+      box.innerHTML = '<p>Echo Station could not load. Check your connection and try again.</p><button type="button" class="big">Try again</button>';
+      box.querySelector('button').onclick = function () { location.reload(); };
+      document.body.appendChild(box);
+    }
+  </script>
+  <script type="module" src="js/main.js" onerror="echoLoadFailed()"></script>
 </body>
 </html>
