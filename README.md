@@ -8,8 +8,6 @@
 
 **Music (demo video):** "Retro Arcade" style track from Pixabay Music (pixabay.com/music), free to use under the Pixabay Content License.
 
-**Music (demo video):** "Retro Arcade" style track from Pixabay Music (pixabay.com/music), free to use under the Pixabay Content License.
-
 ![Echo Station: your phone becomes Belu's antenna](docs/screenshot.jpg)
 
 Belu, a young beluga who "sees" with echoes, has lost his friends: six real NASA robots that went silent across the solar system.
