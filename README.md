@@ -4,6 +4,10 @@
 
 **Live app:** https://bouazizaicha.github.io/echo-station/ (best on a phone, outside at night; works on a computer too)
 
+**Demo video (30 s):** LINK_TO_THE_VIDEO
+
+![Echo Station: your phone becomes Belu's antenna](docs/screenshot.jpg)
+
 Belu, a young beluga who "sees" with echoes, has lost his friends: six real NASA robots that went silent across the solar system.
 Point your phone at the real sky: the signal grows when you aim at the true position of a robot. Find it, hear its true story,
 play its mission, and make it Belu's friend.
@@ -28,6 +32,14 @@ The robots: Eagle (Moon), Spirit, Opportunity and Ingenuity (Mars), Dawn (Ceres)
 - Every fact about the robots has a NASA source in `data/robots/*.json`.
 
 More detail: [ARCHITECTURE.md](ARCHITECTURE.md).
+
+## NASA data and credits
+
+- [NASA JPL Horizons](https://ssd.jpl.nasa.gov/horizons/): positions of Ceres and Pioneer 10.
+- [NASA NSSDCA](https://nssdc.gsfc.nasa.gov/) spacecraft records, NASA and JPL mission pages: facts and dates for each robot.
+- [LRO/LROC](https://www.lroc.asu.edu/) and [MRO/HiRISE](https://hirise.lpl.arizona.edu/) images: the landing sites seen from orbit. Every photo keeps its NASA credit.
+- [astronomy-engine](https://github.com/cosinekitty/astronomy) (MIT license) for the Moon and Mars, [Astropy](https://www.astropy.org/) for the accuracy check.
+- Full source list for each robot: `sources` in `data/robots/<robot>.json`.
 
 ## Built with
 
