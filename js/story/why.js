@@ -22,8 +22,8 @@ const END = 23;
 const BODIES = {
   earth: { au: 1, angle: 0, r: 5, color: '#5d9bff' },
   moon: { au: 1, angle: 0, offset: 0.00257, r: 2, color: '#c9d3e6' },
-  mars: { au: 1.52, angle: 2.3, r: 4, color: '#e0703a' },
-  ceres: { au: 2.77, angle: -2.2, r: 2.5, color: '#a78bfa' },
+  mars: { au: 1.52, angle: 2.3, r: 4, color: '#ff8a5c' },
+  ceres: { au: 2.77, angle: -2.2, r: 2.5, color: '#b49bff' },
   jupiter: { au: 5.2, angle: 1.0, r: 8, color: '#d9b38c' },
 };
 const HOME = { moon: 'moon', mars: 'mars', ceres: 'ceres', pioneer10: 'pioneer' };
@@ -104,7 +104,7 @@ export function showWhy({ robots = [], isFound = () => false, onExplore, onScien
       y: cy + Math.sin(angle) * au * s * 0.92,
     });
 
-    ctx.fillStyle = '#05070d';
+    ctx.fillStyle = '#0b0a1f';
     ctx.fillRect(0, 0, w, h);
     // stars (fixed)
     for (let i = 0; i < 140; i++) {
@@ -136,7 +136,7 @@ export function showWhy({ robots = [], isFound = () => false, onExplore, onScien
       ctx.fillStyle = b.color;
       ctx.beginPath(); ctx.arc(q.x, q.y, Math.min(r, m * 0.2), 0, TAU); ctx.fill();
       if (p > 0.55 || id === 'earth' || id === 'moon') {
-        ctx.fillStyle = 'rgba(232,236,244,.75)';
+        ctx.fillStyle = 'rgba(238,240,255,.75)';
         ctx.font = '11px "JetBrains Mono", monospace';
         const label = id.toUpperCase();
         const lw = ctx.measureText(label).width, gap = Math.min(r, m * 0.2) + 6;
@@ -156,7 +156,7 @@ export function showWhy({ robots = [], isFound = () => false, onExplore, onScien
       if (!home || !places[home] || done.has(home)) continue;
       done.add(home);
       const q = places[home];
-      ctx.strokeStyle = `rgba(93,255,176,${0.8 * (1 - pulse)})`; ctx.lineWidth = 2;
+      ctx.strokeStyle = `rgba(93,228,255,${0.8 * (1 - pulse)})`; ctx.lineWidth = 2;
       ctx.beginPath(); ctx.arc(q.x, q.y, 10 + pulse * 18, 0, TAU); ctx.stroke();
     }
     if (p > 0.7) {

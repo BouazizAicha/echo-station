@@ -121,7 +121,7 @@ export function initSkyMap({
 
   function drawBackground(width, height) {
     const gradient = context.createLinearGradient(0, 0, 0, height);
-    gradient.addColorStop(0, '#05070d');
+    gradient.addColorStop(0, '#0b0a1f');
     gradient.addColorStop(0.55, '#120e33');
     gradient.addColorStop(1, '#1d1648');
     context.fillStyle = gradient;
@@ -156,7 +156,7 @@ export function initSkyMap({
     const top = Math.max(0, horizonY);
     const gradient = context.createLinearGradient(0, horizonY, 0, horizonY + 90 * scale);
     gradient.addColorStop(0, 'rgba(20, 90, 114, 0.55)');
-    gradient.addColorStop(1, 'rgba(5, 7, 13, 0.9)');
+    gradient.addColorStop(1, 'rgba(11,10,31, 0.9)');
     context.fillStyle = gradient;
     context.fillRect(0, top, width, height - top);
     context.fillStyle = 'rgba(160, 225, 255, 0.75)';
@@ -202,7 +202,7 @@ export function initSkyMap({
     // Horizon.
     const horizonY = height / 2 + view.alt * scale;
     if (horizonY >= 0 && horizonY <= height) {
-      context.strokeStyle = 'rgba(93, 255, 176, 0.35)';
+      context.strokeStyle = 'rgba(93, 228, 255, 0.35)';
       context.setLineDash([6, 6]);
       context.beginPath();
       context.moveTo(0, horizonY);
@@ -246,7 +246,7 @@ export function initSkyMap({
     context.beginPath();
     context.arc(point.x, point.y, radius, 0, Math.PI * 2);
     context.clip();
-    context.fillStyle = '#05070d';
+    context.fillStyle = '#0b0a1f';
     context.beginPath();
     context.arc(point.x + 2 * radius * illuminated, point.y, radius, 0, Math.PI * 2);
     context.fill();
@@ -296,12 +296,12 @@ export function initSkyMap({
     }
 
     if (foundAll) {
-      context.strokeStyle = '#5dffb0';
+      context.strokeStyle = '#5de4ff';
       context.lineWidth = 1.5;
       context.beginPath();
       context.arc(point.x, point.y, radius + 6, 0, Math.PI * 2);
       context.stroke();
-      context.fillStyle = '#5dffb0';
+      context.fillStyle = '#5de4ff';
       context.font = '11px ui-monospace, SFMono-Regular, Menlo, monospace';
       context.textAlign = 'center';
       context.fillText('✓', point.x, point.y - radius - 10);
@@ -328,8 +328,8 @@ export function initSkyMap({
       context.save();
       context.translate(centerX, centerY);
       context.rotate(guide.rotateDeg * RADIANS);
-      context.fillStyle = near ? '#5dffb0' : 'rgba(93, 255, 176, 0.9)';
-      context.shadowColor = '#5dffb0';
+      context.fillStyle = near ? '#5de4ff' : 'rgba(93, 228, 255, 0.9)';
+      context.shadowColor = '#5de4ff';
       context.shadowBlur = near ? 18 : 8;
       context.beginPath();
       context.moveTo(48, 0);
@@ -353,7 +353,7 @@ export function initSkyMap({
 
     // Reticle.
     const pulse = near && !calm() ? 0.6 + 0.4 * Math.sin(time / 160) : 0.7;
-    context.strokeStyle = `rgba(93, 255, 176, ${pulse})`;
+    context.strokeStyle = `rgba(93, 228, 255, ${pulse})`;
     context.lineWidth = 1.4;
     context.beginPath();
     context.arc(centerX, centerY, near ? 20 : 16, 0, Math.PI * 2);
@@ -364,7 +364,7 @@ export function initSkyMap({
       context.lineTo(centerX + dx * 30, centerY + dy * 30);
       context.stroke();
     }
-    context.fillStyle = 'rgba(93, 255, 176, 0.9)';
+    context.fillStyle = 'rgba(93, 228, 255, 0.9)';
     context.beginPath();
     context.arc(centerX, centerY, 1.8, 0, Math.PI * 2);
     context.fill();

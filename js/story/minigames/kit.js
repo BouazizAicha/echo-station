@@ -357,7 +357,7 @@ export function starfield(ctx, W, H, n = 80, seed = 3, alpha = 1) {
 }
 
 // The goal, always visible at the top of the game, in plain words
-export function goalBanner(ctx, W, y, text, color = '#e8ecf4') {
+export function goalBanner(ctx, W, y, text, color = '#eef0ff') {
   ctx.font = '700 13px Inter, system-ui, sans-serif';
   const w = Math.min(W - 16, ctx.measureText(text).width + 24);
   ctx.fillStyle = 'rgba(5,7,13,.82)';
@@ -372,12 +372,12 @@ export function warning(ctx, x, y, text) {
   ctx.textAlign = 'center';
   ctx.lineWidth = 4; ctx.strokeStyle = 'rgba(5,7,13,.9)';
   ctx.strokeText(text, x, y);
-  ctx.fillStyle = '#ffb347';
+  ctx.fillStyle = '#ff9bd5';
   ctx.fillText(text, x, y);
 }
 
 // An arrow on the edge of the game pointing to something off screen
-export function edgeArrow(ctx, x, y, angle, color = '#ffb347') {
+export function edgeArrow(ctx, x, y, angle, color = '#ff9bd5') {
   ctx.save(); ctx.translate(x, y); ctx.rotate(angle);
   ctx.fillStyle = color;
   ctx.beginPath(); ctx.moveTo(14, 0); ctx.lineTo(-8, -10); ctx.lineTo(-3, 0); ctx.lineTo(-8, 10); ctx.closePath(); ctx.fill();
@@ -394,7 +394,7 @@ export function bar(ctx, x, y, w, h, value, color, label) {
   ctx.fillStyle = color;
   ctx.beginPath(); ctx.roundRect(x, y, Math.max(h, w * clamp(value, 0, 1)), h, h / 2); ctx.fill();
   if (label) {
-    ctx.fillStyle = '#e8ecf4'; ctx.font = '700 9px "JetBrains Mono", monospace'; ctx.textAlign = 'left';
+    ctx.fillStyle = '#eef0ff'; ctx.font = '700 9px "JetBrains Mono", monospace'; ctx.textAlign = 'left';
     ctx.fillText(label, x + 6, y + h - 3);
   }
 }

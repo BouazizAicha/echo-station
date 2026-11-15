@@ -912,13 +912,13 @@ function drawMapOverlay(context, info) {
   if (isStory()) sonar.draw(context, info);
   const cx = width / 2, cy = height / 2;
   if (state.lockProgress > 0) {
-    context.strokeStyle = 'rgba(93, 255, 176, 0.25)';
+    context.strokeStyle = 'rgba(93, 228, 255, 0.25)';
     context.lineWidth = 5;
     context.beginPath(); context.arc(cx, cy, 30, 0, Math.PI * 2); context.stroke();
-    context.strokeStyle = '#5dffb0';
+    context.strokeStyle = '#5de4ff';
     context.beginPath(); context.arc(cx, cy, 30, -Math.PI / 2, -Math.PI / 2 + state.lockProgress * Math.PI * 2); context.stroke();
     if (isStory()) {
-      context.fillStyle = '#e8ecf4'; context.font = '700 13px Inter, sans-serif'; context.textAlign = 'center';
+      context.fillStyle = '#eef0ff'; context.font = '700 13px Inter, sans-serif'; context.textAlign = 'center';
       context.fillText('Hold still…', cx, cy + 52);
     }
   }
@@ -926,9 +926,9 @@ function drawMapOverlay(context, info) {
     const text = '👆 Drag the sky to look around';
     context.font = '600 13px Inter, sans-serif';
     const w = context.measureText(text).width + 24;
-    context.fillStyle = 'rgba(5, 7, 13, 0.8)';
+    context.fillStyle = 'rgba(11,10,31, 0.8)';
     context.beginPath(); context.roundRect(cx - w / 2, height - 44, w, 28, 14); context.fill();
-    context.fillStyle = '#e8ecf4'; context.textAlign = 'center';
+    context.fillStyle = '#eef0ff'; context.textAlign = 'center';
     context.fillText(text, cx, height - 25);
   }
 }
