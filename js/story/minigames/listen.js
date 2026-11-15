@@ -133,29 +133,29 @@ function run(mg, ui) {
     // noise speckles, more as the years pass
     const noise = 40 + Math.round((view.year - START_YEAR) * 6);
     for (let i = 0; i < noise; i++) {
-      ctx.fillStyle = `rgba(93,228,255,${0.05 + Math.random() * 0.08})`;
+      ctx.fillStyle = `rgba(93,255,176,${0.05 + Math.random() * 0.08})`;
       ctx.fillRect(Math.random() * W, Math.random() * VIEW_H, 2, 2);
     }
     // Pioneer's signal: a faint violet glow
     const glowR = 10 + 10 * view.strength;
     const sg = ctx.createRadialGradient(sig.x, sig.y, 0, sig.x, sig.y, glowR);
-    sg.addColorStop(0, `rgba(180,155,255,${0.25 + 0.75 * view.strength})`); sg.addColorStop(1, 'rgba(180,155,255,0)');
+    sg.addColorStop(0, `rgba(167,139,250,${0.25 + 0.75 * view.strength})`); sg.addColorStop(1, 'rgba(167,139,250,0)');
     ctx.fillStyle = sg; ctx.beginPath(); ctx.arc(sig.x, sig.y, glowR, 0, TAU); ctx.fill();
     // the dish's aim
-    ctx.strokeStyle = view.locked ? '#5de4ff' : 'rgba(238,240,255,.7)'; ctx.lineWidth = 2;
+    ctx.strokeStyle = view.locked ? '#5dffb0' : 'rgba(232,236,244,.7)'; ctx.lineWidth = 2;
     ctx.beginPath(); ctx.arc(dish.x, dish.y, view.radius, 0, TAU); ctx.stroke();
     ctx.beginPath(); ctx.moveTo(dish.x - view.radius - 8, dish.y); ctx.lineTo(dish.x - view.radius + 4, dish.y);
     ctx.moveTo(dish.x + view.radius - 4, dish.y); ctx.lineTo(dish.x + view.radius + 8, dish.y);
     ctx.moveTo(dish.x, dish.y - view.radius - 8); ctx.lineTo(dish.x, dish.y - view.radius + 4);
     ctx.moveTo(dish.x, dish.y + view.radius - 4); ctx.lineTo(dish.x, dish.y + view.radius + 8); ctx.stroke();
-    if (view.locked) { ctx.fillStyle = '#5de4ff'; ctx.font = '700 10px "JetBrains Mono", monospace'; ctx.textAlign = 'center'; ctx.fillText('LOCKED', dish.x, dish.y + view.radius + 20); }
+    if (view.locked) { ctx.fillStyle = '#5dffb0'; ctx.font = '700 10px "JetBrains Mono", monospace'; ctx.textAlign = 'center'; ctx.fillText('LOCKED', dish.x, dish.y + view.radius + 20); }
 
     // lower panel: spectrum + dish drawing
-    ctx.fillStyle = '#0b0a1f'; ctx.fillRect(0, VIEW_H, W, H - VIEW_H);
-    ctx.strokeStyle = '#2c2860'; ctx.beginPath(); ctx.moveTo(0, VIEW_H); ctx.lineTo(W, VIEW_H); ctx.stroke();
-    ctx.fillStyle = '#9a9cc4'; ctx.font = '9px "JetBrains Mono", monospace'; ctx.textAlign = 'left';
+    ctx.fillStyle = '#05070d'; ctx.fillRect(0, VIEW_H, W, H - VIEW_H);
+    ctx.strokeStyle = '#243049'; ctx.beginPath(); ctx.moveTo(0, VIEW_H); ctx.lineTo(W, VIEW_H); ctx.stroke();
+    ctx.fillStyle = '#8a94a8'; ctx.font = '9px "JetBrains Mono", monospace'; ctx.textAlign = 'left';
     ctx.fillText('SPECTRUM · 2.29 GHz', 12, VIEW_H + 16);
-    ctx.strokeStyle = '#b49bff'; ctx.lineWidth = 1.5; ctx.beginPath();
+    ctx.strokeStyle = '#a78bfa'; ctx.lineWidth = 1.5; ctx.beginPath();
     for (let i = 0; i < spectrum.length; i++) {
       const x = 12 + (i / (spectrum.length - 1)) * 220;
       const y = VIEW_H + 110 - spectrum[i] * 38;
@@ -168,20 +168,20 @@ function run(mg, ui) {
     ctx.beginPath(); ctx.moveTo(bx - 10, by + 22); ctx.lineTo(bx, by); ctx.lineTo(bx + 10, by + 22); ctx.stroke();
     ctx.fillStyle = '#2a2660';
     ctx.beginPath(); ctx.ellipse(bx, by - 8, 34, 14, -0.5, Math.PI * 0.05, Math.PI * 1.05); ctx.fill(); ctx.stroke();
-    ctx.fillStyle = '#9a9cc4'; ctx.textAlign = 'center'; ctx.fillText('DSN 70 m', bx, VIEW_H + 140);
+    ctx.fillStyle = '#8a94a8'; ctx.textAlign = 'center'; ctx.fillText('DSN 70 m', bx, VIEW_H + 140);
 
-    bar(ctx, 12, 12, 120, 14, view.strength, '#b49bff', 'SIGNAL');
-    bar(ctx, 12, 30, 120, 14, maxData ? data / maxData : 0, '#5de4ff', `DATA ${Math.round(maxData ? data / maxData * 100 : 0)}%`);
+    bar(ctx, 12, 12, 120, 14, view.strength, '#a78bfa', 'SIGNAL');
+    bar(ctx, 12, 30, 120, 14, maxData ? data / maxData : 0, '#5dffb0', `DATA ${Math.round(maxData ? data / maxData * 100 : 0)}%`);
     panel(ctx, 276, 12, 72, 32);
-    ctx.fillStyle = '#eef0ff'; ctx.font = '700 16px "JetBrains Mono", monospace'; ctx.textAlign = 'center';
+    ctx.fillStyle = '#e8ecf4'; ctx.font = '700 16px "JetBrains Mono", monospace'; ctx.textAlign = 'center';
     ctx.fillText(String(Math.min(END_YEAR, Math.floor(view.year))), 312, 34);
     // the goal, in words, and a small arrow from the circle toward the glow
-    goalBanner(ctx, W, 52, view.locked ? 'Great! Stay on the glow' : 'Move the circle onto the purple glow', view.locked ? '#5de4ff' : '#eef0ff');
+    goalBanner(ctx, W, 52, view.locked ? 'Great! Stay on the glow' : 'Move the circle onto the purple glow', view.locked ? '#5dffb0' : '#e8ecf4');
     if (!view.locked) {
       const a = Math.atan2(sig.y - dish.y, sig.x - dish.x);
       const r = view.radius + 14;
       ctx.save(); ctx.translate(dish.x + Math.cos(a) * r, dish.y + Math.sin(a) * r); ctx.rotate(a);
-      ctx.fillStyle = 'rgba(180,155,255,.9)';
+      ctx.fillStyle = 'rgba(167,139,250,.9)';
       ctx.beginPath(); ctx.moveTo(9, 0); ctx.lineTo(-5, -7); ctx.lineTo(-5, 7); ctx.closePath(); ctx.fill();
       ctx.restore();
     }

@@ -69,7 +69,7 @@ let HZ = 0.34, HZ_TARGET = 0.34;
 const horizonY = h => Math.round(h * HZ);
 
 function moon(ctx, w, h, t) {
-  ctx.fillStyle = vertical(ctx, h, [[0, '#04030c'], [HZ, '#0b0a1f'], [1, '#0b0a1f']]);
+  ctx.fillStyle = vertical(ctx, h, [[0, '#04030c'], [HZ, '#05070d'], [1, '#05070d']]);
   ctx.fillRect(0, 0, w, h);
   drawStars(ctx, w, h, STARS, t, { maxY: HZ });
 
@@ -147,10 +147,10 @@ function mars(ctx, w, h, t) {
 }
 
 function space(ctx, w, h, t, { sun = 0.06 } = {}) {
-  ctx.fillStyle = vertical(ctx, h, [[0, '#06051a'], [0.6, '#0b0a1f'], [1, '#140f36']]);
+  ctx.fillStyle = vertical(ctx, h, [[0, '#06051a'], [0.6, '#05070d'], [1, '#140f36']]);
   ctx.fillRect(0, 0, w, h);
-  glow(ctx, w * 0.7, h * 0.25, Math.max(w, h) * 0.45, 'rgba(180,155,255,.16)');
-  glow(ctx, w * 0.2, h * 0.7, Math.max(w, h) * 0.4, 'rgba(255,155,213,.08)');
+  glow(ctx, w * 0.7, h * 0.25, Math.max(w, h) * 0.45, 'rgba(167,139,250,.16)');
+  glow(ctx, w * 0.2, h * 0.7, Math.max(w, h) * 0.4, 'rgba(255,179,71,.08)');
   drawStars(ctx, w, h, STARS, t, { driftX: -1 });
   // A tiny Sun, very far away
   const sx = w * 0.1, sy = h * 0.16;

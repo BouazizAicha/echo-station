@@ -168,7 +168,7 @@ export function start(robot, ui) {
     ctx.rotate(rover.a);
     ctx.fillStyle = '#d9dde6';
     ctx.fillRect(-12, -8, 24, 16);                     // body (front = +x)
-    ctx.fillStyle = '#5de4ff';
+    ctx.fillStyle = '#5dffb0';
     ctx.fillRect(8, -3, 4, 6);                         // front marker
     for (const [fx, sx] of [[10, 9], [10, -9], [0, 9], [0, -9], [-10, 9], [-10, -9]]) {
       const isStuck = stuck && fx === 10 && sx === 9 * side;
@@ -178,11 +178,11 @@ export function start(robot, ui) {
     ctx.restore();
 
     const inZone = Math.hypot(rover.x - zone.x, rover.y - zone.y) < zone.r;
-    goalBanner(ctx, W, 12, inZone ? `Scrape the ground: ${found}/${S.reveal_goal} bright spots` : `Drive to ${S.zone_label} (dashed circle)`, inZone ? '#5de4ff' : '#eef0ff');
+    goalBanner(ctx, W, 12, inZone ? `Scrape the ground: ${found}/${S.reveal_goal} bright spots` : `Drive to ${S.zone_label} (dashed circle)`, inZone ? '#5dffb0' : '#e8ecf4');
     const dir = rover.v < -1 ? 'REVERSE' : rover.v > 1 ? 'FORWARD' : 'STOPPED';
-    bar(ctx, 12, H - 26, 130, 14, battery, battery < 0.25 ? '#ff9bd5' : '#5de4ff', `BATTERY ${Math.round(battery * 100)}%`);
-    ctx.fillStyle = 'rgba(11,10,31,.75)'; ctx.beginPath(); ctx.roundRect(W - 98, H - 26, 86, 14, 7); ctx.fill();
-    ctx.fillStyle = '#eef0ff'; ctx.font = '700 9px "JetBrains Mono", monospace'; ctx.textAlign = 'center';
+    bar(ctx, 12, H - 26, 130, 14, battery, battery < 0.25 ? '#ffb347' : '#5dffb0', `BATTERY ${Math.round(battery * 100)}%`);
+    ctx.fillStyle = 'rgba(5,7,13,.75)'; ctx.beginPath(); ctx.roundRect(W - 98, H - 26, 86, 14, 7); ctx.fill();
+    ctx.fillStyle = '#e8ecf4'; ctx.font = '700 9px "JetBrains Mono", monospace'; ctx.textAlign = 'center';
     ctx.fillText(dir, W - 55, H - 15.5);
     ui.hud.textContent = `Battery ${Math.round(battery * 100)}%  ·  ${S.reveal_label} found ${found}/${S.reveal_goal}  ·  ${dir}`;
   }

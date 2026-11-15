@@ -64,7 +64,7 @@ const HOW = {
     steps: [
       { icon: '▲', text: 'Hold to fire the engine and slow down' },
       { icon: '◀▶', text: 'Move sideways, past the boulders' },
-      { icon: '↓', text: 'Touch down slowly: DOWN speed blue, not pink' },
+      { icon: '↓', text: 'Touch down slowly: DOWN speed green, not orange' },
     ],
     warn: 'Fuel is limited: do not keep the engine on all the time.',
   },
@@ -73,7 +73,7 @@ const HOW = {
     steps: [
       { icon: '▲', text: 'Hold to climb. Let go to come down' },
       { icon: '◀▶', text: 'Fly left or right' },
-      { icon: '📷', text: 'Hover low over a pink CAMERA box' },
+      { icon: '📷', text: 'Hover low over an orange CAMERA box' },
       { icon: '🛬', text: 'Land slowly on AIRFIELD B, far right' },
     ],
     warn: 'Gusts of wind push you, and smooth sand makes you drift.',

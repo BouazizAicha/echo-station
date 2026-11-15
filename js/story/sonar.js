@@ -33,7 +33,7 @@ function words(guide, target) {
 export function createSonar({ getAim, getTargets, mount }) {
   const pings = [];        // { t0, echoes: [{ target, tHit, tBack, guide, strength }] }
   let clicks = 0, lastPing = 0, longFlash = false;
-  let heard = null;        // id of the friend heard last: the pink arrow keeps pointing to it
+  let heard = null;        // id of the friend heard last: the orange arrow keeps pointing to it
 
   // ---- panel (shown only in Story mode, by CSS) ----
   const panel = el('section', 'sonar');
@@ -90,7 +90,7 @@ export function createSonar({ getAim, getTargets, mount }) {
     if (best) {
       setTimeout(() => {
         vibrate(Math.round(30 + 120 * best.strength));
-        text.textContent = `${words(best.guide, best.target)} Follow the pink arrow!`;
+        text.textContent = `${words(best.guide, best.target)} Follow the orange arrow!`;
         speak(text.textContent, { interrupt: true });
         heard = best.target.id;
         compass.classList.add('show');
@@ -112,7 +112,7 @@ export function createSonar({ getAim, getTargets, mount }) {
       if (age > Math.max(RING_MAX, last)) { pings.splice(i, 1); continue; }
       // the outgoing ring
       if (age < RING_MAX) {
-        context.strokeStyle = `rgba(93, 228, 255, ${0.7 * (1 - age / RING_MAX)})`;
+        context.strokeStyle = `rgba(93, 255, 176, ${0.7 * (1 - age / RING_MAX)})`;
         context.lineWidth = 3;
         context.beginPath();
         context.arc(cx, cy, age * SPEED * scale, 0, Math.PI * 2);
@@ -128,12 +128,12 @@ export function createSonar({ getAim, getTargets, mount }) {
         const inside = point.x > 10 && point.x < width - 10 && point.y > 10 && point.y < height - 10;
         if (inside) {
           const r = 10 + 22 * clamp(since / 0.6, 0, 1);
-          context.strokeStyle = `rgba(255, 155, 213, ${0.9 * fade})`;
+          context.strokeStyle = `rgba(255, 179, 71, ${0.9 * fade})`;
           context.lineWidth = 2.5;
           context.beginPath(); context.arc(point.x, point.y, r, 0, Math.PI * 2); context.stroke();
           const glow = context.createRadialGradient(point.x, point.y, 0, point.x, point.y, 16);
           glow.addColorStop(0, `rgba(255, 255, 255, ${fade})`);
-          glow.addColorStop(1, 'rgba(255, 155, 213, 0)');
+          glow.addColorStop(1, 'rgba(255, 179, 71, 0)');
           context.fillStyle = glow;
           context.beginPath(); context.arc(point.x, point.y, 16, 0, Math.PI * 2); context.fill();
           context.fillStyle = `rgba(255, 220, 240, ${fade})`;
@@ -148,7 +148,7 @@ export function createSonar({ getAim, getTargets, mount }) {
           context.save();
           context.translate(ex, ey);
           context.rotate(Math.atan2(dy, dx));
-          context.fillStyle = `rgba(255, 155, 213, ${0.95 * fade})`;
+          context.fillStyle = `rgba(255, 179, 71, ${0.95 * fade})`;
           context.beginPath(); context.moveTo(12, 0); context.lineTo(-8, -9); context.lineTo(-4, 0); context.lineTo(-8, 9); context.closePath(); context.fill();
           context.restore();
         }
@@ -156,7 +156,7 @@ export function createSonar({ getAim, getTargets, mount }) {
     }
   }
 
-  // The pink arrow: from where you aim to the friend heard last (map and sonar panel)
+  // The orange arrow: from where you aim to the friend heard last (map and sonar panel)
   function pointer() {
     if (!heard) return null;
     const target = getTargets().find(t => t.id === heard);
@@ -182,8 +182,8 @@ export function createSonar({ getAim, getTargets, mount }) {
     context.save();
     context.translate(cx, cy);
     context.rotate((shownDeg ?? p.guide.rotateDeg) * Math.PI / 180);
-    context.fillStyle = '#ff9bd5';
-    context.shadowColor = '#ff9bd5'; context.shadowBlur = 10;
+    context.fillStyle = '#ffb347';
+    context.shadowColor = '#ffb347'; context.shadowBlur = 10;
     context.beginPath(); context.moveTo(58, 0); context.lineTo(36, -11); context.lineTo(40, 0); context.lineTo(36, 11); context.closePath(); context.fill();
     context.restore();
   }

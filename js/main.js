@@ -763,7 +763,7 @@ const COACH = {
     steps: [
       ['👆', 'Drag the sky, or use your phone as an antenna'],
       ['🔊', 'Press Click! A friend answers with an echo'],
-      ['➜', 'Follow the pink arrow'],
+      ['➜', 'Follow the orange arrow'],
       ['◎', 'Hold still on the spot until Belu smiles'],
     ],
     start: 'Let\'s go!',
@@ -772,7 +772,7 @@ const COACH = {
     goal: 'Point at the real sky to tune in to NASA\'s robots.',
     steps: [
       ['👆', 'Drag the sky map, or use your phone (calibrate on the Moon)'],
-      ['➜', 'Follow the blue arrow to the nearest target'],
+      ['➜', 'Follow the green arrow to the nearest target'],
       ['◎', 'Keep the crosshair on it for 1.5 seconds'],
       ['📋', 'Open the list for every target and its coordinates'],
     ],
@@ -905,20 +905,20 @@ Promise.all([loadRobots(), loadSkyTables()])
   });
 
 // Drawn on top of the sky map, in both modes: the same signs everywhere
-//   pink arrow  = the last echo (Story mode)       ring filling up = "hold still, locking on"
+//   orange arrow = the last echo (Story mode)       ring filling up = "hold still, locking on"
 //   hint at the bottom until the player has moved the map once
 function drawMapOverlay(context, info) {
   const { width, height } = info;
   if (isStory()) sonar.draw(context, info);
   const cx = width / 2, cy = height / 2;
   if (state.lockProgress > 0) {
-    context.strokeStyle = 'rgba(93, 228, 255, 0.25)';
+    context.strokeStyle = 'rgba(93, 255, 176, 0.25)';
     context.lineWidth = 5;
     context.beginPath(); context.arc(cx, cy, 30, 0, Math.PI * 2); context.stroke();
-    context.strokeStyle = '#5de4ff';
+    context.strokeStyle = '#5dffb0';
     context.beginPath(); context.arc(cx, cy, 30, -Math.PI / 2, -Math.PI / 2 + state.lockProgress * Math.PI * 2); context.stroke();
     if (isStory()) {
-      context.fillStyle = '#eef0ff'; context.font = '700 13px Inter, sans-serif'; context.textAlign = 'center';
+      context.fillStyle = '#e8ecf4'; context.font = '700 13px Inter, sans-serif'; context.textAlign = 'center';
       context.fillText('Hold still…', cx, cy + 52);
     }
   }
@@ -926,9 +926,9 @@ function drawMapOverlay(context, info) {
     const text = '👆 Drag the sky to look around';
     context.font = '600 13px Inter, sans-serif';
     const w = context.measureText(text).width + 24;
-    context.fillStyle = 'rgba(11, 10, 31, 0.8)';
+    context.fillStyle = 'rgba(5, 7, 13, 0.8)';
     context.beginPath(); context.roundRect(cx - w / 2, height - 44, w, 28, 14); context.fill();
-    context.fillStyle = '#eef0ff'; context.textAlign = 'center';
+    context.fillStyle = '#e8ecf4'; context.textAlign = 'center';
     context.fillText(text, cx, height - 25);
   }
 }

@@ -160,34 +160,34 @@ function run(mg, ui) {
     }
     // the rover (side view), with dust on the solar panels
     const x = rover, y = GROUND - 12;
-    ctx.fillStyle = '#1d2a5a'; ctx.strokeStyle = '#5de4ff'; ctx.lineWidth = 1.5;
+    ctx.fillStyle = '#1d2a5a'; ctx.strokeStyle = '#5dffb0'; ctx.lineWidth = 1.5;
     ctx.beginPath(); ctx.roundRect(x - 34, y - 26, 68, 8, 2); ctx.fill(); ctx.stroke();
     ctx.fillStyle = `rgba(180,110,70,${0.85 * (1 - clean)})`; ctx.fillRect(x - 34, y - 26, 68, 8);
     ctx.fillStyle = '#c9d3e6'; ctx.fillRect(x - 18, y - 18, 36, 12);
     ctx.strokeStyle = '#c9d3e6'; ctx.lineWidth = 2;
     ctx.beginPath(); ctx.moveTo(x + 10, y - 26); ctx.lineTo(x + 10, y - 44); ctx.stroke();
     ctx.fillStyle = '#2a2660'; ctx.fillRect(x + 4, y - 50, 12, 7);
-    ctx.fillStyle = science ? '#5de4ff' : '#4b4f6c'; ctx.beginPath(); ctx.arc(x + 10, y - 46, 2, 0, TAU); ctx.fill();
+    ctx.fillStyle = science ? '#5dffb0' : '#4b4f6c'; ctx.beginPath(); ctx.arc(x + 10, y - 46, 2, 0, TAU); ctx.fill();
     for (const wx of [-24, 0, 24]) { ctx.fillStyle = '#1b2436'; ctx.beginPath(); ctx.arc(x + wx, y + 4, 7, 0, TAU); ctx.fill(); }
 
     // gauges
-    bar(ctx, 12, 12, 140, 14, battery / 100, battery < 20 ? '#ff9bd5' : '#5de4ff', `BATTERY ${Math.round(battery)}%`);
-    bar(ctx, 12, 30, 140, 14, clean, '#b49bff', `CLEAN PANELS ${Math.round(clean * 100)}%`);
+    bar(ctx, 12, 12, 140, 14, battery / 100, battery < 20 ? '#ffb347' : '#5dffb0', `BATTERY ${Math.round(battery)}%`);
+    bar(ctx, 12, 30, 140, 14, clean, '#a78bfa', `CLEAN PANELS ${Math.round(clean * 100)}%`);
     panel(ctx, 210, 12, 138, 32);
     ctx.textAlign = 'left'; ctx.font = '700 10px "JetBrains Mono", monospace';
-    ctx.fillStyle = '#eef0ff'; ctx.fillText(`SOL ${Math.min(SOLS, Math.floor(t / SOL) + 1)}/${SOLS}`, 218, 25);
-    ctx.fillStyle = science ? '#5de4ff' : '#9a9cc4'; ctx.fillText(`SCIENCE ${Math.round(points)}`, 218, 38);
-    ctx.fillStyle = '#eef0ff'; ctx.textAlign = 'right';
+    ctx.fillStyle = '#e8ecf4'; ctx.fillText(`SOL ${Math.min(SOLS, Math.floor(t / SOL) + 1)}/${SOLS}`, 218, 25);
+    ctx.fillStyle = science ? '#5dffb0' : '#8a94a8'; ctx.fillText(`SCIENCE ${Math.round(points)}`, 218, 38);
+    ctx.fillStyle = '#e8ecf4'; ctx.textAlign = 'right';
     ctx.fillText(day > 0 ? (tau > 3 ? 'STORM' : 'DAY') : 'NIGHT', 342, 25);
     // the goal, in words: what matters right now
     const devil = devils.find(d => !d.cleaned);
-    let words = `Survive 8 days · Day ${Math.min(SOLS, Math.floor(t / SOL) + 1)}`, color = '#eef0ff';
-    if (devil) { words = 'Dust devil! Drive into it to clean the panels'; color = '#5de4ff'; }
-    else if (battery < 30 && science) { words = 'Battery low: turn science OFF (▲)'; color = '#ff9bd5'; }
-    else if (tau > 3) { words = 'Big storm: save power!'; color = '#ff9bd5'; }
+    let words = `Survive 8 days · Day ${Math.min(SOLS, Math.floor(t / SOL) + 1)}`, color = '#e8ecf4';
+    if (devil) { words = 'Dust devil! Drive into it to clean the panels'; color = '#5dffb0'; }
+    else if (battery < 30 && science) { words = 'Battery low: turn science OFF (▲)'; color = '#ffb347'; }
+    else if (tau > 3) { words = 'Big storm: save power!'; color = '#ffb347'; }
     else if (day === 0) words = `Night ${Math.min(SOLS, Math.floor(t / SOL) + 1)}: the heaters use power`;
     goalBanner(ctx, W, 52, words, color);
-    if (devil && Math.abs(devil.x - rover) > 40) edgeArrow(ctx, devil.x < rover ? rover - 48 : rover + 48, GROUND - 70, devil.x < rover ? Math.PI : 0, '#5de4ff');
+    if (devil && Math.abs(devil.x - rover) > 40) edgeArrow(ctx, devil.x < rover ? rover - 48 : rover + 48, GROUND - 70, devil.x < rover ? Math.PI : 0, '#5dffb0');
     ui.hud.textContent = `Sol ${Math.min(SOLS, Math.floor(t / SOL) + 1)}/${SOLS} · Battery ${Math.round(battery)}% · Panels ${Math.round(clean * 100)}% clean · Science ${Math.round(points)}`;
   }
 

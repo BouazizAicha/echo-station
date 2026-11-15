@@ -12,6 +12,8 @@ import { speak } from './speak.js';
 
 const TAU = Math.PI * 2;
 const BELU = mood => `assets/images/belu-${mood}.svg`;
+const SWIM = 'assets/images/belu-swim.svg';       // side view, under water (drawings by Oumayma)
+const SWIM_RATIO = 424 / 980, FRONT_RATIO = 417 / 306;
 
 const PHASES = [
   { at: 0, text: 'Deep in the ocean lives Belu, a young beluga whale.' },
@@ -26,10 +28,10 @@ const END = 54;
 // The worlds in the sky. Each world has one tidy name tag beside it that lists its robots,
 // so names never sit on top of a planet or of each other.
 const WORLDS = {
-  deep: { name: 'Deep space', color: '#b49bff' },
+  deep: { name: 'Deep space', color: '#a78bfa' },
   moon: { name: 'The Moon', color: '#c9d3e6' },
-  mars: { name: 'Mars', color: '#ff8a5c' },
-  ceres: { name: 'Ceres', color: '#b49bff' },
+  mars: { name: 'Mars', color: '#e0703a' },
+  ceres: { name: 'Ceres', color: '#a78bfa' },
 };
 // Where each world sits (fractions of the screen) and on which side its tag goes
 const LAYOUTS = {
@@ -91,7 +93,7 @@ function buildDom() {
   root.setAttribute('aria-label', 'Belu\'s story');
   root.innerHTML = `
     <canvas class="pro-back" aria-hidden="true"></canvas>
-    <img class="pro-belu" alt="" src="${BELU('neutral')}">
+    <img class="pro-belu" alt="" src="${SWIM}">
     <canvas class="pro-front" aria-hidden="true"></canvas>
     <div class="pro-labels" aria-hidden="true"></div>
     <div class="pro-bar" aria-hidden="true"><span></span></div>
@@ -117,6 +119,7 @@ export function playPrologue({ robots = [], onDone } = {}) {
   const back = root.querySelector('.pro-back');
   const front = root.querySelector('.pro-front');
   const belu = root.querySelector('.pro-belu');
+  const setBelu = src => { if (belu.dataset.src !== src) { belu.src = src; belu.dataset.src = src; } };
   const labels = root.querySelector('.pro-labels');
   const caption = root.querySelector('.pro-caption p');
   const nextButton = root.querySelector('.pro-next');
@@ -229,12 +232,18 @@ export function playPrologue({ robots = [], onDone } = {}) {
   function beluBox(time) {
     const cam = camAt(time);
     const surface = lerp(-0.15 * h, 0.8 * h, cam);
-    const bw = Math.min(w * 0.46, 280), bh = bw * 0.53;
+    if (cam > 0.85) {                                    // at the surface Belu turns to us, half out of the water
+      const fw = Math.min(w * 0.26, h * 0.2, 150), fh = fw * FRONT_RATIO;
+      const fbob = reduced ? 0 : Math.sin(time * 1.4) * 4;
+      const fx = Math.max(12, w * 0.15 - fw / 2), fy = surface - fh * 0.6 + fbob;
+      return { x: fx, y: fy, bw: fw, bh: fh, surface, cam, front: true, head: { x: fx + fw / 2, y: fy + fh * 0.3 } };
+    }
+    const bw = Math.min(w * 0.46, 280), bh = bw * SWIM_RATIO;
     const swimIn = ease(time / 5);
     const x = lerp(lerp(-bw, w * 0.24, swimIn), w * 0.06, cam);
     const bob = reduced ? 0 : Math.sin(time * 1.4) * (cam > 0.9 ? 4 : 9);
     const y = surface + lerp(0.55 * h, -bh * 0.55, cam) + bob;
-    return { x, y, bw, bh, surface, cam, head: { x: x + bw * 0.95, y: y + bh * 0.55 } };
+    return { x, y, bw, bh, surface, cam, head: { x: x + bw * 0.97, y: y + bh * 0.45 } };
   }
 
   function drawFrame(time) {
@@ -256,7 +265,7 @@ export function playPrologue({ robots = [], onDone } = {}) {
 
     // Ocean
     const og = bctx.createLinearGradient(0, surface, 0, surface + 1.3 * h);
-    og.addColorStop(0, '#145a72'); og.addColorStop(0.35, '#0e3550'); og.addColorStop(1, '#0b0a1f');
+    og.addColorStop(0, '#145a72'); og.addColorStop(0.35, '#0e3550'); og.addColorStop(1, '#05070d');
     bctx.fillStyle = og;
     bctx.fillRect(0, Math.max(0, surface), w, h);
     // Light rays from the surface
@@ -266,7 +275,7 @@ export function playPrologue({ robots = [], onDone } = {}) {
       const sway = reduced ? 0 : Math.sin(time * 0.3 + i * 1.7) * 30;
       const x0 = w * (0.1 + i * 0.22) + sway;
       const ray = bctx.createLinearGradient(0, surface, 0, surface + h * 0.9);
-      ray.addColorStop(0, 'rgba(93,228,255,.10)'); ray.addColorStop(1, 'rgba(93,228,255,0)');
+      ray.addColorStop(0, 'rgba(93,255,176,.10)'); ray.addColorStop(1, 'rgba(93,255,176,0)');
       bctx.fillStyle = ray;
       bctx.beginPath();
       bctx.moveTo(x0, surface); bctx.lineTo(x0 + 50, surface);
@@ -286,7 +295,7 @@ export function playPrologue({ robots = [], onDone } = {}) {
     const rock = { x: w * 0.82, y: surface + 0.95 * h };
     if (rock.y < h + 60) {
       bctx.fillStyle = '#123b52';
-      bctx.strokeStyle = 'rgba(93,228,255,.35)';
+      bctx.strokeStyle = 'rgba(93,255,176,.35)';
       bctx.lineWidth = 2;
       bctx.beginPath();
       bctx.moveTo(rock.x - 70, rock.y + 60); bctx.lineTo(rock.x - 40, rock.y - 30); bctx.lineTo(rock.x + 10, rock.y - 50);
@@ -302,11 +311,11 @@ export function playPrologue({ robots = [], onDone } = {}) {
         const age = time - 3 - k * period;
         const r = age * speed;
         if (r < dist) {
-          bctx.strokeStyle = `rgba(93,228,255,${0.9 * (1 - r / dist) + 0.1})`; bctx.lineWidth = 4;
+          bctx.strokeStyle = `rgba(93,255,176,${0.9 * (1 - r / dist) + 0.1})`; bctx.lineWidth = 4;
           bctx.beginPath(); bctx.arc(b.head.x, b.head.y, r, dir - 0.5, dir + 0.5); bctx.stroke();
         } else if (time >= 7 && r < dist * 2) {
           const rr = r - dist;
-          bctx.strokeStyle = `rgba(255,155,213,${0.8 * (1 - rr / dist) + 0.1})`; bctx.lineWidth = 3;
+          bctx.strokeStyle = `rgba(255,179,71,${0.8 * (1 - rr / dist) + 0.1})`; bctx.lineWidth = 3;
           bctx.beginPath(); bctx.arc(rock.x, rock.y, rr, dir + Math.PI - 0.4, dir + Math.PI + 0.4); bctx.stroke();
         }
       }
@@ -321,7 +330,7 @@ export function playPrologue({ robots = [], onDone } = {}) {
         if (!wd.r) continue;
         const x = wd.cx, y = wd.cy + lift, r = wd.r;
         if (id === 'ceres') {                              // Dawn's orbit
-          bctx.strokeStyle = 'rgba(180,155,255,.22)'; bctx.lineWidth = 1; bctx.setLineDash([3, 5]);
+          bctx.strokeStyle = 'rgba(167,139,250,.22)'; bctx.lineWidth = 1; bctx.setLineDash([3, 5]);
           bctx.beginPath(); bctx.arc(x, y, r * 2.6, 0, TAU); bctx.stroke(); bctx.setLineDash([]);
         }
         const pg = bctx.createRadialGradient(x - r * 0.3, y - r * 0.3, r * 0.1, x, y, r);
@@ -346,21 +355,21 @@ export function playPrologue({ robots = [], onDone } = {}) {
         if (on <= 0) continue;
         const x = f.x, y = f.y + lift;
         if (id === 'deep') {                               // Pioneer 10 heads out of the solar system
-          bctx.strokeStyle = `rgba(180,155,255,${0.35 * on})`; bctx.lineWidth = 1.5; bctx.setLineDash([2, 5]);
+          bctx.strokeStyle = `rgba(167,139,250,${0.35 * on})`; bctx.lineWidth = 1.5; bctx.setLineDash([2, 5]);
           bctx.beginPath(); bctx.moveTo(x + 46, y + 22); bctx.lineTo(x + 8, y + 4); bctx.stroke(); bctx.setLineDash([]);
         }
         const lit = on * (1 - off);
         const pulse = reduced ? 0.5 : (time * 0.9 + f.i * 0.3) % 1;
         if (lit > 0.05) {
-          bctx.strokeStyle = `rgba(93,228,255,${0.55 * lit * (1 - pulse)})`; bctx.lineWidth = 1.5;
+          bctx.strokeStyle = `rgba(93,255,176,${0.55 * lit * (1 - pulse)})`; bctx.lineWidth = 1.5;
           bctx.beginPath(); bctx.arc(x, y, 4 + pulse * 12, 0, TAU); bctx.stroke();
         }
         const gl = bctx.createRadialGradient(x, y, 0, x, y, 9);
-        gl.addColorStop(0, lit > 0.05 ? `rgba(93,228,255,${lit})` : 'rgba(154,156,196,.55)');
-        gl.addColorStop(1, 'rgba(93,228,255,0)');
+        gl.addColorStop(0, lit > 0.05 ? `rgba(93,255,176,${lit})` : 'rgba(154,156,196,.55)');
+        gl.addColorStop(1, 'rgba(93,255,176,0)');
         bctx.fillStyle = gl;
         bctx.beginPath(); bctx.arc(x, y, 9, 0, TAU); bctx.fill();
-        bctx.fillStyle = lit > 0.05 ? '#e9fbff' : '#8a8cb0';
+        bctx.fillStyle = lit > 0.05 ? '#eafff5' : '#8a8cb0';
         bctx.beginPath(); bctx.arc(x, y, 2.6, 0, TAU); bctx.fill();
       }
       tag.el.style.opacity = String(shown);
@@ -374,7 +383,7 @@ export function playPrologue({ robots = [], onDone } = {}) {
         const age = (time - 48 - k * 1.8);
         if (age < 0) continue;
         const r = (age % 5.4) * h * 0.25;
-        bctx.strokeStyle = `rgba(93,228,255,${0.6 * Math.max(0, 1 - r / (h * 0.9))})`; bctx.lineWidth = 2.5;
+        bctx.strokeStyle = `rgba(93,255,176,${0.6 * Math.max(0, 1 - r / (h * 0.9))})`; bctx.lineWidth = 2.5;
         bctx.beginPath(); bctx.arc(b.head.x, b.head.y, r, -Math.PI * 0.85, -Math.PI * 0.15); bctx.stroke();
       }
     }
@@ -383,7 +392,7 @@ export function playPrologue({ robots = [], onDone } = {}) {
     belu.style.width = `${b.bw}px`;
     belu.style.transform = `translate(${Math.round(b.x)}px, ${Math.round(b.y)}px)`;
     const mood = time >= 37 && time < END ? 'sad' : time >= 25 && time < 37 ? 'happy' : 'neutral';
-    if (!belu.src.endsWith(`belu-${mood}.svg`)) belu.src = BELU(mood);
+    setBelu(b.front ? BELU(mood) : SWIM);
 
     // Water in front of Belu near the surface (he looks half under water)
     fctx.clearRect(0, 0, w, h);
@@ -429,7 +438,7 @@ export function playPrologue({ robots = [], onDone } = {}) {
     cancelAnimationFrame(raf);
     t = END;
     drawFrame(47.5);                                     // every friend is quiet, Belu waits
-    belu.src = BELU('neutral');
+    setBelu(BELU('neutral'));
     root.querySelector('.pro-caption').hidden = true;
     skipButton.hidden = true;
     bar.style.width = '100%';

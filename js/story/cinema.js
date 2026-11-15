@@ -616,7 +616,7 @@ function party() {
   c.width = w * dpr; c.height = h * dpr;
   const ctx = c.getContext('2d');
   ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-  const colors = ['#5de4ff', '#ff9bd5', '#b49bff', '#eef0ff'];
+  const colors = ['#5dffb0', '#ffb347', '#a78bfa', '#e8ecf4'];
   const bubbles = Array.from({ length: 46 }, () => ({
     x: Math.random() * w, y: h + Math.random() * h * 0.4, r: 4 + Math.random() * 16,
     v: 120 + Math.random() * 220, wob: Math.random() * 6, color: colors[Math.floor(Math.random() * colors.length)],

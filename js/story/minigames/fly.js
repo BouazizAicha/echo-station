@@ -192,18 +192,18 @@ function run(mg, ui) {
     ctx.fillText('SMOOTH SAND', (SAND.a + SAND.b) / 2, 448);
     // airfields
     for (const [pad, name] of [[PAD_A, 'AIRFIELD A'], [PAD_B, 'AIRFIELD B']]) {
-      ctx.strokeStyle = '#5de4ff'; ctx.lineWidth = 2; ctx.setLineDash([5, 4]);
+      ctx.strokeStyle = '#5dffb0'; ctx.lineWidth = 2; ctx.setLineDash([5, 4]);
       ctx.beginPath(); ctx.moveTo(pad.a, 421); ctx.lineTo(pad.b, 421); ctx.stroke(); ctx.setLineDash([]);
-      ctx.fillStyle = '#5de4ff'; ctx.fillText(name, (pad.a + pad.b) / 2, 440);
+      ctx.fillStyle = '#5dffb0'; ctx.fillText(name, (pad.a + pad.b) / 2, 440);
     }
     // photo spots
     for (const s of SPOTS) {
       const done = photos.has(s.x);
       const y = groundY(s.x) - 70;
-      ctx.strokeStyle = done ? 'rgba(93,228,255,.9)' : 'rgba(255,155,213,.9)'; ctx.lineWidth = 2;
+      ctx.strokeStyle = done ? 'rgba(93,255,176,.9)' : 'rgba(255,179,71,.9)'; ctx.lineWidth = 2;
       ctx.setLineDash(done ? [] : [4, 3]);
       ctx.strokeRect(s.x - 24, y - 16, 48, 32); ctx.setLineDash([]);
-      ctx.fillStyle = done ? '#5de4ff' : '#ff9bd5';
+      ctx.fillStyle = done ? '#5dffb0' : '#ffb347';
       ctx.fillText(done ? '✓ PHOTO' : 'CAMERA', s.x, y + 4);
     }
     // helicopter
@@ -213,7 +213,7 @@ function run(mg, ui) {
     ctx.strokeStyle = '#c9d3e6'; ctx.lineWidth = 2; ctx.lineCap = 'round';
     ctx.beginPath(); ctx.moveTo(x - 6, y + 10); ctx.lineTo(x - 16, y + 22); ctx.moveTo(x + 6, y + 10); ctx.lineTo(x + 16, y + 22); ctx.stroke();
     ctx.fillStyle = '#2a2660'; ctx.beginPath(); ctx.roundRect(x - 9, y - 2, 18, 13, 3); ctx.fill(); ctx.stroke();
-    ctx.fillStyle = '#5de4ff'; ctx.beginPath(); ctx.arc(x, y + 4, 2.5, 0, TAU); ctx.fill();
+    ctx.fillStyle = '#5dffb0'; ctx.beginPath(); ctx.arc(x, y + 4, 2.5, 0, TAU); ctx.fill();
     ctx.beginPath(); ctx.moveTo(x, y - 2); ctx.lineTo(x, y - 16); ctx.stroke();
     ctx.fillStyle = '#1d2a5a'; ctx.fillRect(x - 11, y - 20, 22, 3);
     for (const dy of [-12, -7]) {
@@ -227,23 +227,23 @@ function run(mg, ui) {
     if (flash > 0) { ctx.fillStyle = `rgba(255,255,255,${flash * 0.35})`; ctx.fillRect(0, 0, W, H); }
 
     // gauges + mini-map
-    bar(ctx, 12, 12, 120, 14, battery / BATTERY, battery < 15 ? '#ff9bd5' : '#5de4ff', `BATTERY ${Math.round(battery / BATTERY * 100)}%`);
+    bar(ctx, 12, 12, 120, 14, battery / BATTERY, battery < 15 ? '#ffb347' : '#5dffb0', `BATTERY ${Math.round(battery / BATTERY * 100)}%`);
     panel(ctx, 12, 32, 120, 16);
-    ctx.fillStyle = '#eef0ff'; ctx.font = '700 9px "JetBrains Mono", monospace'; ctx.textAlign = 'left';
+    ctx.fillStyle = '#e8ecf4'; ctx.font = '700 9px "JetBrains Mono", monospace'; ctx.textAlign = 'left';
     ctx.fillText(`PHOTOS ${photos.size}/3`, 18, 44);
     panel(ctx, 146, 12, 202, 26);
     const mx = v => 152 + (v / WORLD) * 190;
     ctx.fillStyle = 'rgba(226,170,120,.5)'; ctx.fillRect(mx(SAND.a), 22, mx(SAND.b) - mx(SAND.a), 8);
-    ctx.fillStyle = '#5de4ff'; ctx.fillRect(mx(PAD_A.a), 28, mx(PAD_A.b) - mx(PAD_A.a), 3); ctx.fillRect(mx(PAD_B.a), 28, mx(PAD_B.b) - mx(PAD_B.a), 3);
-    for (const s of SPOTS) { ctx.fillStyle = photos.has(s.x) ? '#5de4ff' : '#ff9bd5'; ctx.fillRect(mx(s.x) - 2, 18, 4, 4); }
+    ctx.fillStyle = '#5dffb0'; ctx.fillRect(mx(PAD_A.a), 28, mx(PAD_A.b) - mx(PAD_A.a), 3); ctx.fillRect(mx(PAD_B.a), 28, mx(PAD_B.b) - mx(PAD_B.a), 3);
+    for (const s of SPOTS) { ctx.fillStyle = photos.has(s.x) ? '#5dffb0' : '#ffb347'; ctx.fillRect(mx(s.x) - 2, 18, 4, 4); }
     ctx.fillStyle = '#ffffff'; ctx.beginPath(); ctx.arc(mx(heli.x), 25, 3, 0, TAU); ctx.fill();
 
     // the goal, in words, and an arrow when it is off screen
     const goal = nextGoal();
-    let words = photos.size < 3 ? `Photo ${photos.size + 1} of 3: fly to the pink CAMERA box` : 'Now land on AIRFIELD B';
+    let words = photos.size < 3 ? `Photo ${photos.size + 1} of 3: fly to the orange CAMERA box` : 'Now land on AIRFIELD B';
     if (!heli.flying && state === 'play') words = battery > 0 ? 'Hold ▲ to take off' : words;
     if (hoverAt != null) words = 'Stay low and still… 📷';
-    goalBanner(ctx, W, 52, words, hoverAt != null ? '#5de4ff' : '#eef0ff');
+    goalBanner(ctx, W, 52, words, hoverAt != null ? '#5dffb0' : '#e8ecf4');
     const gx = goal.x - camX;
     if (gx < 0) edgeArrow(ctx, 18, 250, Math.PI);
     if (gx > W) edgeArrow(ctx, W - 18, 250, 0);

@@ -119,13 +119,13 @@ function spirit(container, robot, done) {
         ctx.fillStyle = `rgba(255,255,255,${a})`;
         ctx.beginPath(); ctx.arc(sx, Y + 21, 2, 0, TAU); ctx.fill();
       }
-      ctx.fillStyle = '#0b0a1f'; ctx.font = '700 11px "JetBrains Mono", monospace';
+      ctx.fillStyle = '#05070d'; ctx.font = '700 11px "JetBrains Mono", monospace';
       ctx.fillText('SILICA', (END + START) / 2 - 20, Y + 25);
     }
     // a piece of the rover above the wheel
     ctx.strokeStyle = '#c9d3e6'; ctx.lineWidth = 4; ctx.lineCap = 'round';
     ctx.beginPath(); ctx.moveTo(x, Y); ctx.lineTo(x + 34, Y - 40); ctx.lineTo(x + 120, Y - 40); ctx.stroke();
-    ctx.fillStyle = '#1d2a5a'; ctx.strokeStyle = '#5de4ff'; ctx.lineWidth = 2;
+    ctx.fillStyle = '#1d2a5a'; ctx.strokeStyle = '#5dffb0'; ctx.lineWidth = 2;
     ctx.beginPath(); ctx.roundRect(x + 30, Y - 54, 110, 10, 3); ctx.fill(); ctx.stroke();
     // the stuck wheel (it does not turn: it is dragged!)
     ctx.save();
@@ -136,7 +136,7 @@ function spirit(container, robot, done) {
     for (let i = 0; i < 6; i++) { ctx.beginPath(); ctx.moveTo(0, 0); ctx.lineTo(Math.cos(i * TAU / 6) * 18, Math.sin(i * TAU / 6) * 18); ctx.stroke(); }
     ctx.restore();
     if (!finished && !dragging && !holding) {
-      ctx.fillStyle = 'rgba(93,228,255,.9)'; ctx.font = '700 22px Inter, sans-serif';
+      ctx.fillStyle = 'rgba(93,255,176,.9)'; ctx.font = '700 22px Inter, sans-serif';
       const bounce = reducedMotion() ? 0 : Math.sin(t * 4) * 4;
       ctx.fillText('◀', x - 52 + bounce, Y + 8);
     }
@@ -209,9 +209,9 @@ function ingenuity(container, robot, done) {
     ctx.stroke();
     ctx.fillStyle = '#2a2660';
     ctx.beginPath(); ctx.roundRect(W / 2 - 18, y - 2, 36, 22, 5); ctx.fill(); ctx.stroke();
-    ctx.fillStyle = '#5de4ff'; ctx.beginPath(); ctx.arc(W / 2, y + 9, 3.5, 0, TAU); ctx.fill();
+    ctx.fillStyle = '#5dffb0'; ctx.beginPath(); ctx.arc(W / 2, y + 9, 3.5, 0, TAU); ctx.fill();
     ctx.beginPath(); ctx.moveTo(W / 2, y - 2); ctx.lineTo(W / 2, y - 34); ctx.stroke();
-    ctx.fillStyle = '#1d2a5a'; ctx.strokeStyle = '#5de4ff'; ctx.lineWidth = 2;
+    ctx.fillStyle = '#1d2a5a'; ctx.strokeStyle = '#5dffb0'; ctx.lineWidth = 2;
     ctx.beginPath(); ctx.roundRect(W / 2 - 22, y - 40, 44, 6, 2); ctx.fill(); ctx.stroke();
     // two rotors, spinning in opposite directions. Fast = a soft disc (no flicker)
     for (const [dy, dir] of [[-26, 1], [-16, -1]]) {
@@ -231,8 +231,8 @@ function ingenuity(container, robot, done) {
     }
     // rpm gauge
     const p = Math.min(1, rpm / GOAL);
-    ctx.fillStyle = 'rgba(11,10,31,.65)'; ctx.beginPath(); ctx.roundRect(12, 12, 116, 14, 7); ctx.fill();
-    ctx.fillStyle = p >= 1 ? '#ff9bd5' : '#5de4ff'; ctx.beginPath(); ctx.roundRect(12, 12, Math.max(14, 116 * p), 14, 7); ctx.fill();
+    ctx.fillStyle = 'rgba(5,7,13,.65)'; ctx.beginPath(); ctx.roundRect(12, 12, 116, 14, 7); ctx.fill();
+    ctx.fillStyle = p >= 1 ? '#ffb347' : '#5dffb0'; ctx.beginPath(); ctx.roundRect(12, 12, Math.max(14, 116 * p), 14, 7); ctx.fill();
   }
 
   const stop = loop((dt, t) => {
@@ -316,11 +316,11 @@ function opportunity(container, robot, done) {
       // the blueberries: small blue-grey spheres
       for (const b of targets) {
         const gr = ctx.createRadialGradient(b.x - 2, b.y - 2, 1, b.x, b.y, 7);
-        gr.addColorStop(0, b.found ? '#e9fbff' : '#9fb3d6'); gr.addColorStop(1, b.found ? '#5de4ff' : '#4b5a7c');
+        gr.addColorStop(0, b.found ? '#eafff5' : '#9fb3d6'); gr.addColorStop(1, b.found ? '#5dffb0' : '#4b5a7c');
         ctx.fillStyle = gr;
         ctx.beginPath(); ctx.arc(b.x, b.y, 6.5, 0, TAU); ctx.fill();
         if (b.found) {
-          ctx.strokeStyle = 'rgba(93,228,255,.8)'; ctx.lineWidth = 2;
+          ctx.strokeStyle = 'rgba(93,255,176,.8)'; ctx.lineWidth = 2;
           ctx.beginPath(); ctx.arc(b.x, b.y, 12 + (reducedMotion() ? 0 : Math.sin(t * 3) * 2), 0, TAU); ctx.stroke();
         }
       }
@@ -355,7 +355,7 @@ function dawn(container, robot, done) {
         ctx.fillStyle = g;
         ctx.beginPath(); ctx.arc(s.x, s.y, glowR, 0, TAU); ctx.fill();
         if (s.found) {
-          ctx.fillStyle = '#ff9bd5'; ctx.font = '700 10px "JetBrains Mono", monospace';
+          ctx.fillStyle = '#ffb347'; ctx.font = '700 10px "JetBrains Mono", monospace';
           ctx.fillText('SALT', s.x - 12, s.y - s.r - 10);
         }
       }
@@ -417,7 +417,7 @@ function eagle(container, robot, done) {
     ctx.beginPath(); ctx.moveTo(300, 0); ctx.lineTo(318, 54); ctx.stroke();
     ctx.beginPath(); ctx.ellipse(318, 60, 18, 6, 0, 0, TAU); ctx.fill(); ctx.stroke();
     // the seismometer (a little box with solar panels)
-    ctx.fillStyle = '#1d2a5a'; ctx.strokeStyle = '#5de4ff';
+    ctx.fillStyle = '#1d2a5a'; ctx.strokeStyle = '#5dffb0';
     ctx.beginPath(); ctx.roundRect(254, 112, 30, 8, 2); ctx.fill(); ctx.stroke();
     ctx.fillStyle = '#c9d3e6'; ctx.beginPath(); ctx.roundRect(264, 118, 10, 12, 2); ctx.fill();
     for (const p of prints) bootprint(p.x, p.y, p.left);
@@ -426,10 +426,10 @@ function eagle(container, robot, done) {
     wave.copyWithin(0, 1);
     shake *= reducedMotion() ? 0.5 : 0.9;
     wave[wave.length - 1] = (Math.random() - 0.5) * 2 + Math.sin(t * 40) * 14 * shake;
-    ctx.fillStyle = '#0b0a1f'; ctx.fillRect(0, SEIS_Y - 14, W, H - SEIS_Y + 14);
-    ctx.fillStyle = '#9a9cc4'; ctx.font = '9px "JetBrains Mono", monospace';
+    ctx.fillStyle = '#05070d'; ctx.fillRect(0, SEIS_Y - 14, W, H - SEIS_Y + 14);
+    ctx.fillStyle = '#8a94a8'; ctx.font = '9px "JetBrains Mono", monospace';
     ctx.fillText('SEISMOMETER', 8, SEIS_Y - 2);
-    ctx.strokeStyle = '#5de4ff'; ctx.lineWidth = 1.5;
+    ctx.strokeStyle = '#5dffb0'; ctx.lineWidth = 1.5;
     ctx.beginPath();
     for (let i = 0; i < wave.length; i++) {
       const x = (i / (wave.length - 1)) * W, y = SEIS_Y + 18 + wave[i];

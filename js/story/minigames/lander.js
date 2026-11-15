@@ -157,10 +157,10 @@ function run(mg, ui) {
       ctx.fillStyle = '#4b4f5c'; ctx.beginPath(); ctx.ellipse(b.x, groundY(b.x) - b.r * 0.4, b.r * 1.3, b.r, 0, 0, TAU); ctx.fill();
       ctx.fillStyle = 'rgba(220,226,240,.25)'; ctx.beginPath(); ctx.ellipse(b.x - b.r * 0.3, groundY(b.x) - b.r * 0.8, b.r * 0.5, b.r * 0.3, 0, 0, TAU); ctx.fill();
     }
-    ctx.fillStyle = 'rgba(255,155,213,.9)'; ctx.font = '700 9px "JetBrains Mono", monospace'; ctx.textAlign = 'center';
+    ctx.fillStyle = 'rgba(255,179,71,.9)'; ctx.font = '700 9px "JetBrains Mono", monospace'; ctx.textAlign = 'center';
     ctx.fillText('BOULDERS', (BOULDERS.a + BOULDERS.b) / 2, 456);
-    ctx.fillStyle = '#5de4ff'; ctx.fillText(state === 'landed' ? 'TRANQUILITY BASE' : 'FLAT GROUND', (ZONE.a + ZONE.b) / 2, 456);
-    ctx.strokeStyle = 'rgba(93,228,255,.7)'; ctx.lineWidth = 2; ctx.setLineDash([4, 4]);
+    ctx.fillStyle = '#5dffb0'; ctx.fillText(state === 'landed' ? 'TRANQUILITY BASE' : 'FLAT GROUND', (ZONE.a + ZONE.b) / 2, 456);
+    ctx.strokeStyle = 'rgba(93,255,176,.7)'; ctx.lineWidth = 2; ctx.setLineDash([4, 4]);
     ctx.beginPath(); ctx.moveTo(ZONE.a, 432); ctx.lineTo(ZONE.b, 432); ctx.stroke(); ctx.setLineDash([]);
     // dust
     for (const d of dust) {
@@ -177,26 +177,26 @@ function run(mg, ui) {
     drawLM(lm.x, lm.y, state === 'fly' && keys.up && fuel > 0);
 
     // gauges
-    bar(ctx, 12, 12, 120, 14, fuel / FUEL_START, fuel * SHOW < 30 ? '#ff9bd5' : '#5de4ff', `FUEL ${Math.round(fuel * SHOW)} s`);
+    bar(ctx, 12, 12, 120, 14, fuel / FUEL_START, fuel * SHOW < 30 ? '#ffb347' : '#5dffb0', `FUEL ${Math.round(fuel * SHOW)} s`);
     const fast = lm.vy > SAFE_DOWN;
     panel(ctx, 12, 32, 120, 30);
     ctx.textAlign = 'left'; ctx.font = '700 10px "JetBrains Mono", monospace';
-    ctx.fillStyle = fast ? '#ff9bd5' : '#5de4ff';
+    ctx.fillStyle = fast ? '#ffb347' : '#5dffb0';
     ctx.fillText(`DOWN ${Math.max(0, lm.vy / 2).toFixed(1)} m/s`, 18, 45);
-    ctx.fillStyle = Math.abs(lm.vx) > SAFE_SIDE ? '#ff9bd5' : '#9a9cc4';
+    ctx.fillStyle = Math.abs(lm.vx) > SAFE_SIDE ? '#ffb347' : '#8a94a8';
     ctx.fillText(`SIDE ${(lm.vx / 2).toFixed(1)} m/s`, 18, 57);
     if (alarm > 0) {
       panel(ctx, 150, 12, 198, 34);
       ctx.fillStyle = '#ffd166'; ctx.font = '700 11px "JetBrains Mono", monospace';
       ctx.fillText(said.has('1201') ? '1201 PROGRAM ALARM' : '1202 PROGRAM ALARM', 158, 27);
-      ctx.fillStyle = '#eef0ff'; ctx.font = '10px Inter, sans-serif';
+      ctx.fillStyle = '#e8ecf4'; ctx.font = '10px Inter, sans-serif';
       ctx.fillText('Houston: "We\'re GO on that alarm!"', 158, 40);
     }
     // the goal, in words, and a sign on the landing spot
     const overZone = lm.x >= ZONE.a && lm.x <= ZONE.b;
-    goalBanner(ctx, W, 70, state === 'landed' ? 'Landed!' : overZone ? 'Now land slowly ↓' : lm.x < ZONE.a ? 'Fly to the FLAT GROUND →' : '← Fly back to the FLAT GROUND', overZone ? '#5de4ff' : '#eef0ff');
+    goalBanner(ctx, W, 70, state === 'landed' ? 'Landed!' : overZone ? 'Now land slowly ↓' : lm.x < ZONE.a ? 'Fly to the FLAT GROUND →' : '← Fly back to the FLAT GROUND', overZone ? '#5dffb0' : '#e8ecf4');
     const bounce = reducedMotion() ? 0 : Math.sin(t * 3) * 4;
-    ctx.fillStyle = '#5de4ff'; ctx.textAlign = 'center'; ctx.font = '700 10px "JetBrains Mono", monospace';
+    ctx.fillStyle = '#5dffb0'; ctx.textAlign = 'center'; ctx.font = '700 10px "JetBrains Mono", monospace';
     ctx.fillText('LAND HERE', (ZONE.a + ZONE.b) / 2, 392 + bounce);
     ctx.font = '700 16px Inter, sans-serif'; ctx.fillText('↓', (ZONE.a + ZONE.b) / 2, 410 + bounce);
     if (state === 'fly' && altNow < 150 && lm.vy > SAFE_DOWN) warning(ctx, clamp(lm.x, 70, W - 70), lm.y - 26, 'TOO FAST! Hold ▲');
