@@ -304,10 +304,10 @@ details a { color: var(--signal); }
   .live-dot { animation: none; }
 }
 
-/* =====================================================================
+/* ======
    STORY MODE (Dev B): mode choice, switch, prologue, story cards,
    discovery moments, "Why it matters". Uses the palette above.
-   ===================================================================== */
+   ====== */
 
 /* ---- First screen: choose how to explore ---- */
 .mode-choice { display: grid; gap: .75rem; margin: 1.5rem 0 .5rem; }
@@ -650,10 +650,10 @@ body.mode-story #guide { display: none; }
   .sonar-click.pinged .sonar-click-ring, .sonar-compass.show .sonar-arrow { animation: none; opacity: .9; }
 }
 
-/* =====================================================================
+/* ======
    CALM LAYOUT (Dev B): fewer things moving, fewer words, bigger targets.
    For 9–15 year-olds on a phone: one main action per screen, no over-stimulation.
-   ===================================================================== */
+   ====== */
 
 /* ---- Top-right tools: sound + mode ---- */
 #top-tools { position: fixed; top: .6rem; right: .6rem; z-index: 60; display: flex; align-items: center; gap: .4rem; }
@@ -736,9 +736,9 @@ body.mode-story #list-view[open] summary::after { content: "▾ Tune in from the
 #mg-controls button { padding: 0 .85rem; }
 .mg-help { min-width: 48px !important; }
 
-/* =====================================================================
+/* ======
    SETTINGS & ACCESSIBILITY (Dev B)
-   ===================================================================== */
+   ====== */
 #settings-button {
   display: inline-flex; align-items: center; justify-content: center; gap: .35rem; margin: 0;
   min-height: 40px; min-width: 40px; padding: .35rem .75rem; border-radius: 999px;
@@ -827,10 +827,10 @@ html[style*="125%"] .cine-title, html[style*="112.5%"] .cine-title { overflow-wr
 .logo { display: block; width: min(62vw, 300px); height: auto; margin: 0 auto; }
 @media (max-height: 700px) { .logo { width: min(56vw, 240px); } }
 
-/* =====================================================================
+/* ======
    CLEAR SKY SCREEN (Dev B): the same signs everywhere
    pink arrow = last echo (Story) · blue arrow = nearest target (Scientist) · filling ring = hold still
-   ===================================================================== */
+   ====== */
 /* Aim switch: one control, the active way is highlighted */
 .map-toolbar { gap: .4rem; }
 .map-toolbar #btn-antenna, .map-toolbar #btn-map { border-radius: 12px; }
@@ -864,9 +864,9 @@ dialog.coach::backdrop { background: rgba(5, 4, 20, .6); }
   background: var(--panel); border: 1px solid var(--line); color: var(--signal); font-weight: 800; }
 .coach-go { margin-top: auto; width: 100%; }
 
-/* =====================================================================
+/* ======
    DESIGN PASS (Dev B): one app bar, consistent spacing, better proportions on phones
-   ===================================================================== */
+   ====== */
 :root { --bar-h: 56px; }
 
 /* ---- App bar: ← Back (or the wordmark) on the left, tools on the right, on every screen ---- */
@@ -927,9 +927,9 @@ body .screen:not(.cinema):not(.why), body #screen-radio, body #screen-intro {
 .sonar-words { min-width: 0; }
 .cine-result-headline { margin: 0 0 .35rem; font-family: "Space Grotesk", "Inter", sans-serif; font-size: 1.15rem; font-weight: 700; color: var(--fg); }
 
-/* =====================================================================
+/* ======
    SCIENTIST MODE (Dev B): live sky data table + robot "mission file"
-   ===================================================================== */
+   ====== */
 #sky-data { display: none; }
 body.mode-science #sky-data { display: block; }
 .sky-data { margin: 0; padding: .6rem .75rem .75rem; border: 1px solid var(--line); border-radius: var(--radius, 14px); background: rgba(255, 255, 255, .015); }
@@ -960,11 +960,11 @@ body.mode-science #sky-data { display: block; }
 /* Grid children must be allowed to shrink, or a wide table pushes the page sideways on phones */
 .radio-layout > *, .hud, .map-panel { min-width: 0; }
 
-/* =====================================================================
+/* ======
    FINAL POLISH (Dev B): one look everywhere
    Cards: 18px corners, soft border, soft shadow · Buttons: 14px corners, primary = aqua
    Icons: one line-icon set · A quiet, still starfield behind every screen
-   ===================================================================== */
+   ====== */
 :root {
   --r-card: 18px;
   --r-btn: 14px;
@@ -1045,9 +1045,9 @@ button:not(.big):not(.link):not(.mode-card):not(.disc-target):not(.disc-cover) {
 [hidden] { display: none !important; }
 .map-toolbar #btn-antenna, .map-toolbar #btn-map { white-space: nowrap; padding: .55rem .5rem; font-size: .88rem; }
 
-/* =====================================================================
+/* ======
    FIXES FROM TESTING ON WINDOWS (Dev B)
-   ===================================================================== */
+   ====== */
 /* Thin, dark scrollbars everywhere (no white Windows bars) */
 * { scrollbar-width: thin; scrollbar-color: #3a3670 transparent; }
 *::-webkit-scrollbar { width: 8px; height: 8px; }
@@ -1190,6 +1190,18 @@ button:not(.big):not(.link):not(.mode-card):not(.disc-target):not(.disc-cover) {
 #finale-moon { object-fit: contain; background: transparent; border-radius: 50%; box-shadow: 0 0 28px rgba(201, 211, 230, .24); }
 @media (prefers-reduced-motion: reduce) { body::after { filter: blur(42px); } }
 
+
+/* Full-page animated intro, followed by the welcome screen */
+#intro-splash { position: fixed; inset: 0; z-index: 10000; display: grid; place-items: center; overflow: hidden;
+  background: #070c1d; opacity: 1; transition: opacity .45s ease; }
+#intro-splash.is-fading { opacity: 0; pointer-events: none; }
+#intro-splash[hidden] { display: none; }
+#intro-splash-art { display: block; width: 100%; height: 100%; object-fit: contain; }
+#intro-splash-skip { position: absolute; right: max(1rem, env(safe-area-inset-right)); bottom: max(1rem, env(safe-area-inset-bottom));
+  margin: 0; padding: .55rem .9rem; color: var(--fg); background: rgba(17, 24, 39, .76); border: 1px solid rgba(232, 236, 244, .28);
+  border-radius: 999px; font-size: .9rem; backdrop-filter: blur(8px); }
+#intro-splash-skip:hover { background: rgba(23, 31, 58, .94); }
+@media (prefers-reduced-motion: reduce) { #intro-splash { transition: none; } }
 /* ---- Games use the whole screen; no text selection while tapping the buttons ---- */
 #screen-minigame { max-width: 760px; }
 .mg-stage { width: min(100%, calc((100svh - 265px) * 3 / 4)); }
