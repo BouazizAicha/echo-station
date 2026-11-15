@@ -12,7 +12,7 @@ export const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
 
 /* ---------- canvas ---------- */
 export function setupCanvas(canvas, W, H) {
-  const dpr = Math.min(2, window.devicePixelRatio || 1);
+  const dpr = Math.min(3, Math.max(2, (window.devicePixelRatio || 1) * 1.5));   // sharp when the game is shown big
   canvas.width = W * dpr;
   canvas.height = H * dpr;
   const ctx = canvas.getContext('2d');
